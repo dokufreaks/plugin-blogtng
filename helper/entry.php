@@ -71,7 +71,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             $this->entry['created'],
             $this->entry['lastmod'],
             $this->entry['author'],
-            $this->entry['login']
+            $this->entry['login'],
+            $this->entry['email']
         );
         $query = 'UPDATE articles SET page=?, title=?, image=?, lastmod=?, author=?, login=?, email=? WHERE pid=?';
         $result = $this->sqlite->query(

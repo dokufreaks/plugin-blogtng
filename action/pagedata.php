@@ -38,6 +38,16 @@ class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
 
         $data = $event->data;
 
+        // if date_created is not set, we are still in the first run of the
+        // metadata rendering processed as triggered by p_set_metadata, so we
+        // refuse to do any work here
+        //
+        // if that stupid behavior of double-rendering the metadata with missing
+        // data in the first run is to be fixed in the future, the two lines
+        // below can be happily removed again ;)
+        if (!$data['persistent']['date']['created'])
+            return;
+
         // fetch author info
         $creator = $data['current']['creator'];
         $userdata = false;
@@ -55,7 +65,8 @@ class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
             'title' => $data['current']['title'],
             'image' => $data['current']['relation']['firstimage'],
             'created' => $date_created,
-            'lastmod' => ($date_modified === false) ? $date_created : $date_modified,
+            'lastmod' => (!$date_modified) ? $date_created : $date_modified,
+            'login' => $creator,
             'author' => ($userdata) ? $userdata['name'] : $creator,
             'email' => ($userdata) ? $userdata['email'] : '',
         );
