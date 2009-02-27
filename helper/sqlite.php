@@ -31,6 +31,7 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
      * return some info
      */
     function getInfo(){
+$this->_dbconnect();
         return confToHash(dirname(__FILE__).'/../INFO');
     }
 
@@ -41,8 +42,8 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
     function _dbconnect(){
         global $conf;
 
-        $dbfile = $conf['metadir'].'/blogplugin.sqlite';
-        $init   = (!@file_exists($dbfile) || !@filesize($dbfile));
+        $dbfile = $conf['metadir'].'/blogtng.sqlite';
+        $init   = (!@file_exists($dbfile) || ((int) @filesize($dbfile)) < 3);
 
         $error='';
         $this->db = sqlite_open($dbfile, 0666, $error);
@@ -60,11 +61,13 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
      * create the needed tables
      */
     function _initdb(){
-/*
-        sqlite_query($this->db,'CREATE TABLE pages (pid INTEGER PRIMARY KEY, page, title);');
-        sqlite_query($this->db,'CREATE UNIQUE INDEX idx_page ON pages(page);');
-        sqlite_query($this->db,'CREATE TABLE data (eid INTEGER PRIMARY KEY, pid INTEGER, key, value);');
-        sqlite_query($this->db,'CREATE INDEX idx_key ON data(key);');
-*/
+        $sql = io_readFile(dirname(__FILE__).'/../db/db.sql',false);
+        $sql = explode(';',$sql);
+        foreach($sql as $line){
+            @sqlite_query($this->db,"$line;",SQLITE_NUM,$err);
+            if($err){
+                msg($err.' - '.$line,-1);
+            }
+        }
     }
 }
