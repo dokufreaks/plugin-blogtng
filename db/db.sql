@@ -1,3 +1,7 @@
+CREATE TABLE opts (opt,val);
+CREATE UNIQUE INDEX idx_opt ON opts(opt);
+INSERT INTO opts (opt,val) VALUES('dbversion',1);
+
 CREATE TABLE articles (
     pid PRIMARY KEY,
     page,
@@ -6,7 +10,8 @@ CREATE TABLE articles (
     created INTEGER,
     lastmod INTEGER,
     author,
-    login
+    login,
+    email
 );
 CREATE UNIQUE INDEX idx_pid ON articles(pid);
 CREATE INDEX idx_title ON articles(title);
