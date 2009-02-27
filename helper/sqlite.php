@@ -99,7 +99,7 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
         if(count($args) < substr_count($sql,'?')){
             msg('Not enough arguments passed for statement. '.
                 'Expected '.substr_count($sql,'?').' got '.
-                count($args).' - '.hsc($sql));
+                count($args).' - '.hsc($sql),-1);
             return false;
         }
 
@@ -117,7 +117,20 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
         }elseif(!$res){
             msg(sqlite_error_string(sqlite_last_error($this->db)).
                 ' - '.hsc($sql),-1);
+            return false;
         }
+
         return $res;
+    }
+
+    /**
+     * Returns a complete result set as array
+     */
+    function res2arr($res){
+        $data = array();
+        while(($row = sqlite_fetch_array($res)) !== null){
+            $data[] = $row;
+        }
+        return $data;
     }
 }
