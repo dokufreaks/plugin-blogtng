@@ -97,7 +97,9 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
         }
 
         if(count($args) < substr_count($sql,'?')){
-            msg('Not enough arguments passed for statement');
+            msg('Not enough arguments passed for statement. '.
+                'Expected '.substr_count($sql,'?').' got '.
+                count($args).' - '.hsc($sql));
             return false;
         }
 
