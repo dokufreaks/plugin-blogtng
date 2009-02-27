@@ -7,6 +7,7 @@
 if(!defined('DOKU_INC')) die();
 
 if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
+require_once(DOKU_INC.'inc/infoutils.php');
 
 
 class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
