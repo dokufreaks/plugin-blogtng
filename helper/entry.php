@@ -46,7 +46,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * @author Michael Klier <chi@chimeric.de>
      */
     function load($pid) {
-        $query = 'FIXME';
+        $query = 'SELECT page, title, image, created, lastmod, author, login FROM articles';
         $this->entry = $this->sqlite->query($query);
         if(!$this->entry) {
             msg('blogtng plugin: failed to load entry!', -1);
