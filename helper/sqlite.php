@@ -31,7 +31,6 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
      * return some info
      */
     function getInfo(){
-$this->_dbconnect();
         return confToHash(dirname(__FILE__).'/../INFO');
     }
 
