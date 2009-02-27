@@ -61,7 +61,7 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
     /**
      * create the needed tables
      */
-    func+tion _initdb(){
+    function _initdb(){
         $sql = io_readFile(dirname(__FILE__).'/../db/db.sql',false);
         $sql = explode(';',$sql);
         foreach($sql as $line){
