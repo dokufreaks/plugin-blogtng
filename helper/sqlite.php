@@ -41,6 +41,8 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
     function _dbconnect(){
         global $conf;
 
+        if($this->db) return true;
+
         $dbfile = $conf['metadir'].'/blogtng.sqlite';
         $init   = (!@file_exists($dbfile) || ((int) @filesize($dbfile)) < 3);
 
@@ -59,7 +61,7 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
     /**
      * create the needed tables
      */
-    function _initdb(){
+    func+tion _initdb(){
         $sql = io_readFile(dirname(__FILE__).'/../db/db.sql',false);
         $sql = explode(';',$sql);
         foreach($sql as $line){
@@ -68,5 +70,47 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
                 msg($err.' - '.$line,-1);
             }
         }
+    }
+
+    /**
+     * Execute a query with the given parameters.
+     *
+     * Takes care of escaping
+     *
+     * @param string $sql - the statement
+     * @param arguments
+     */
+    function query(){
+        if(!$this->_dbconnect()) return;
+
+        $args = func_get_args();
+        $sql  = array_shift($args);
+
+        if(!$sql){
+            msg('No SQL statement given',-1);
+            return false;
+        }
+
+        $sqlparts = explode('?',$sql);
+        $len = count($sqlparts);
+        if(count($args) < $len){
+            msg('Not enough arguents passed for statement');
+            return false;
+        }
+
+        array_map('sqlite_escape_string',$args);
+        $statement = '';
+
+        for($i=0;$i<$len;$i++){
+            $statement .= $sqlparts[$i].$args[$i];
+        }
+
+        $res = @sqlite_query($this->db,$statement,SQLITE_NUM,$err);
+        if($err){
+            msg($err.' - '.$statement,-1);
+            return false;
+        }
+
+        return $res;
     }
 }
