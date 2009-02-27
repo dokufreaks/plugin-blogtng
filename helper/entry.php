@@ -30,7 +30,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * @author Michael Klier <chi@chimeric.de>
      */
     function helper_plugin_blogtng_entry() {
-        $sqlite =& plugin_load('helper', 'blogtng_sqlite');
+        $this->sqlite =& plugin_load('helper', 'blogtng_sqlite');
     }
 
     /**
@@ -54,8 +54,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * Save an entry into the database
      */
     function save() {
-        $query = 'FIXME';
-        $this->sqlite->query($query);
+        $query = 'INSERT INTO articles (pid, page, title, image, created, lastmod, author, login) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+        $this->sqlite->query($query, $this->entry['pid'], $this->entry['page'], $this->entry['title'], $this->entry['image'], $this->entry['created'], $this->entry['lastmod'], $this->entry['author'], $this->entry['login']);
     }
 
     /**
