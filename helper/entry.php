@@ -19,7 +19,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         'created' => null,
         'lastmod' => null,
         'author' => null,
-        'login' => null
+        'login' => null,
+        'email' => null,
     );
 
     var $sqlite = null;
@@ -60,10 +61,10 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * Save an entry into the database
      */
     function save() {
-        $query = 'INSERT OR IGNORE INTO articles (pid, page, title, image, created, lastmod, author, login) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+        $query = 'INSERT OR IGNORE INTO articles (pid, page, title, image, created, lastmod, author, login, email) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
         $result = $this->sqlite->query($query, $this->entry['pid'], $this->entry['page'], $this->entry['title'], $this->entry['image'], $this->entry['created'], $this->entry['lastmod'], $this->entry['author'], $this->entry['login']);
-        $query = 'UPDATE articles SET page=?, title=?, image=?, created=?, lastmod=?, author=?, login=? WHERE pid=?';
-        $result = $this->sqlite->query($query, $this->entry['page'], $this->entry['title'], $this->entry['image'], $this->entry['created'], $this->entry['lastmod'], $this->entry['author'], $this->entry['login'], $this->entry['pid']);
+        $query = 'UPDATE articles SET page=?, title=?, image=?, lastmod=?, author=?, login=?, email=? WHERE pid=?';
+        $result = $this->sqlite->query($query, $this->entry['page'], $this->entry['title'], $this->entry['image'], $this->entry['lastmod'], $this->entry['author'], $this->entry['login'], $this->entry['email'], $this->entry['pid']);
         if(!$result) {
             msg('blogtng plugin: failed to save new entry!', -1);
             return false;

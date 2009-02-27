@@ -45,7 +45,7 @@ class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
             $userdata = $auth->getUserData($creator);
 
         // fetch dates
-        $date_created = $data['current']['date']['created'];
+        $date_created = $data['persistent']['date']['created'];
         $date_modified = $data['current']['date']['modified'];
 
         // prepare entry ...
@@ -57,6 +57,7 @@ class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
             'created' => $date_created,
             'lastmod' => ($date_modified === false) ? $date_created : $date_modified,
             'author' => ($userdata) ? $userdata['name'] : $creator,
+            'email' => ($userdata) ? $userdata['email'] : '',
         );
         $this->entryhelper->entry = $data;
 
