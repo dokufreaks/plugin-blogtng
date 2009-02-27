@@ -128,7 +128,7 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
      */
     function res2arr($res){
         $data = array();
-        while(($row = sqlite_fetch_array($res)) !== null){
+        while(($row = sqlite_fetch_array($res)) !== false){
             $data[] = $row;
         }
         return $data;
