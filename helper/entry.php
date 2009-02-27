@@ -48,6 +48,12 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     function load($pid) {
         $query = 'FIXME';
         $this->entry = $this->sqlite->query($query);
+        if(!$this->entry) {
+            msg('blogtng plugin: failed to load entry!', -1);
+            return false;
+        } else {
+            return true;
+        }
     }
 
     /**
@@ -55,7 +61,13 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      */
     function save() {
         $query = 'INSERT INTO articles (pid, page, title, image, created, lastmod, author, login) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
-        $this->sqlite->query($query, $this->entry['pid'], $this->entry['page'], $this->entry['title'], $this->entry['image'], $this->entry['created'], $this->entry['lastmod'], $this->entry['author'], $this->entry['login']);
+        $result = $this->sqlite->query($query, $this->entry['pid'], $this->entry['page'], $this->entry['title'], $this->entry['image'], $this->entry['created'], $this->entry['lastmod'], $this->entry['author'], $this->entry['login']);
+        if(!$result) {
+            msg('blogtng plugin: failed to save new entry!', -1);
+            return false;
+        } else {
+            return true;
+        }
     }
 
     /**
