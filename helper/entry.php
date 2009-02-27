@@ -60,8 +60,11 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * Save an entry into the database
      */
     function save() {
-        $query = 'INSERT INTO articles (pid, page, title, image, created, lastmod, author, login) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+        $setquery = 'SET pid=?, page=?, title=?, image=?, created=?, lastmod=?, author=?, login=?';
+        $query = 'INSERT IGNORE INTO articles ' . $setquery;
         $result = $this->sqlite->query($query, $this->entry['pid'], $this->entry['page'], $this->entry['title'], $this->entry['image'], $this->entry['created'], $this->entry['lastmod'], $this->entry['author'], $this->entry['login']);
+        $query = 'UPDATE articles ' . $setquery . ' WHERE pid=?';
+        $result = $this->sqlite->query($query, $this->entry['pid'], $this->entry['page'], $this->entry['title'], $this->entry['image'], $this->entry['created'], $this->entry['lastmod'], $this->entry['author'], $this->entry['login'], $this->entry['pid']);
         if(!$result) {
             msg('blogtng plugin: failed to save new entry!', -1);
             return false;
