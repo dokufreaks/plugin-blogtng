@@ -12,14 +12,14 @@ if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
 class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
     var $entry = array(
-        'pid' => null;
-        'page' => null;
-        'title' => null;
-        'image' => null;
-        'created' => null;
-        'lastmod' => null;
-        'author' => null;
-        'login' => null;
+        'pid' => null,
+        'page' => null,
+        'title' => null,
+        'image' => null,
+        'created' => null,
+        'lastmod' => null,
+        'author' => null,
+        'login' => null
     );
 
     var $sqlite = null;
