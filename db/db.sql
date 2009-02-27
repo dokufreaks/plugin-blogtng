@@ -2,7 +2,6 @@ CREATE TABLE articles (
     pid PRIMARY KEY,
     page,
     title,
-    intro,
     image,
     created INTEGER,
     lastmod INTEGER,
