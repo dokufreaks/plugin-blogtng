@@ -15,6 +15,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         'pid' => null,
         'page' => null,
         'title' => null,
+        'blog' => null,
         'image' => null,
         'created' => null,
         'lastmod' => null,
@@ -48,7 +49,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             return false;
         }
 
-        $query = 'SELECT page, title, image, created, lastmod, author, login, email FROM entries WHERE pid = ?';
+        $query = 'SELECT pid, page, title, blog, image, created, lastmod, author, login, email FROM entries WHERE pid = ?';
         $resid = $this->sqlite->query($query, $pid);
         if ($resid === false) {
             msg('blogtng plugin: failed to load entry', -1);
@@ -57,17 +58,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
 
         $result = $this->sqlite->res2arr($resid);
-        $this->entry = array(
-            'pid' => $pid,
-            'page' => array_shift($result[0]),
-            'title' => array_shift($result[0]),
-            'image' => array_shift($result[0]),
-            'created' => array_shift($result[0]),
-            'lastmod' => array_shift($result[0]),
-            'author' => array_shift($result[0]),
-            'login' => array_shift($result[0]),
-            'email' => array_shift($result[0]),
-        );
+        $this->entry = $result[0];
         return true;
     }
 
@@ -80,17 +71,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
 
         $result = $this->sqlite->res2row($resid, $index);
-        $this->entry = array(
-            'pid' => array_shift($result),
-            'page' => array_shift($result),
-            'title' => array_shift($result),
-            'image' => array_shift($result),
-            'created' => array_shift($result),
-            'lastmod' => array_shift($result),
-            'author' => array_shift($result),
-            'login' => array_shift($result),
-            'email' => array_shift($result),
-        );
+        $this->entry = $result;
         return true;
     }
 
@@ -98,12 +79,13 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * Save an entry into the database
      */
     function save() {
-        $query = 'INSERT OR IGNORE INTO entries (pid, page, title, image, created, lastmod, author, login, email) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+        $query = 'INSERT OR IGNORE INTO entries (pid, page, title, blog, image, created, lastmod, author, login, email) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
         $result = $this->sqlite->query(
             $query,
             $this->entry['pid'],
             $this->entry['page'],
             $this->entry['title'],
+            $this->entry['blog'],
             $this->entry['image'],
             $this->entry['created'],
             $this->entry['lastmod'],
@@ -111,15 +93,14 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             $this->entry['login'],
             $this->entry['email']
         );
-        $query = 'UPDATE entries SET page=?, title=?, image=?, lastmod=?, author=?, login=?, email=? WHERE pid=?';
+        $query = 'UPDATE entries SET title=?, blog=?, image=?, lastmod=?, author=?, email=? WHERE pid=?';
         $result = $this->sqlite->query(
             $query,
-            $this->entry['page'],
             $this->entry['title'],
+            $this->entry['blog'],
             $this->entry['image'],
             $this->entry['lastmod'],
             $this->entry['author'],
-            $this->entry['login'],
             $this->entry['email'],
             $this->entry['pid']
         );

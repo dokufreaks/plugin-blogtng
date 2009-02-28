@@ -63,6 +63,7 @@ class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
             'pid' => md5($ID),
             'page' => $ID,
             'title' => $data['current']['title'],
+            'blog' => null,
             'image' => $data['current']['relation']['firstimage'],
             'created' => $date_created,
             'lastmod' => (!$date_modified) ? $date_created : $date_modified,

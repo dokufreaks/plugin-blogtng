@@ -18,7 +18,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         'tpl'       => 'default',
         'limit'     => 5,
         'offset'    => 0,
-        'ns'        => null
+        'blog'        => null
     );
 
     var $sqlitehelper = null;
@@ -43,15 +43,17 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
     function getSort() { return 300; }
 
     function connectTo($mode) {
-        $this->Lexer->addSpecialPattern('\{\{blog>.*?\}\}', $mode, 'plugin_blogtng_blog');
+        $this->Lexer->addSpecialPattern('<blog>.*?</blog>', $mode, 'plugin_blogtng_blog');
     }
 
     function handle($match, $state, $pos, &$handler) {
-        $match = substr($match, 7, -2);
-        $opts = explode(' ', $match);
-        $ns = array_shift($opts);
-        array_map(array($this, '_parse_opt'), $opts);
-        $data = array_merge($this->config, array('ns' => $ns));
+        $match = substr(trim($match), 6, -7);
+        $conf = linesToHash(explode("\n", $match));
+
+        $blogs = array_map('trim', explode(' ', $conf['blog']));
+        $conf['blog'] = $blogs;
+
+        $data = array_merge($this->config, $conf);
         return $data;
     }
 
@@ -96,14 +98,16 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
 
     function _list($data){
         $sortkey = ($this->config['sortby'] == 'random') ? 'Random()' : $this->config['sortby'];
-        $query = 'SELECT pid, page, title, image, created,
+        $blog_query = $this->_join_blog_query($data['blog']);
+
+        $query = 'SELECT pid, page, title, blog, image, created,
                          lastmod, login, author, email
                     FROM entries
-                   WHERE page LIKE ?
+                   WHERE '.$blog_query.'
                 ORDER BY '.$sortkey.' '.$this->config['sortorder'].
                  ' LIMIT '.$this->config['limit'].
                 ' OFFSET '.$this->config['offset'];
-        $resid = $this->sqlitehelper->query($query, $data['ns'] . '%');
+        $resid = $this->sqlitehelper->query($query);
         if (!$resid) return;
 
         $entry =& plugin_load('helper', 'blogtng_entry');
@@ -113,6 +117,14 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
             // handle template stuff here...
             dbg($entry->entry);
         }
+    }
+
+    function _join_blog_query($blogs) {
+        $parts = array();
+        foreach ($blogs as $blog) {
+            array_push($parts, 'blog = \''.sqlite_escape_string($blog).'\'');
+        }
+        return join(' OR ', $parts);
     }
 }
 // vim:ts=4:sw=4:et:enc=utf-8:
