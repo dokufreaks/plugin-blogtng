@@ -109,7 +109,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         $entry =& plugin_load('helper', 'blogtng_entry');
         $count = sqlite_num_rows($resid);
         for ($i = 0; $i < $count; $i++) {
-            $entry->load($resid, $i);
+            $entry->load_by_res($resid, $i);
             // handle template stuff here...
             dbg($entry->entry);
         }

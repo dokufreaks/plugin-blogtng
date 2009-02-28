@@ -41,12 +41,38 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         return confToHash(dirname(__FILE__).'/../INFO');
     }
 
-    /**
-     * Populate the helper plugin with the data of the blog entry
-     *
-     * @author Michael Klier <chi@chimeric.de>
-     */
-    function load($resid, $index) {
+    function load_by_pid($pid) {
+        $pid = trim($pid);
+        if (!preg_match('^[0-9a-f]{32}$', $pid)) {
+            // FIXME we got an invalid pid, shout at the user accordingly
+            return false;
+        }
+
+        $query = 'SELECT page, title, image, created, lastmod, author, login, email FROM entries WHERE pid = ?';
+        $resid = $this->sqlite->query($query, $pid);
+        if ($resid === false) {
+            msg('blogtng plugin: failed to load entry', -1);
+            $this->entry = null;
+            return false;
+        }
+
+        $result = $this->sqlite->res2arr($resid);
+        $this->entry = array(
+            'pid' => $pid,
+            'page' => array_shift($result[0]),
+            'title' => array_shift($result[0]),
+            'image' => array_shift($result[0]),
+            'created' => array_shift($result[0]),
+            'lastmod' => array_shift($result[0]),
+            'author' => array_shift($result[0]),
+            'login' => array_shift($result[0]),
+            'email' => array_shift($result[0]),
+        );
+        return true;
+    }
+
+    function load_by_res($resid, $index) {
+        // FIXME validate resid and index
         if($resid === false) {
             msg('blogtng plugin: failed to load entry, did not get a valid resource id!', -1);
             $this->entry = null;
