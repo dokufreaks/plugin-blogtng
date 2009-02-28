@@ -9,6 +9,7 @@ if(!defined('DOKU_INC')) die();
 if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
 require_once(DOKU_INC.'inc/infoutils.php');
 
+if(!defined('BLOGTNG_DIR')) define('BLOGTNG_DIR',DOKU_PLUGIN.'blogtng/');
 
 class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
 
@@ -32,7 +33,7 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
      * return some info
      */
     function getInfo(){
-        return confToHash(dirname(__FILE__).'/../INFO');
+        return confToHash(BLOGTNG_DIR.'INFO');
     }
 
 
@@ -54,27 +55,67 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
             return false;
         }
 
-        if($init) $this->_initdb();
+        if($init) $this->_runupdatefile(BLOGTNG_DIR.'db/db.sql',1);
+        $this->_updatedb();
         return true;
     }
 
-
     /**
-     * create the needed tables
+     * Return the current Database Version
      */
-    function _initdb(){
-        $sql = io_readFile(dirname(__FILE__).'/../db/db.sql',false);
-        $sql = explode(';',$sql);
-        foreach($sql as $line){
-            @sqlite_query($this->db,"$line;",SQLITE_NUM,$err);
-            if($err){
-                msg($err.' - '.$line,-1);
-            }
-        }
+    function _currentDBversion(){
+        $sql = "SELECT val FROM opts WHERE opt = 'dbversion';";
+        $res = $this->query($sql);
+        if(!$res) return false;
+        $row = $this->res2row($res,0);
+        return (int) $row['val'];
     }
 
+    /**
+     * Update the database if needed
+     */
     function _updatedb(){
-        $sql = "SELECT val FROM opts WHERE opt = 'dbversion'";
+        $current = $this->_currentDBversion();
+        if(!$current){
+            msg('blogtng: no DB version found. DB probably broken.',-1);
+            return false;
+        }
+        $latest  = (int) trim(BLOGTNG_DIR.'db/latest.version');
+
+        // all up to date?
+        if($current >= $latest) return true;
+
+        for($i=$current+1; $i<=$latest; $i++){
+            $file = sprintf(BLOGTNG_DIR.'db/update%04d.sql',$i);
+            if(file_exists($file)){
+                if(!$this->_runupdatefile($file,$i)){
+                    msg('blogtgng: Database upgrade failed for Version '.$i);
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Updates the database structure using the given file to
+     * the given version.
+     */
+    function _runupdatefile($file,$version){
+        $sql  = io_readFile($file,false);
+
+        $sql = explode(";",$sql);
+        array_unshift($sql,'BEGIN TRANSACTION');
+        array_push($sql,"UPDATE opts SET val = $version WHERE opt = 'dbversion'");
+        array_push($sql,"COMMIT TRANSACTION");
+
+        foreach($sql as $s){
+            $s = trim($s);
+            if(!$s) continue;
+            sqlite_query($this->db,"$s;");
+        }
+
+        return ($version == $this->_currentDBversion());
     }
 
     /**
@@ -110,7 +151,7 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
         }
 
         $err = '';
-        $res = @sqlite_query($this->db,$sql,SQLITE_NUM,$err);
+        $res = @sqlite_query($this->db,$sql,SQLITE_ASSOC,$err);
         if($err){
             msg($err.' - '.hsc($sql),-1);
             return false;
@@ -128,7 +169,8 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
      */
     function res2arr($res){
         $data = array();
-        sqlite_seek($res,0);
+        if(!sqlite_num_rows($res)) return $data;
+        sqlite_rewind($res);
         while(($row = sqlite_fetch_array($res)) !== false){
             $data[] = $row;
         }
@@ -140,7 +182,7 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
      * associative array
      */
     function res2row($res,$rownum){
-        if(!sqlite_seek($res,$rownum)){
+        if(!@sqlite_seek($res,$rownum)){
             return false;
         }
         return sqlite_fetch_array($res);
