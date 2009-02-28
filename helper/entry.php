@@ -124,7 +124,31 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
     // FIXME readmore
     function tpl_entry() {
-        print p_wiki_xhtml($this->entry['pid'], '');
+        $id = $this->entry['pageid'];
+        $content = p_wiki_xhtml($id,'');
+
+        // clean up content
+        $patterns = array(
+            '!<div class="toc">.*?(</div>\n</div>)!s', // remove toc
+            '!<h4>(.*?)</h4>!s',                       // downsize
+            '!<h3>(.*?)</h3>!s',                       // downsize
+            '!<h2>(.*?)</h2>!s',                       // downsize
+            '!<h1>(.*?)</h1>!s',                       // downsize
+            '! href="#!',                              // fix internal links
+        );
+        $replace  = array(
+            '',
+            '<h5>\\1</h5>',
+            '<h4>\\1</h4>',
+            '<h3>\\1</h3>',
+            '<h2>\\1</h2>',
+            ' href="'.wl($id).'#');
+        $content  = preg_replace($patterns,$replace,$content);
+
+        // replace first headline with link
+        $content = preg_replace('!<h2><a !s','<h2><a href="'.wl($id).'" ',$content,1);
+
+        echo $content;
     }
 
     function tpl_abstract($len=0) {
