@@ -128,9 +128,21 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
      */
     function res2arr($res){
         $data = array();
+        sqlite_seek($res,0);
         while(($row = sqlite_fetch_array($res)) !== false){
             $data[] = $row;
         }
         return $data;
+    }
+
+    /**
+     * Return the wanted row from a given result set as
+     * associative array
+     */
+    function res2row($res,$rownum){
+        if(sqlite_seek($res,$rownum)){
+            return false;
+        }
+        return sqlite_fetch_array($res);
     }
 }
