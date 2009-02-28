@@ -72,7 +72,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * Save an entry into the database
      */
     function save() {
-        $query = 'INSERT OR IGNORE INTO articles (pid, page, title, image, created, lastmod, author, login, email) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+        $query = 'INSERT OR IGNORE INTO entries (pid, page, title, image, created, lastmod, author, login, email) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
         $result = $this->sqlite->query(
             $query,
             $this->entry['pid'],
@@ -85,7 +85,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             $this->entry['login'],
             $this->entry['email']
         );
-        $query = 'UPDATE articles SET page=?, title=?, image=?, lastmod=?, author=?, login=?, email=? WHERE pid=?';
+        $query = 'UPDATE entries SET page=?, title=?, image=?, lastmod=?, author=?, login=?, email=? WHERE pid=?';
         $result = $this->sqlite->query(
             $query,
             $this->entry['page'],
@@ -138,6 +138,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     }
 
     function tpl_author() {
+        if(empty($this->entry['author'])) return;
         print $this->entry['author'];
     }
 
