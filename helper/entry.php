@@ -152,8 +152,17 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
     // FIXME readmore
     function tpl_entry() {
+        static $recursion = false;
+        if($recursion){
+            msg('blogtng: preventing infinite loop',-1);
+            return false; // avoid infinite loops
+        }
+        $recursion = true;
+
         $id = $this->entry['page'];
         $content = p_wiki_xhtml($id,'');
+
+        $recursion = false;
 
         // clean up content
         $patterns = array(
