@@ -81,7 +81,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      */
     function save() {
         if(!$this->entry['pid'] || $this->entry['pid'] == md5('')){
-            msg('blogtng: no pid, refuse to save');
+            msg('blogtng: no pid, refusing to save',-1);
             return false;
         }
 
