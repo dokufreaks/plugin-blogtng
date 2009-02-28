@@ -146,26 +146,34 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         print p_wiki_xhtml($this->entry['pid'], '');
     }
 
-    // FIXME abstract lenght
-    function tpl_abstract() {
-        print $this->entry['abstract'];
+    function tpl_abstract($len=0) {
+        if($len){
+            $abstract = utf8_substr($this->entry, 0, $len).'…';
+        }else{
+            $abstract = $this->entry['abstract'];
+        }
+        echo hsc($abstract);
     }
 
     function tpl_title() {
-        print $this->entry['title'];
+        print hsc($this->entry['title']);
     }
 
-    function tpl_created($format) {
+    function tpl_created($format='') {
+        global $conf;
+        if(!$format) $format = $conf['dformat'];
         print strftime($format, $this->entry['created']);
     }
 
-    function tpl_lastmodified($format) {
+    function tpl_lastmodified($format='') {
+        global $conf;
+        if(!$format) $format = $conf['dformat'];
         print strftime($format, $this->entry['lastmod']);
     }
 
     function tpl_author() {
         if(empty($this->entry['author'])) return;
-        print $this->entry['author'];
+        print hsc($this->entry['author']);
     }
 
     /**
@@ -181,7 +189,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         // option to link author name with email or webpage?
 
         $html = '<div class="vcard">'
-              . DOKU_TAB . '<a href="FIXME" class="fn nickname">' . $this->entry['author'] . '</a>' . DOKU_LF
+              . DOKU_TAB . '<a href="FIXME" class="fn nickname">' .
+                hsc($this->entry['author']) . '</a>' . DOKU_LF
               . '</div>' . DOKU_LF;
 
         print $html;
