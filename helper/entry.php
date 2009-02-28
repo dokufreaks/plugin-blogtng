@@ -162,6 +162,10 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             '!<h3>(.*?)</h3>!s',                       // downsize
             '!<h2>(.*?)</h2>!s',                       // downsize
             '!<h1>(.*?)</h1>!s',                       // downsize
+            '!<div class="level4">!s',                 // downsize
+            '!<div class="level3">!s',                 // downsize
+            '!<div class="level2">!s',                 // downsize
+            '!<div class="level1">!s',                 // downsize
             '! href="#!',                              // fix internal links
         );
         $replace  = array(
@@ -170,6 +174,10 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             '<h4>\\1</h4>',
             '<h3>\\1</h3>',
             '<h2>\\1</h2>',
+            '<div class="level5">',
+            '<div class="level4">',
+            '<div class="level3">',
+            '<div class="level2">',
             ' href="'.wl($id).'#');
         $content  = preg_replace($patterns,$replace,$content);
 
