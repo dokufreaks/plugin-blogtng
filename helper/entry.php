@@ -57,7 +57,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $result = $this->sqlitehelper->res2arr($resid);
         $this->entry = $result[0];
         $this->entry['pid'] = $pid;
-        return true;
+        return $this->poke();
     }
 
     function load_by_res($resid, $index) {
@@ -70,7 +70,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
         $result = $this->sqlitehelper->res2row($resid, $index);
         $this->entry = $result;
-        return true;
+        return $this->poke();
     }
 
     function set($entry) {
@@ -94,6 +94,33 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             'login' => null,
             'email' => null,
         );
+    }
+
+    /**
+     * Poke the entry with a stick and see if it is alive
+     *
+     * If page does not exist, delete DB entry
+     */
+    function poke(){
+        if(!$this->entry['page']) return true;
+
+        if(!page_exists($this->entry['page'])){
+            $this->delete();
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * delete the current entry
+     */
+    function delete(){
+        if(!$this->entry['pid']) return false;
+
+        $sql = "DELETE FROM entry WHERE pid = ?";
+        $ret = $this->sqlitehelper->query($sql,$this->entry['pid']);
+        $this->entry = $this->prototype();
+        return (bool) $ret;
     }
 
     /**
