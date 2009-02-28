@@ -15,7 +15,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
     var $config = array(
         'sortorder' => 'DESC',
         'sortby'    => 'created',
-        'tpl'       => 'default',
+        'tpl'       => 'full',
         'limit'     => 5,
         'offset'    => 0,
         'blog'        => null
@@ -67,7 +67,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         //$this->helper =& plugin_load('helper', 'blogtng_FIXME'));
 
         if($mode == 'xhtml') {
-            $this->_list($data);
+            $renderer->doc .= $this->_list($data);
         }
     }
 
@@ -110,13 +110,17 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         $resid = $this->sqlitehelper->query($query);
         if (!$resid) return;
 
+        ob_start();
         $entry =& plugin_load('helper', 'blogtng_entry');
         $count = sqlite_num_rows($resid);
         for ($i = 0; $i < $count; $i++) {
             $entry->load_by_res($resid, $i);
             // handle template stuff here...
-            dbg($entry->entry);
+            include(DOKU_PLUGIN . 'blogtng/tpl/'.$data['tpl'].'_list.php');
         }
+        $output = ob_get_contents();
+        ob_end_clean();
+        return $output;
     }
 
     function _join_blog_query($blogs) {
