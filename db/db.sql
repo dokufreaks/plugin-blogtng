@@ -14,9 +14,22 @@ CREATE TABLE entries (
     login,
     email
 );
-CREATE UNIQUE INDEX idx_pid ON entries(pid);
-CREATE INDEX idx_title ON entries(title);
-CREATE INDEX idx_created ON entries(created);
-CREATE INDEX idx_blog ON entries(blog);
+CREATE UNIQUE INDEX idx_entries_pid ON entries(pid);
+CREATE INDEX idx_entries_title ON entries(title);
+CREATE INDEX idx_entries_created ON entries(created);
+CREATE INDEX idx_entries_blog ON entries(blog);
 
-
+CREATE TABLE comments (
+    id INTEGER PRIMARY KEY,
+    pid,
+    name,
+    email,
+    web,
+    avatar,
+    created INTEGER,
+    text,
+    status
+);
+CREATE INDEX idx_comments_created ON comments(created);
+CREATE INDEX idx_comments_pid ON comments(pid);
+CREATE INDEX idx_comments_status ON comments(status);
