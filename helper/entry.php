@@ -13,7 +13,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
     var $entry = null;
 
-    var $sqlite = null;
+    var $sqlitehelper = null;
 
     /**
      * Constructor, loads the sqlite helper plugin
@@ -21,7 +21,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * @author Michael Klier <chi@chimeric.de>
      */
     function helper_plugin_blogtng_entry() {
-        $this->sqlite =& plugin_load('helper', 'blogtng_sqlite');
+        $this->sqlitehelper =& plugin_load('helper', 'blogtng_sqlite');
         $this->entry = $this->empty_entry();
     }
 
@@ -41,7 +41,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
 
         $query = 'SELECT pid, page, title, blog, image, created, lastmod, author, login, email FROM entries WHERE pid = ?';
-        $resid = $this->sqlite->query($query, $pid);
+        $resid = $this->sqlitehelper->query($query, $pid);
         if ($resid === false) {
             msg('blogtng plugin: failed to load entry!', -1);
             $this->entry = empty_entry();
@@ -53,7 +53,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             return false;
         }
 
-        $result = $this->sqlite->res2arr($resid);
+        $result = $this->sqlitehelper->res2arr($resid);
         $this->entry = $result[0];
         $this->entry['pid'] = $pid;
         return true;
@@ -67,7 +67,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             return false;
         }
 
-        $result = $this->sqlite->res2row($resid, $index);
+        $result = $this->sqlitehelper->res2row($resid, $index);
         $this->entry = $result;
         return true;
     }
@@ -105,7 +105,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
 
         $query = 'INSERT OR IGNORE INTO entries (pid, page, title, blog, image, created, lastmod, author, login, email) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-        $result = $this->sqlite->query(
+        $result = $this->sqlitehelper->query(
             $query,
             $this->entry['pid'],
             $this->entry['page'],
@@ -119,7 +119,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             $this->entry['email']
         );
         $query = 'UPDATE entries SET page = ?, title=?, blog=?, image=?, created = ?, lastmod=?, login = ?, author=?, email=? WHERE pid=?';
-        $result = $this->sqlite->query(
+        $result = $this->sqlitehelper->query(
             $query,
             $this->entry['page'],
             $this->entry['title'],
