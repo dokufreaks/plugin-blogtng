@@ -23,6 +23,11 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
 
     var $sqlitehelper = null;
 
+    var $data_whitelist = array(
+        'sortyorder' => array('asc', 'desc'),
+        'sortby' => array('created', 'lastmod', 'title', 'page', 'random'),
+    );
+
     function syntax_plugin_blogtng_blog() {
         $this->sqlitehelper =& plugin_load('helper', 'blogtng_sqlite');
     }
@@ -69,12 +74,10 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
      */
     function _parse_opt($opt) {
         switch(true) {
-            case ($opt == 'asc' || $opt == 'desc'):
-                // FIXME validate input against whitelist!
+            case (in_array($opt, $this->data_whitelist['sortorder'])):
                 $this->config['sortorder'] = strtoupper($opt);
                 break;
-            case ($opt == 'bydate' || $opt == 'bypage'):
-                // FIXME validate input against whitelist!
+            case (in_array($opt, $this->data_whitelist['sortby'])):
                 $this->config['sortby'] = substr($opt, 2);
                 break;
             case (preg_match('/^\d$/', $opt)):
@@ -92,11 +95,12 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
     }
 
     function _list($data){
+        $sortkey = ($this->config['sortby'] == 'random') ? 'Random()' : $this->config['sortby'];
         $query = 'SELECT pid, page, title, image, created,
                          lastmod, login, author, email
                     FROM entries
                    WHERE page LIKE ?
-                ORDER BY '.$this->config['sortby'].' '.$this->config['sortorder'].
+                ORDER BY '.$sortkey.' '.$this->config['sortorder'].
                  ' LIMIT '.$this->config['limit'].
                 ' OFFSET '.$this->config['offset'];
         $resid = $this->sqlitehelper->query($query, $data['ns'] . '%');
