@@ -152,7 +152,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
     // FIXME readmore
     function tpl_entry() {
-        $id = $this->entry['pageid'];
+        $id = $this->entry['page'];
         $content = p_wiki_xhtml($id,'');
 
         // clean up content
