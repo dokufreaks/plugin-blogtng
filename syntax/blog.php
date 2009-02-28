@@ -15,7 +15,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
     var $config = array(
         'sortorder' => 'DESC',
         'sortby'    => 'created',
-        'tpl'       => 'full',
+        'tpl'       => 'default',
         'limit'     => 5,
         'offset'    => 0,
         'blog'        => null
@@ -115,7 +115,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         $count = sqlite_num_rows($resid);
         for ($i = 0; $i < $count; $i++) {
             $entry->load_by_res($resid, $i);
-            $entry->tpl_content($data['tpl']);
+            $entry->tpl_content($data['tpl'], 'list');
         }
         $output = ob_get_contents();
         ob_end_clean();

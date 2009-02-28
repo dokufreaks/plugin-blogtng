@@ -159,8 +159,10 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
     }
 
-    function tpl_content($tpl) {
-        $tpl = DOKU_PLUGIN . 'blogtng/tpl/' . $tpl . '_list.php';
+    function tpl_content($name, $type) {
+        $whitelist = array('list', 'entry');
+        if(!in_array($type, $whitelist)) return;
+        $tpl = DOKU_PLUGIN . 'blogtng/tpl/' . $name . '_' . $type . '.php';
         if(file_exists($tpl)) {
             $entry = $this;
             include($tpl);
@@ -272,7 +274,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      */
     function tpl_comments($author_url='email') {
         if(!$this->commenthelper) {
-            $this->commenthelper =& plugin_load('helper', 'blogtng_comment');
+            $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
         }
         $this->commenthelper->load($this->entry['pid']);
         $this->commenthelper->tpl_comments($author_url);
@@ -285,7 +287,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      */
     function tpl_commentcount($fmt_zero_comments, $fmt_one_comment, $fmt_comments) {
         if(!$this->commenthelper) {
-            $this->commenthelper =& plugin_load('helper', 'blogtng_comment');
+            $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
         }
         $this->commenthelper->load($this->entry['pid']);
         $this->commenthelper->tpl_count($fmt_zero_comments, $fmt_one_comment, $fmt_comments);
@@ -298,7 +300,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      */
     function tpl_commentform() {
         if(!$this->commenthelper) {
-            $this->commenthelper =& plugin_load('helper', 'blogtng_comment');
+            $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
         }
         $this->commenthelper->tpl_form($this->entry['pid']);
     }
