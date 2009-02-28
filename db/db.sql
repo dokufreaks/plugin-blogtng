@@ -6,6 +6,7 @@ CREATE TABLE entries (
     pid PRIMARY KEY,
     page,
     title,
+    blog,
     image,
     created INTEGER,
     lastmod INTEGER,
@@ -16,5 +17,6 @@ CREATE TABLE entries (
 CREATE UNIQUE INDEX idx_pid ON entries(pid);
 CREATE INDEX idx_title ON entries(title);
 CREATE INDEX idx_created ON entries(created);
+CREATE INDEX idx_blog ON entries(blog);
 
 
