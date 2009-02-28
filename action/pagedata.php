@@ -45,8 +45,6 @@ class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
         // if that stupid behavior of double-rendering the metadata with missing
         // data in the first run is to be fixed in the future, the two lines
         // below can be happily removed again ;)
-        if (!$data['persistent']['date']['created'])
-            return;
 
         // fetch author info
         $creator = $data['current']['creator'];
@@ -55,7 +53,7 @@ class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
             $userdata = $auth->getUserData($creator);
 
         // fetch dates
-        $date_created = $data['persistent']['date']['created'];
+        $date_created = $data['current']['date']['created'];
         $date_modified = $data['current']['date']['modified'];
 
         // prepare entry ...
