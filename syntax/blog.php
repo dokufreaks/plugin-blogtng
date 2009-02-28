@@ -12,7 +12,7 @@ require_once(DOKU_PLUGIN.'syntax.php');
 
 class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
 
-    var $config = array( 
+    var $config = array(
         'sortorder' => 'DESC',
         'sortby'    => 'created',
         'tpl'       => 'default',
@@ -42,7 +42,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
     }
 
     function handle($match, $state, $pos, &$handler) {
-        $match = substr($match, 7, -2); 
+        $match = substr($match, 7, -2);
         $opts = explode(' ', $match);
         $ns = array_shift($opts);
         array_map(array($this, '_parse_opt'), $opts);
@@ -92,7 +92,13 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
     }
 
     function _list($data){
-        $query = 'SELECT pid, page, title, image, created, lastmod, login, author, email FROM articles WHERE page LIKE ? ORDER BY '.$this->config['sortby'].' '.$this->config['sortorder'].' LIMIT '.$this->config['limit'].' OFFSET '.$this->config['offset'];
+        $query = 'SELECT pid, page, title, image, created,
+                         lastmod, login, author, email
+                    FROM entries
+                   WHERE page LIKE ?
+                ORDER BY '.$this->config['sortby'].' '.$this->config['sortorder'].
+                 ' LIMIT '.$this->config['limit'].
+                ' OFFSET '.$this->config['offset'];
         $resid = $this->sqlitehelper->query($query, $data['ns'] . '%');
         if (!$resid) return;
 
