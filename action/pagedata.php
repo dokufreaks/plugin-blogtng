@@ -61,14 +61,17 @@ class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
         // prepare entry ...
         $pid = md5($ID);
         $this->entryhelper->load_by_pid($pid);
-        $this->entryhelper->entry['page'] = $ID;
-        $this->entryhelper->entry['title'] = $data['current']['title'];
-        $this->entryhelper->entry['image'] = $data['current']['relation']['firstimage'];
-        $this->entryhelper->entry['created'] = $date_created;
-        $this->entryhelper->entry['lastmod'] = (!$date_modified) ? $date_created : $date_modified;
-        $this->entryhelper->entry['login'] = $creator;
-        $this->entryhelper->entry['author'] = ($userdata) ? $userdata['name'] : $creator;
-        $this->entryhelper->entry['email'] = ($userdata) ? $userdata['email'] : '';
+        $entry = array(
+            'page' => $ID,
+            'title' => $data['current']['title'],
+            'image' => $data['current']['relation']['firstimage'],
+            'created' => $date_created,
+            'lastmod' => (!$date_modified) ? $date_created : $date_modified,
+            'login' => $creator,
+            'author' => ($userdata) ? $userdata['name'] : $creator,
+            'email' => ($userdata) ? $userdata['email'] : '',
+        );
+        $this->entryhelper->set_entry($entry);
 
         // ... and save it
         $this->entryhelper->save();

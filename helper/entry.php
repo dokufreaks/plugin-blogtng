@@ -11,18 +11,7 @@ if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
 
 class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
-    var $entry = array(
-        'pid' => null,
-        'page' => null,
-        'title' => null,
-        'blog' => null,
-        'image' => null,
-        'created' => null,
-        'lastmod' => null,
-        'author' => null,
-        'login' => null,
-        'email' => null,
-    );
+    var $entry = null;
 
     var $sqlite = null;
 
@@ -33,6 +22,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      */
     function helper_plugin_blogtng_entry() {
         $this->sqlite =& plugin_load('helper', 'blogtng_sqlite');
+        $this->entry = $this->empty_entry();
     }
 
     /**
@@ -54,13 +44,12 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $resid = $this->sqlite->query($query, $pid);
         if ($resid === false) {
             msg('blogtng plugin: failed to load entry!', -1);
-            $this->entry = null;
+            $this->entry = empty_entry();
             return null;
         }
         if (sqlite_num_rows($resid) == 0) {
-            $this->entry = array(
-                'pid' => $pid,
-            );
+            $this->entry = $this->empty_entry();
+            $this->entry['pid'] = $pid;
             return false;
         }
 
@@ -74,13 +63,36 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         // FIXME validate resid and index
         if($resid === false) {
             msg('blogtng plugin: failed to load entry, did not get a valid resource id!', -1);
-            $this->entry = null;
+            $this->entry = $this->empty_entry();
             return false;
         }
 
         $result = $this->sqlite->res2row($resid, $index);
         $this->entry = $result;
         return true;
+    }
+
+    function set_entry($entry) {
+        foreach (array_keys($entry) as $key) {
+            if (!in_array($key, array('pid', 'page', 'created', 'login')) || empty($this->entry[$key])) {
+                $this->entry[$key] = $entry[$key];
+            }
+        }
+    }
+
+    function empty_entry() {
+        return array(
+            'pid' => null,
+            'page' => null,
+            'title' => null,
+            'blog' => null,
+            'image' => null,
+            'created' => null,
+            'lastmod' => null,
+            'author' => null,
+            'login' => null,
+            'email' => null,
+        );
     }
 
     /**
@@ -106,13 +118,16 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             $this->entry['login'],
             $this->entry['email']
         );
-        $query = 'UPDATE entries SET title=?, blog=?, image=?, lastmod=?, author=?, email=? WHERE pid=?';
+        $query = 'UPDATE entries SET page = ?, title=?, blog=?, image=?, created = ?, lastmod=?, login = ?, author=?, email=? WHERE pid=?';
         $result = $this->sqlite->query(
             $query,
+            $this->entry['page'],
             $this->entry['title'],
             $this->entry['blog'],
             $this->entry['image'],
+            $this->entry['created'],
             $this->entry['lastmod'],
+            $this->entry['login'],
             $this->entry['author'],
             $this->entry['email'],
             $this->entry['pid']
