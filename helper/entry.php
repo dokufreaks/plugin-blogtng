@@ -94,6 +94,42 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
     }
 
+    function tpl_content($tpl) {
+        $tpl = DOKU_PLUGIN . 'blogtng/tpl/' . $tpl . '.php';
+        if(file_exists($tpl)) {
+            $entry = $this->entry;
+            include($tpl);
+        } else {
+            msg('blogtng plugin: template ' . $tpl . ' does not exist!', -1);
+        }
+    }
+
+    // FIXME readmore
+    function tpl_entry() {
+        print p_wiki_xhtml($this->entry['pid'], '');
+    }
+
+    // FIXME abstract lenght
+    function tpl_abstract() {
+        print $this->entry['abstract'];
+    }
+
+    function tpl_title() {
+        print $this->entry['title'];
+    }
+
+    function tpl_created($format) {
+        print strftime($format, $this->entry['created']);
+    }
+
+    function tpl_lastmodified($format) {
+        print strftime($format, $this->entry['lastmod']);
+    }
+
+    function tpl_author() {
+        print $this->entry['author'];
+    }
+
     /**
      * Print a simple hcard
      *
@@ -104,6 +140,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
         // FIXME 
         // which url to link email/wiki/user page
+        // option to link author name with email or webpage?
 
         $html = '<div class="vcard">'
               . DOKU_TAB . '<a href="FIXME" class="fn nickname">' . $this->entry['author'] . '</a>' . DOKU_LF
@@ -112,7 +149,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         print $html;
     }
 
-    function tpl_discussion() {}
+    function tpl_commentcount() {}
     function tpl_linkbacks() {}
     function tpl_tags() {}
 }
