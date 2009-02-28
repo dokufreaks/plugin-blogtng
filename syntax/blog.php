@@ -67,6 +67,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         //$this->helper =& plugin_load('helper', 'blogtng_FIXME'));
 
         if($mode == 'xhtml') {
+            $renderer->info['cache'] = false;
             $renderer->doc .= $this->_list($data);
         }
     }
