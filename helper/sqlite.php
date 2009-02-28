@@ -140,7 +140,7 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
      * associative array
      */
     function res2row($res,$rownum){
-        if(sqlite_seek($res,$rownum)){
+        if(!sqlite_seek($res,$rownum)){
             return false;
         }
         return sqlite_fetch_array($res);
