@@ -14,6 +14,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     var $entry = null;
 
     var $sqlitehelper = null;
+    var $commenthelper = null;
 
     /**
      * Constructor, loads the sqlite helper plugin
@@ -264,7 +265,44 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         print $html;
     }
 
-    function tpl_commentcount() {}
+    /**
+     * Print comments
+     *
+     * Wrapper around commenthelper->tpl_comments()
+     */
+    function tpl_comments($author_url='email') {
+        if(!$this->commenthelper) {
+            $this->commenthelper =& plugin_load('helper', 'blogtng_comment');
+        }
+        $this->commenthelper->load($this->entry['pid']);
+        $this->commenthelper->tpl_comments($author_url);
+    }
+
+    /**
+     * Print comment count
+     *
+     * Wrapper around commenthelper->tpl_commentcount()
+     */
+    function tpl_commentcount($fmt_zero_comments, $fmt_one_comment, $fmt_comments) {
+        if(!$this->commenthelper) {
+            $this->commenthelper =& plugin_load('helper', 'blogtng_comment');
+        }
+        $this->commenthelper->load($this->entry['pid']);
+        $this->commenthelper->tpl_count($fmt_zero_comments, $fmt_one_comment, $fmt_comments);
+    }
+
+    /**
+     * Print comment form
+     *
+     * Wrapper around commenthelper->tpl_form()
+     */
+    function tpl_commentform() {
+        if(!$this->commenthelper) {
+            $this->commenthelper =& plugin_load('helper', 'blogtng_comment');
+        }
+        $this->commenthelper->tpl_form($this->entry['pid']);
+    }
+
     function tpl_linkbacks() {}
     function tpl_tags() {}
 
