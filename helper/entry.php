@@ -117,9 +117,18 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     function delete(){
         if(!$this->entry['pid']) return false;
 
-        $sql = "DELETE FROM entry WHERE pid = ?";
+        // delete comment
+        if(!$this->commenthelper) {
+            $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
+        }
+        $this->commenthelper->delete_all($this->entry['pid']);
+
+        // delete entry
+        $sql = "DELETE FROM entries WHERE pid = ?";
         $ret = $this->sqlitehelper->query($sql,$this->entry['pid']);
         $this->entry = $this->prototype();
+
+
         return (bool) $ret;
     }
 

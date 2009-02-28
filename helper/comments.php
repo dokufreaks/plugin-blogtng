@@ -14,7 +14,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     var $sqlitehelper = null;
 
     var $comments = array();
-    var $count = 10;
+    var $count = 0;
 
     /**
      * Constructor, loads the sqlite helper plugin
@@ -75,9 +75,11 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     }
 
     /**
-     * Delete all comments
+     * Delete all comments for an entry
      */
     function delete_all($pid) {
+        $sql = "DELETE FROM comments WHERE pid = ?";
+        return (bool) $this->sqlitehelper->query($sql,$pid);
     }
 
     /**
