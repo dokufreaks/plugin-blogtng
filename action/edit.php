@@ -34,9 +34,11 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
         if(!$pos) return; // no submit button found, source view
 
         // fIXME fetch templates
-        //$tpl = $this->get_blog_by_pid($pid);
-        $tpl = array('blog1', 'blog2', 'blog3');
-        $event->data->insertElement($pos, form_makeMenuField('blog', $tpl, '', 'Blog', 'blogtng__template', 'edit'));
+        //$blog = $this->get_blog_by_pid($pid);
+        //$blogs= $this->get_blogs();
+        $blog = 'blog2';
+        $blogs = array('blog1', 'blog2', 'blog3');
+        $event->data->insertElement($pos, form_makeMenuField('blog', $blogs, $blog, 'Blog', 'blogtng__template', 'edit'));
 
         // FIXME fetch tags
         //$tags = $this->get_tags_by_pid($pid);
