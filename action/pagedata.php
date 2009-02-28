@@ -71,7 +71,7 @@ class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
             'author' => ($userdata) ? $userdata['name'] : $creator,
             'email' => ($userdata) ? $userdata['email'] : '',
         );
-        $this->entryhelper->set_entry($entry);
+        $this->entryhelper->set($entry);
 
         // ... and save it
         $this->entryhelper->save();

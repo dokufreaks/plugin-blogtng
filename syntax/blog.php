@@ -115,8 +115,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         $count = sqlite_num_rows($resid);
         for ($i = 0; $i < $count; $i++) {
             $entry->load_by_res($resid, $i);
-            // handle template stuff here...
-            include(DOKU_PLUGIN . 'blogtng/tpl/'.$data['tpl'].'_list.php');
+            $entry->tpl_content($data['tpl']);
         }
         $output = ob_get_contents();
         ob_end_clean();

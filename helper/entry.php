@@ -22,7 +22,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      */
     function helper_plugin_blogtng_entry() {
         $this->sqlitehelper =& plugin_load('helper', 'blogtng_sqlite');
-        $this->entry = $this->empty_entry();
+        $this->entry = $this->prototype();
     }
 
     /**
@@ -34,7 +34,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
     function load_by_pid($pid) {
         $pid = trim($pid);
-        if (!preg_match('/^[0-9a-f]{32}$/', $pid)) {
+        if (!$this->is_valid_pid($pid)) {
             // FIXME we got an invalid pid, shout at the user accordingly
             msg('blogtng plugin: "'.$pid.'" is not a valid pid!', -1);
             return null;
@@ -44,11 +44,11 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $resid = $this->sqlitehelper->query($query, $pid);
         if ($resid === false) {
             msg('blogtng plugin: failed to load entry!', -1);
-            $this->entry = empty_entry();
+            $this->entry = $this->prototype();
             return null;
         }
         if (sqlite_num_rows($resid) == 0) {
-            $this->entry = $this->empty_entry();
+            $this->entry = $this->prototype();
             $this->entry['pid'] = $pid;
             return false;
         }
@@ -63,7 +63,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         // FIXME validate resid and index
         if($resid === false) {
             msg('blogtng plugin: failed to load entry, did not get a valid resource id!', -1);
-            $this->entry = $this->empty_entry();
+            $this->entry = $this->prototype();
             return false;
         }
 
@@ -72,7 +72,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         return true;
     }
 
-    function set_entry($entry) {
+    function set($entry) {
         foreach (array_keys($entry) as $key) {
             if (!in_array($key, array('pid', 'page', 'created', 'login')) || empty($this->entry[$key])) {
                 $this->entry[$key] = $entry[$key];
@@ -80,7 +80,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
     }
 
-    function empty_entry() {
+    function prototype() {
         return array(
             'pid' => null,
             'page' => null,
@@ -140,10 +140,28 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
     }
 
+    function get_blogs() {
+        $pattern = DOKU_PLUGIN . 'blogtng/tpl/*_entry.php';
+        $files = glob($pattern);
+        $blogs = array('');
+        foreach ($files as $file) {
+            array_push($blogs, substr($file, strlen(DOKU_PLUGIN . 'blogtng/tpl/'), -10));
+        }
+        return $blogs;
+    }
+
+    function get_blog() {
+        if ($this->entry != null) {
+            return $this->entry['blog'];
+        } else {
+            return '';
+        }
+    }
+
     function tpl_content($tpl) {
-        $tpl = DOKU_PLUGIN . 'blogtng/tpl/' . $tpl . '.php';
+        $tpl = DOKU_PLUGIN . 'blogtng/tpl/' . $tpl . '_list.php';
         if(file_exists($tpl)) {
-            $entry = $this->entry;
+            $entry = $this;
             include($tpl);
         } else {
             msg('blogtng plugin: template ' . $tpl . ' does not exist!', -1);
@@ -249,5 +267,9 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     function tpl_commentcount() {}
     function tpl_linkbacks() {}
     function tpl_tags() {}
+
+    function is_valid_pid($pid) {
+        return (preg_match('/^[0-9a-f]{32}$/', trim($pid)));
+    }
 }
 // vim:ts=4:sw=4:et:enc=utf-8:

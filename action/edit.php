@@ -34,15 +34,16 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
     }
 
     function handle_editform_output(&$event, $param) {
+        global $ID;
+
         $pos = $event->data->findElementByAttribute('type','submit');
         if(!$pos) return; // no submit button found, source view
         $pos -= 1;
 
-        // fIXME fetch templates
-        //$blog = $this->get_blog_by_pid($pid);
-        //$blogs= $this->get_blogs();
-        $blog = 'blog2';
-        $blogs = array('blog1', 'blog2', 'blog3');
+        $pid = md5($ID);
+        $this->entryhelper->load_by_pid($pid);
+        $blog = $this->entryhelper->get_blog();
+        $blogs = $this->entryhelper->get_blogs();
 
         $event->data->insertElement($pos, form_openfieldset(array('_legend' => 'BlogTNG', 'class' => 'edit', 'id' => 'blogtng__edit')));
         $pos += 1;
@@ -79,14 +80,14 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
                 }
 
                 $blog = $_REQUEST['blog'];
-                // FIXME validate blogname
-                // $blogs= $this->get_blogs();
-                // if (!in_array($blog, $blogs)) $blog = null;
+                $blogs = $this->entryhelper->get_blogs();
+                if (!in_array($blog, $blogs)) $blog = null;
 
                 $pid = md5($ID);
                 $this->entryhelper->load_by_pid($pid);
                 $this->entryhelper->entry['blog'] = $blog;
                 $this->entryhelper->save();
+                break;
         }
     }
 }
