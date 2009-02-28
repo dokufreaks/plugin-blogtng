@@ -46,15 +46,26 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      *
      * @author Michael Klier <chi@chimeric.de>
      */
-    function load($pid) {
-        $query = 'SELECT page, title, image, created, lastmod, author, login FROM articles';
-        $this->entry = $this->sqlite->query($query);
-        if(!$this->entry) {
-            msg('blogtng plugin: failed to load entry!', -1);
+    function load($resid, $index) {
+        if($resid === false) {
+            msg('blogtng plugin: failed to load entry, did not get a valid resource id!', -1);
+            $this->entry = null;
             return false;
-        } else {
-            return true;
         }
+
+        $result = $this->sqlite->res2row($resid, $index);
+        $this->entry = array(
+            'pid' => array_shift($result),
+            'page' => array_shift($result),
+            'title' => array_shift($result),
+            'image' => array_shift($result),
+            'created' => array_shift($result),
+            'lastmod' => array_shift($result),
+            'author' => array_shift($result),
+            'login' => array_shift($result),
+            'email' => array_shift($result),
+        );
+        return true;
     }
 
     /**

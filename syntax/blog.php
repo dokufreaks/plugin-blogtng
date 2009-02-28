@@ -13,13 +13,19 @@ require_once(DOKU_PLUGIN.'syntax.php');
 class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
 
     var $config = array( 
-        'sortorder' => 'desc',
-        'sortby'    => 'date',
+        'sortorder' => 'DESC',
+        'sortby'    => 'created',
         'tpl'       => 'default',
-        'num'       => 5,
-        'from'      => 0
+        'limit'     => 5,
+        'offset'    => 0,
+        'ns'        => null
     );
 
+    var $sqlitehelper = null;
+
+    function syntax_plugin_blogtng_blog() {
+        $this->sqlitehelper =& plugin_load('helper', 'blogtng_sqlite');
+    }
     /**
      * return some info
      */
@@ -50,10 +56,11 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
     function render($mode, &$renderer, $data) {
 
         // do cool stuff here
-        //if (plugin_isdisabled('blogtng')) return // FIXME do nothing and scream
+        if (plugin_isdisabled('blogtng')) return; // FIXME do nothing and scream
         //$this->helper =& plugin_load('helper', 'blogtng_FIXME'));
 
         if($mode == 'xhtml') {
+            $this->_list($data);
         }
     }
 
@@ -63,22 +70,38 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
     function _parse_opt($opt) {
         switch(true) {
             case ($opt == 'asc' || $opt == 'desc'):
-                $this->config['sortorder'] = $opt;
+                // FIXME validate input against whitelist!
+                $this->config['sortorder'] = strtoupper($opt);
                 break;
             case ($opt == 'bydate' || $opt == 'bypage'):
+                // FIXME validate input against whitelist!
                 $this->config['sortby'] = substr($opt, 2);
                 break;
             case (preg_match('/^\d$/', $opt)):
-                $this->config['num'] = $opt;
+                $this->config['limit'] = $opt;
                 break;
             case (preg_match('/^\+(\d+)$/', $opt, $match)):
-                $this->config['from'] = $match[1];
+                $this->config['order'] = $match[1];
                 break;
             case (preg_match('/^tpl(\w+)$/', $opt, $match)):
                 $this->config['tpl'] = $match[1];
                 break;
             default;
                 continue;
+        }
+    }
+
+    function _list($data){
+        $query = 'SELECT pid, page, title, image, created, lastmod, login, author, email FROM articles WHERE page LIKE ? ORDER BY '.$this->config['sortby'].' '.$this->config['sortorder'].' LIMIT '.$this->config['limit'].' OFFSET '.$this->config['offset'];
+        $resid = $this->sqlitehelper->query($query, $data['ns'] . '%');
+        if (!$resid) return;
+
+        $entry =& plugin_load('helper', 'blogtng_entry');
+        $count = sqlite_num_rows($resid);
+        for ($i = 0; $i < $count; $i++) {
+            $entry->load($resid, $i);
+            // handle template stuff here...
+            dbg($entry->entry);
         }
     }
 }
