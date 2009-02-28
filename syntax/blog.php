@@ -97,16 +97,16 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
     }
 
     function _list($data){
-        $sortkey = ($this->config['sortby'] == 'random') ? 'Random()' : $this->config['sortby'];
+        $sortkey = ($data['sortby'] == 'random') ? 'Random()' : $data['sortby'];
         $blog_query = $this->_join_blog_query($data['blog']);
 
         $query = 'SELECT pid, page, title, blog, image, created,
                          lastmod, login, author, email
                     FROM entries
                    WHERE '.$blog_query.'
-                ORDER BY '.$sortkey.' '.$this->config['sortorder'].
-                 ' LIMIT '.$this->config['limit'].
-                ' OFFSET '.$this->config['offset'];
+                ORDER BY '.$sortkey.' '.$data['sortorder'].
+                 ' LIMIT '.$data['limit'].
+                ' OFFSET '.$data['offset'];
         $resid = $this->sqlitehelper->query($query);
         if (!$resid) return;
 
