@@ -80,6 +80,11 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * Save an entry into the database
      */
     function save() {
+        if(!$this->entry['pid'] || $this->entry['pid'] == md5('')){
+            msg('blogtng: no pid, refuse to save');
+            return false;
+        }
+
         $query = 'INSERT OR IGNORE INTO entries (pid, page, title, blog, image, created, lastmod, author, login, email) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
         $result = $this->sqlite->query(
             $query,
