@@ -44,7 +44,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
     function load_by_pid($pid) {
         $pid = trim($pid);
-        if (!preg_match('^[0-9a-f]{32}$', $pid)) {
+        if (!preg_match('/^[0-9a-f]{32}$/', $pid)) {
             // FIXME we got an invalid pid, shout at the user accordingly
             return false;
         }
@@ -52,8 +52,9 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $query = 'SELECT pid, page, title, blog, image, created, lastmod, author, login, email FROM entries WHERE pid = ?';
         $resid = $this->sqlite->query($query, $pid);
         if ($resid === false) {
-            msg('blogtng plugin: failed to load entry', -1);
-            $this->entry = null;
+            $this->entry = array(
+                'pid' => $pid,
+            );
             return false;
         }
 
