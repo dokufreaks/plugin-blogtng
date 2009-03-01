@@ -11,6 +11,14 @@ if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
 
 class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
+    const RET_OK          = 1;
+    const RET_ERR_DB      = -1;
+    const RET_ERR_BADPID  = -2;
+    const RET_ERR_NOENTRY = -3;
+    const RET_ERR_DEL     = -4;
+    const RET_ERR_RES     = -5;
+
+
     var $entry = null;
 
     var $sqlitehelper = null;
@@ -38,7 +46,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         if (!$this->is_valid_pid($pid)) {
             // FIXME we got an invalid pid, shout at the user accordingly
             msg('blogtng plugin: "'.$pid.'" is not a valid pid!', -1);
-            return null;
+            return self::RET_ERR_BADPID;
         }
 
         $query = 'SELECT pid, page, title, blog, image, created, lastmod, author, login, email FROM entries WHERE pid = ?';
@@ -46,18 +54,22 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         if ($resid === false) {
             msg('blogtng plugin: failed to load entry!', -1);
             $this->entry = $this->prototype();
-            return null;
+            return self::RET_ERR_NOENTRY;
         }
         if (sqlite_num_rows($resid) == 0) {
             $this->entry = $this->prototype();
             $this->entry['pid'] = $pid;
-            return false;
+            return self::RET_ERR_DB;
         }
 
         $result = $this->sqlitehelper->res2arr($resid);
         $this->entry = $result[0];
         $this->entry['pid'] = $pid;
-        return $this->poke();
+        if($this->poke()){
+            return self::RET_OK;
+        }else{
+            return self::RET_ERR_DEL;
+        }
     }
 
     function load_by_res($resid, $index) {
@@ -65,12 +77,16 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         if($resid === false) {
             msg('blogtng plugin: failed to load entry, did not get a valid resource id!', -1);
             $this->entry = $this->prototype();
-            return false;
+            return self::RET_ERR_BADRES;
         }
 
         $result = $this->sqlitehelper->res2row($resid, $index);
         $this->entry = $result;
-        return $this->poke();
+        if($this->poke()){
+            return self::RET_OK;
+        }else{
+            return self::RET_ERR_DEL;
+        }
     }
 
     function set($entry) {
