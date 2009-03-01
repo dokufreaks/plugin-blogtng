@@ -39,7 +39,8 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
     function handle_act_preprocess(&$event, $param) {
         global $INFO;
 
-        if($event->data['comment_submit']) {
+        if(is_array($event->data) && isset($event->data['comment_submit'])) {
+
             $comment = array();
             $comment['source'] = $_REQUEST['blogtng']['comment_source'];
             $comment['name']   = ($INFO['userinfo']['name']) ? $INFO['userinfo']['name'] : $_REQUEST['blogtng']['name'];
@@ -52,8 +53,11 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
             if($_REQUEST['blogtng']['subscribe']) {
                 // FIXME handle subscription send opt-in etc
             }
+            $event->data = 'show';
+            return false;
+        } else {
+            return true;
         }
-        $event->data = 'show';
     }
 }
 // vim:ts=4:sw=4:et:enc=utf-8:
