@@ -13,7 +13,6 @@ blogtng = {
         var inputs = new Array(
                         'blogtng__comment_name', 
                         'blogtng__comment_mail', 
-                        'blogtng__comment_web', 
                         'wiki__text');
 
         for(var i = 0; i < inputs.length; i++) {
