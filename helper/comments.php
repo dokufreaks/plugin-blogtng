@@ -132,17 +132,48 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
 
     /**
      * Prints the comment form
+     *
+     * FIXME 
+     *  localization
+     *  allow comments only for registered users
+     *  add toolbar
      */
     function tpl_form($pid) {
-        $comment_text = ($_REQUEST['comment_text']) ? $_REQUEST['comment_text'] : '';
+        global $INFO;
+
+        $comment['text'] = ($_REQUEST['blogtng_comment_text']) ? hsc($_REQUEST['blogtng_comment_text']) : '';
+        $comment['url']  = ($_REQUEST['blogtng_comment_url'])  ? hsc($_REQUEST['blogtng_comment_url'])  : '';
+
+        if(isset($_SERVER['REMOTE_USER'])) {
+            $comment['name'] = $INFO['userinfo']['name'];
+            $comment['mail'] = $INFO['userinfo']['mail'];
+        } else {
+            $comment['name'] = ($_REQUEST['blogtng_comment_name']) ? hsc($_REQUEST['blogtng_comment_name']) : '';
+            $comment['mail'] = ($_REQUEST['blogtng_comment_mail']) ? hsc($_REQUEST['blogtng_comment_mail']) : '';
+        }
+
         $form = new DOKU_Form('blogtng__comments_form');
-        $form->addElement(startFieldset('FIXME'));
         $form->addHidden('pid', $pid);
-        $form->addElement(form_textField('comment_text', $comment_text, '', 'blogtng__comment_text', 'edit'));
-        $form->addElement(form_makeButton('preview', 'preview', '', array('class' => 'button edit', 'id' => 'blogtng__comment_preview')));
-        $form->addElement(form_makeButton('submit', 'comment', '', array('class' => 'button edit', 'id' => 'blogtng__comment_submit')));
-        $form->addElement(closeFieldset());
+
+        if(isset($_SERVER['REMOTE_USER'])) {
+            $form->addHidden('blogtng_comment_name', $comment['name']);
+            $form->addHidden('blogtng_bomment_mail', $comment['mail']);
+        } else {
+            $form->addElement(form_makeTextField('blogtng_comment_name', $comment['name'], 'Name', 'blogtng__comment_name', 'edit block'));
+            $form->addElement(form_makeTextField('blogtng_comment_mail', $comment['mail'], 'Mail', 'blogtng__comment_mail', 'edit block'));
+        }
+
+        $form->addElement(form_makeTextField('blogtng_comment_url', $comment['url'], 'URL', 'blogtng__comment_url', 'edit block'));
+        $form->addElement(form_makeOpenTag('div', array('class' => 'blogtng__toolbar')));
+        $form->addElement(form_makeCloseTag('div'));
+        $form->addElement(form_makeWikiText($comment['text']));
+        $form->addElement(form_makeButton('submit', 'preview', '', array('class' => 'button', 'id' => 'blogtng__comment_preview')));
+        $form->addElement(form_makeButton('submit', 'comment', '', array('class' => 'button', 'id' => 'blogtng__comment_submit')));
+        $form->addElement(form_makeCheckboxField('blogtng_subscribe', 0, 'subscribe'));
+
+        print '<div class="blogtng_commentform">' . DOKU_LF;
         $form->printForm();
+        print '</div>' . DOKU_LF;
     }
 
     /**
