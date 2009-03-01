@@ -140,7 +140,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      *  allow comments only for registered users
      *  add toolbar
      */
-    function tpl_form($pid) {
+    function tpl_form($page, $pid) {
         global $INFO;
 
         $comment['text'] = ($_REQUEST['blogtng_comment_text']) ? hsc($_REQUEST['blogtng_comment_text']) : '';
@@ -156,21 +156,23 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
 
         $form = new DOKU_Form('blogtng__comment_form');
         $form->addHidden('pid', $pid);
+        $form->addHidden('id', $page);
+        $form->addHidden('source', 'comment');
 
         if(isset($_SERVER['REMOTE_USER'])) {
-            $form->addHidden('blogtng_comment_name', $comment['name']);
-            $form->addHidden('blogtng_bomment_mail', $comment['mail']);
+            $form->addHidden('blogtng[comment_name]', $comment['name']);
+            $form->addHidden('blogtng[bomment_mail]', $comment['mail']);
         } else {
-            $form->addElement(form_makeTextField('blogtng_comment_name', $comment['name'], 'Name', 'blogtng__comment_name', 'edit block'));
-            $form->addElement(form_makeTextField('blogtng_comment_mail', $comment['mail'], 'Mail', 'blogtng__comment_mail', 'edit block'));
+            $form->addElement(form_makeTextField('blogtng[comment_name]', $comment['name'], 'Name', 'blogtng__comment_name', 'edit block'));
+            $form->addElement(form_makeTextField('blogtng[comment_mail]', $comment['mail'], 'Mail', 'blogtng__comment_mail', 'edit block'));
         }
 
-        $form->addElement(form_makeTextField('blogtng_comment_url', $comment['url'], 'URL', 'blogtng__comment_url', 'edit block'));
+        $form->addElement(form_makeTextField('blogtng[comment_url]', $comment['url'], 'URL', 'blogtng__comment_url', 'edit block'));
         $form->addElement(form_makeOpenTag('div', array('class' => 'blogtng__toolbar')));
         $form->addElement(form_makeCloseTag('div'));
         $form->addElement(form_makeWikiText($comment['text']));
-        $form->addElement(form_makeButton('submit', 'preview', '', array('class' => 'button', 'id' => 'blogtng__comment_preview')));
-        $form->addElement(form_makeButton('submit', 'comment', '', array('class' => 'button', 'id' => 'blogtng__comment_submit')));
+        $form->addElement(form_makeButton('submit', 'comment_preview', 'preview', array('class' => 'button', 'id' => 'blogtng__comment_preview')));
+        $form->addElement(form_makeButton('submit', 'comment_submit', 'comment', array('class' => 'button', 'id' => 'blogtng__comment_submit')));
         $form->addElement(form_makeCheckboxField('blogtng_subscribe', 0, 'subscribe'));
 
         print '<div class="blogtng_commentform">' . DOKU_LF;
