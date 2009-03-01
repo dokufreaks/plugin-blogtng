@@ -358,7 +358,14 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     }
 
     function tpl_linkbacks() {}
-    function tpl_tags() {}
+
+    function tpl_tags($fmt_tags) {
+        if (!$this->taghelper) {
+            $this->taghelper =& plugin_load('helper', 'blogtng_tags');
+        }
+        $this->taghelper->load($this->entry['pid']);
+        $this->taghelper->tpl_tags($fmt_tags);
+    }
 
     function is_valid_pid($pid) {
         return (preg_match('/^[0-9a-f]{32}$/', trim($pid)));

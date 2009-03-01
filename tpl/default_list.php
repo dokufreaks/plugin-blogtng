@@ -5,6 +5,8 @@
     <?php $entry->tpl_commentcount('(%d Comments)', '(%d Comment)','(%d Comments)')?>
     &middot;
     <?php $entry->tpl_created('%Y-%m-%d')?>
+    &middot;
+    <?php $entry->tpl_tags('Tags: %s')?>
 </p>
 
 </div>

@@ -33,3 +33,11 @@ CREATE TABLE comments (
 CREATE INDEX idx_comments_created ON comments(created);
 CREATE INDEX idx_comments_pid ON comments(pid);
 CREATE INDEX idx_comments_status ON comments(status);
+
+CREATE TABLE tags (
+    pid,
+    tag,
+    PRIMARY KEY (pid, tag)
+);
+CREATE INDEX idx_tags_pid ON tags(pid);
+CREATE INDEX idx_tags_tag ON tags(tag);

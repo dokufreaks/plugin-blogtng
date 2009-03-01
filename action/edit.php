@@ -21,6 +21,7 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
 
     function action_plugin_blogtng_edit() {
         $this->entryhelper =& plugin_load('helper', 'blogtng_entry');
+        $this->taghelper =& plugin_load('helper', 'blogtng_tags');
     }
 
     function getInfo() {
@@ -51,9 +52,8 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
         $event->data->insertElement($pos, form_makeMenuField('blog', $blogs, $blog, 'Blog', 'blogtng__blog', 'edit'));
         $pos += 1;
 
-        // FIXME fetch tags
-        //$tags = $this->get_tags_by_pid($pid);
-        $tags = 'tag1, tag2, tag3';
+        $this->taghelper->load($pid);
+        $tags = join(', ', $this->taghelper->tags);
         $event->data->insertElement($pos, form_makeTextField('tags', $tags, 'Tags', 'blogtng__tags', 'edit'));
         $pos += 1;
 
@@ -87,6 +87,12 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
                 $this->entryhelper->load_by_pid($pid);
                 $this->entryhelper->entry['blog'] = $blog;
                 $this->entryhelper->save();
+
+                $tags = $_REQUEST['tags'];
+                $this->taghelper->load($pid);
+                $this->taghelper->set(explode(',', $tags));
+                $this->taghelper->save();
+
                 break;
         }
     }
