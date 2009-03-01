@@ -324,12 +324,12 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      *
      * Wrapper around commenthelper->tpl_comments()
      */
-    function tpl_comments($author_url='email') {
+    function tpl_comments($name,$types=null) {
         if(!$this->commenthelper) {
             $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
         }
         $this->commenthelper->load($this->entry['pid']);
-        $this->commenthelper->tpl_comments($author_url);
+        $this->commenthelper->tpl_comments($name,$types);
     }
 
     /**

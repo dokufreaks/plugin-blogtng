@@ -220,13 +220,93 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     /**
      * Print the comemnts
      */
-    function tpl_comments($types=null) {
+    function tpl_comments($name,$types=null) {
+        $pid = $this->pid;
+        if(!$pid) return false;
 
-        for($i=0;$i<$this->count;$i++) {
-            $html = '<div class="blogtng_comment">' . DOKU_LF
-                  . '</div>' . DOKU_LF;
-            print $html;
+        $sql = 'SELECT *
+                  FROM comments
+                 WHERE pid = ?';
+        $args = array();
+        $args[] = $pid;
+        if(is_array($types)){
+            $qs = array();
+            foreach($types as $type){
+                $args[] = $type;
+                $qs[]   = '?';
+            }
+            $sql .= ' AND type IN ('.join(',',$qs).')';
+        }
+        $sql .= ' ORDER BY created ASC';
+        $res = $this->sqlitehelper->query($sql,$args);
+        $res = $this->sqlitehelper->res2arr($res);
+
+        $comment = new blogtng_comment();
+        foreach($res as $row){
+            $comment->init($row);
+            $comment->output($name);
         }
     }
+}
+
+/**
+ * Simple wrapper class for a single comment object
+ */
+class blogtng_comment{
+    var $data;
+    var $num;
+
+    /**
+     * Resets the internal data with a given row
+     */
+    function init($row){
+        $this->num++;
+        $this->data = $row;
+
+    }
+
+    function output($name){
+        $name = preg_replace('/[^a-zA-Z_\-]+/','',$name);
+        $tpl = DOKU_PLUGIN . 'blogtng/tpl/' . $name . '_comments.php';
+        if(file_exists($tpl)) {
+            $comment = $this;
+            include($tpl);
+        } else {
+            msg('blogtng plugin: template ' . $tpl . ' does not exist!', -1);
+        }
+
+    }
+
+    function tpl_comment(){
+        //FIXME implement renderer and handle references
+
+        echo hsc($this->data['text']);
+    }
+
+    function tpl_cid(){
+        echo $this->data['cid'];
+    }
+
+    function tpl_number($link=true,$fmt='%d'){
+        if($link) echo '<a href="#comment_'.$this->data['cid'].'" class="blogtng_num">';
+        printf($fmt,$this->num);
+        if($link) echo '</a>';
+    }
+
+    function tpl_hcard(){
+        echo '<div class="vcard">';
+        if($this->data['web']){
+            echo '<a href="'.hsc($this->data['web']).'" class="fn nickname">';
+            echo hsc($this->data['name']);
+            echo '</a>';
+        }else{
+            echo '<span class="fn nickname">';
+            echo hsc($this->data['name']);
+            echo '</span>';
+        }
+        echo '</div>';
+    }
+
+
 }
 // vim:ts=4:sw=4:et:enc=utf-8:
