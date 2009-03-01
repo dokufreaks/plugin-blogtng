@@ -330,6 +330,27 @@ class blogtng_comment{
         echo '</div>';
     }
 
+    function tpl_name(){
+        echo hsc($this->data['name']);
+    }
+
+    function tpl_type(){
+        echo hsc($this->data['type']);
+    }
+
+    function tpl_mail(){
+        echo hsc($this->data['mail']);
+    }
+
+    function tpl_web(){
+        echo hsc($this->data['web']);
+    }
+
+    function tpl_created($fmt=''){
+        global $conf;
+        if(!$fmt) $fmt = $conf['dformat'];
+        echo hsc(strftime($fmt,$this->data['created']));
+    }
 
 }
 // vim:ts=4:sw=4:et:enc=utf-8:

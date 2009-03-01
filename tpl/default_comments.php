@@ -2,4 +2,5 @@
     <?php $comment->tpl_number()?>
     <?php $comment->tpl_comment()?>
     <?php $comment->tpl_hcard()?>
+    <?php $comment->tpl_created()?>
 </div>
