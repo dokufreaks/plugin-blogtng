@@ -4,7 +4,6 @@
  */
 div.dokuwiki fieldset#blogtng__edit {
   margin: 0 0 0.5em 0;
-  width: 99.5%;
   text-align: left;
 }
 
@@ -23,13 +22,13 @@ div.dokuwiki textarea.error {
 }
 
 div.dokuwiki ul.blogtng_tags {
+  list-style: none;
   display: inline;
-  margin: 0 0 1em;
+  margin: 0;
 }
 
 div.dokuwiki ul.blogtng_tags li {
   display: inline;
-  list-style-type: none;
 }
 
 div.dokuwiki ul.blogtng_tags li:after {
@@ -38,4 +37,15 @@ div.dokuwiki ul.blogtng_tags li:after {
 
 div.dokuwiki ul.blogtng_tags li:last-child:after {
   content: "" !important;
+}
+
+div.dokuwiki div#blogtng__comment_preview,
+div.dokuwiki div#blogtng__ajax_preview {
+  padding: 1em;
+  margin: 1em;
+  border: 1px dashed __border__;
+}
+
+div.dokuwiki div#blogtng__ajax_preview {
+  visibility: hidden;
 }
