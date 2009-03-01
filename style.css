@@ -22,3 +22,20 @@ div.dokuwiki textarea.error {
   background: #fcc !important;
 }
 
+div.dokuwiki ul.blogtng_tags {
+  display: inline;
+  margin: 0 0 1em;
+}
+
+div.dokuwiki ul.blogtng_tags li {
+  display: inline;
+  list-style-type: none;
+}
+
+div.dokuwiki ul.blogtng_tags li:after {
+  content: ", ";
+}
+
+div.dokuwiki ul.blogtng_tags li:last-child:after {
+  content: "" !important;
+}
