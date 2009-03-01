@@ -1,0 +1,18 @@
+/**
+ *
+ * vim:ts=2:sw=2:et:enc=utf-8:
+ */
+div.dokuwiki fieldset#blogtng__edit {
+  margin: 0 0 0.5em 0;
+  width: 99.5%;
+  text-align: left;
+}
+
+div.dokuwiki div.blogtng_commentform {
+  padding: 2em;
+  width: 500px;
+}
+
+div.dokuwiki div.blogtng_commentform textarea {
+  margin-bottom: 0.5em;
+}

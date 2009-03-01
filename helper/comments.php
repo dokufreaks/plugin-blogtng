@@ -174,7 +174,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         $form = new DOKU_Form('blogtng__comment_form');
         $form->addHidden('pid', $pid);
         $form->addHidden('id', $page);
-        $form->addHidden('source', 'comment');
+        $form->addHidden('blogtng[comment_source]', 'comment');
 
         if(isset($_SERVER['REMOTE_USER'])) {
             $form->addHidden('blogtng[comment_name]', $comment['name']);
