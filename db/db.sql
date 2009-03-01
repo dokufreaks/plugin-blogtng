@@ -23,7 +23,7 @@ CREATE TABLE comments (
     cid INTEGER PRIMARY KEY,
     pid,
     name,
-    email,
+    mail,
     web,
     avatar,
     created INTEGER,
