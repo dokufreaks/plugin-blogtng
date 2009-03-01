@@ -173,7 +173,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         $form->addElement(form_makeWikiText($comment['text']));
         $form->addElement(form_makeButton('submit', 'comment_preview', 'preview', array('class' => 'button', 'id' => 'blogtng__comment_preview')));
         $form->addElement(form_makeButton('submit', 'comment_submit', 'comment', array('class' => 'button', 'id' => 'blogtng__comment_submit')));
-        $form->addElement(form_makeCheckboxField('blogtng_subscribe', 0, 'subscribe'));
+        $form->addElement(form_makeCheckboxField('blogtng[subscribe]', 0, 'subscribe'));
 
         print '<div class="blogtng_commentform">' . DOKU_LF;
         $form->printForm();
