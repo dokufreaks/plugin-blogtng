@@ -337,7 +337,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      *
      * Wrapper around commenthelper->tpl_commentcount()
      */
-    function tpl_commentcount($fmt_zero_comments, $fmt_one_comment, $fmt_comments) {
+    function tpl_commentcount($fmt_zero_comments='', $fmt_one_comment='', $fmt_comments='',$types=null) {
         if(!$this->commenthelper) {
             $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
         }

@@ -14,7 +14,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     var $sqlitehelper = null;
 
     var $comments = array();
-    var $count;
+    var $pid;
 
     /**
      * Constructor, loads the sqlite helper plugin
@@ -34,9 +34,8 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      * Load comments for specified pid
      */
     function load($pid) {
-        $pid = trim($pid);
-        $this->count = $this->get_count($pid);
-        //$query = 'SELECT FIXME FROM comments WHERE pid = ?'; 
+        $this->pid = trim($pid);
+        //$query = 'SELECT FIXME FROM comments WHERE pid = ?';
 
         //$resid = $this->sqlitehelper->query($query, $pid);
         //if ($resid === false) {
@@ -53,8 +52,8 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     /**
      * Get comment count
      */
-    function get_count($pid,$types=null) {
-        $pid = trim($pid);
+    function get_count($types=null) {
+        $pid = $this->pid;
 
         $sql = 'SELECT COUNT(pid) as val
                   FROM comments
@@ -69,7 +68,6 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
             }
             $sql .= ' AND type IN ('.join(',',$qs).')';
         }
-
         $res = $this->sqlitehelper->query($sql,$args);
         $res = $this->sqlitehelper->res2row($res,0);
         return $res['val'];
@@ -80,7 +78,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      */
     function save($pid, $comment) {
         $query = 'FIXME';
-        $this->sqlitehelper->query($query, $pid); 
+        $this->sqlitehelper->query($query, $pid);
     }
 
     /**
@@ -152,7 +150,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     /**
      * Prints the comment form
      *
-     * FIXME 
+     * FIXME
      *  localization
      *  allow comments only for registered users
      *  add toolbar
@@ -200,16 +198,21 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     /**
      * Print the number of comments
      */
-    function tpl_count($fmt_zero_comments, $fmt_one_comment, $fmt_comments) {
-        switch($this->count) {
+    function tpl_count($fmt_zero_comments='', $fmt_one_comment='', $fmt_comments='', $types=null) {
+        if(!$this->pid) return false;
+        $count = $this->get_count($types);
+
+        //FIXME add localized defaults
+
+        switch($count) {
             case 0:
-                print sprintf($fmt_zero_comments, $this->count);
+                printf($fmt_zero_comments, $count);
                 break;
             case 1:
-                print sprintf($fmt_one_comment, $this->count);
+                printf($fmt_one_comment, $count);
                 break;
             default:
-                print sprintf($fmt_comments, $this->count);
+                printf($fmt_comments, $count);
                 break;
         }
     }
@@ -217,7 +220,8 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     /**
      * Print the comemnts
      */
-    function tpl_comments($author_url='email') {
+    function tpl_comments($types=null) {
+
         for($i=0;$i<$this->count;$i++) {
             $html = '<div class="blogtng_comment">' . DOKU_LF
                   . '</div>' . DOKU_LF;
