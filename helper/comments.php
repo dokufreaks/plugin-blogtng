@@ -154,7 +154,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
             $comment['mail'] = ($_REQUEST['blogtng_comment_mail']) ? hsc($_REQUEST['blogtng_comment_mail']) : '';
         }
 
-        $form = new DOKU_Form('blogtng__comments_form');
+        $form = new DOKU_Form('blogtng__comment_form');
         $form->addHidden('pid', $pid);
 
         if(isset($_SERVER['REMOTE_USER'])) {
