@@ -75,10 +75,25 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
 
     /**
      * Save comment
+     *
+     * FIXME escape stuff
      */
-    function save($pid, $comment) {
-        $query = 'FIXME';
-        $this->sqlitehelper->query($query, $pid);
+    function save($comment) {
+        $query = 'INSERT INTO comments (pid, source, name, mail, web, avatar, created, text, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+        $comment['status']  = ($this->getconf('moderate_comments')) ? 'hidden' : 'visible';
+        $comment['created'] = time();
+        $comment['avatar']  = ''; // FIXME create avatar using a helper function
+        $this->sqlitehelper->query($query, 
+            $comment['pid'],
+            $comment['source'],
+            $comment['name'],
+            $comment['mail'],
+            $comment['web'],
+            $comment['avatar'],
+            $comment['created'],
+            $comment['text'],
+            $comment['status']
+        );
     }
 
     /**

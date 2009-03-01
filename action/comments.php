@@ -49,9 +49,6 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
             $comment['web']    = ($_REQUEST['blogtng']['comment_web']) ? $_REQUEST['blogtng']['comment_web'] : '';
             $comment['text']   = $_REQUEST['wikitext']; // FIXME clean text
             $comment['pid']    = $_REQUEST['pid'];
-            $comment['status'] = 'visible'; // FIXME check default config
-            $comment['created'] = time(); // FIXME
-            $comment['avatar'] = ''; // FIXME create avatar
 
             // check for empty fields
             $BLOGTNG = array();
@@ -73,6 +70,9 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
             if($_REQUEST['blogtng']['subscribe']) {
                 // FIXME handle subscription send opt-in etc
             }
+
+            // save comment
+            $this->commenthelper->save($comment);
 
             $event->data = 'show';
             return false;
