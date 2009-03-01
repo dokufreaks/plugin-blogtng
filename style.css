@@ -16,3 +16,9 @@ div.dokuwiki div.blogtng_commentform {
 div.dokuwiki div.blogtng_commentform textarea {
   margin-bottom: 0.5em;
 }
+
+div.dokuwiki input.error,
+div.dokuwiki textarea.error {
+  background: #fcc !important;
+}
+

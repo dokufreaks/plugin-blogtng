@@ -157,35 +157,42 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      */
     function tpl_form($page, $pid) {
         global $INFO;
-
-        $comment['text'] = ($_REQUEST['blogtng_comment_text']) ? hsc($_REQUEST['blogtng_comment_text']) : '';
-        $comment['url']  = ($_REQUEST['blogtng_comment_url'])  ? hsc($_REQUEST['blogtng_comment_url'])  : '';
-
-        if(isset($_SERVER['REMOTE_USER'])) {
-            $comment['name'] = $INFO['userinfo']['name'];
-            $comment['mail'] = $INFO['userinfo']['mail'];
-        } else {
-            $comment['name'] = ($_REQUEST['blogtng_comment_name']) ? hsc($_REQUEST['blogtng_comment_name']) : '';
-            $comment['mail'] = ($_REQUEST['blogtng_comment_mail']) ? hsc($_REQUEST['blogtng_comment_mail']) : '';
-        }
+        global $BLOGTNG;
 
         $form = new DOKU_Form('blogtng__comment_form');
         $form->addHidden('pid', $pid);
         $form->addHidden('id', $page);
         $form->addHidden('blogtng[comment_source]', 'comment');
 
-        if(isset($_SERVER['REMOTE_USER'])) {
-            $form->addHidden('blogtng[comment_name]', $comment['name']);
-            $form->addHidden('blogtng[bomment_mail]', $comment['mail']);
-        } else {
-            $form->addElement(form_makeTextField('blogtng[comment_name]', $comment['name'], 'Name', 'blogtng__comment_name', 'edit block'));
-            $form->addElement(form_makeTextField('blogtng[comment_mail]', $comment['mail'], 'Mail', 'blogtng__comment_mail', 'edit block'));
+        foreach(array('name', 'mail', 'web') as $field) {
+            $attr = ($BLOGTNG['comment_submit_errors'][$field]) ?  array('class' => 'edit error') : array();
+
+            if(isset($_SERVER['REMOTE_USER']) && ($field == 'name' || $field == 'mail')) {
+                $form->addHidden('blogtng[comment_' . $field . ']', $BLOGTNG['comment'][$field]);
+            } elseif($field == 'web' && !$this->getConf('allow_web')) {
+                continue;
+            } else {
+                $form->addElement(
+                        form_makeTextField(
+                        'blogtng[comment_' . $field . ']',
+                        $BLOGTNG['comment'][$field], 
+                        $field, // FIXME localize
+                        'blogtng__comment_' . $field, 
+                        'edit block', 
+                        $attr)
+                );
+            }
         }
 
-        $form->addElement(form_makeTextField('blogtng[comment_url]', $comment['url'], 'URL', 'blogtng__comment_url', 'edit block'));
         $form->addElement(form_makeOpenTag('div', array('class' => 'blogtng__toolbar')));
         $form->addElement(form_makeCloseTag('div'));
-        $form->addElement(form_makeWikiText($comment['text']));
+
+        if($BLOGTNG['comment_submit_errors']['text']) {
+            $form->addElement(form_makeWikiText($BLOGTNG['comment']['text'], array('class' => 'edit error')));
+        } else {
+            $form->addElement(form_makeWikiText($BLOGTNG['comment']['text']));
+        }
+
         $form->addElement(form_makeButton('submit', 'comment_preview', 'preview', array('class' => 'button', 'id' => 'blogtng__comment_preview')));
         $form->addElement(form_makeButton('submit', 'comment_submit', 'comment', array('class' => 'button', 'id' => 'blogtng__comment_submit')));
         $form->addElement(form_makeCheckboxField('blogtng[subscribe]', 0, 'subscribe'));
