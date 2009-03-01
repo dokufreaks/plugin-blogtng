@@ -4,7 +4,7 @@
         Tags:
         <?php $entry->tpl_tags() ?>
     </div>
-    <h2>Discusson</h2>
+    <h2>Discussion</h2>
     <div class="level2">
         <?php $entry->tpl_comments('default') ?>
         <?php $entry->tpl_commentform() ?>
