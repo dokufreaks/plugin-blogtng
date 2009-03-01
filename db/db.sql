@@ -20,10 +20,11 @@ CREATE INDEX idx_entries_created ON entries(created);
 CREATE INDEX idx_entries_blog ON entries(blog);
 
 CREATE TABLE comments (
-    id INTEGER PRIMARY KEY,
+    cid INTEGER PRIMARY KEY,
     pid,
+    source,
     name,
-    email,
+    mail,
     web,
     avatar,
     created INTEGER,

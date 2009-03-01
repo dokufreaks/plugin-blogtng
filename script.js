@@ -13,14 +13,13 @@ blogtng = {
         var inputs = new Array(
                         'blogtng__comment_name', 
                         'blogtng__comment_mail', 
-                        'blogtng__comment_url', 
                         'wiki__text');
 
         for(var i = 0; i < inputs.length; i++) {
             var input = $(inputs[i]);
             if(input) {
                 if(!input.value) {
-                    input.className = input.ClassName + ' error';
+                    input.className = 'edit error';
                     input.focus();
                     return false;
                 }

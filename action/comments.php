@@ -41,18 +41,39 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
 
         if(is_array($event->data) && isset($event->data['comment_submit'])) {
 
+            // FIXME validate data
             $comment = array();
             $comment['source'] = $_REQUEST['blogtng']['comment_source'];
-            $comment['name']   = ($INFO['userinfo']['name']) ? $INFO['userinfo']['name'] : $_REQUEST['blogtng']['name'];
-            $comment['mail']   = ($INFO['userinfo']['mail']) ? $INFO['userinfo']['mail'] : $_REQUEST['blogtng']['mail']; 
-            $comment['text']   = $_REQUEST['wikitext'];
+            $comment['name']   = ($INFO['userinfo']['name']) ? $INFO['userinfo']['name'] : $_REQUEST['blogtng']['comment_name'];
+            $comment['mail']   = ($INFO['userinfo']['mail']) ? $INFO['userinfo']['mail'] : $_REQUEST['blogtng']['comment_mail']; 
+            $comment['web']    = ($_REQUEST['blogtng']['comment_web']) ? $_REQUEST['blogtng']['comment_web'] : '';
+            $comment['text']   = $_REQUEST['wikitext']; // FIXME clean text
             $comment['pid']    = $_REQUEST['pid'];
 
-            // FIXME default comment moderation etc.
+            // check for empty fields
+            $BLOGTNG = array();
+            global $BLOGTNG;
+            $BLOGTNG['comment_submit_errors'] = array();
+            foreach(array('name', 'mail', 'text') as $field) {
+                if(empty($comment[$field])) {
+                    $BLOGTNG['comment_submit_errors'][$field] = true;
+                }
+            }
+
+            // do we have any empty fields
+            if(!empty($BLOGTNG['comment_submit_errors'])) {
+                $BLOGTNG['comment'] = $comment;
+                $event->data = 'show';
+                return false;
+            }
 
             if($_REQUEST['blogtng']['subscribe']) {
                 // FIXME handle subscription send opt-in etc
             }
+
+            // save comment
+            $this->commenthelper->save($comment);
+
             $event->data = 'show';
             return false;
         } else {
