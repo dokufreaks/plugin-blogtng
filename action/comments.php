@@ -31,7 +31,7 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
     }
 
     function handle_show_redirect(&$event, $param) {
-        if($event->data['preact']['comment_submit']) {
+        if($event->data['preact']['comment_submit'] || $event->data['preact']['comment_preview']) {
             $event->preventDefault();
         }
     }
@@ -39,9 +39,14 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
     function handle_act_preprocess(&$event, $param) {
         global $INFO;
 
-        if(is_array($event->data) && isset($event->data['comment_submit'])) {
+        if(is_array($event->data) && (isset($event->data['comment_submit']) || isset($event->data['comment_preview']))) {
 
-            // FIXME validate data
+            $BLOGTNG = array();
+            global $BLOGTNG;
+
+            if(isset($event->data['comment_submit']))  $BLOGTNG['comment_action'] = 'submit';
+            if(isset($event->data['comment_preview'])) $BLOGTNG['comment_action'] = 'preview';
+
             $comment = array();
             $comment['source'] = $_REQUEST['blogtng']['comment_source'];
             $comment['name']   = ($INFO['userinfo']['name']) ? $INFO['userinfo']['name'] : $_REQUEST['blogtng']['comment_name'];
@@ -49,10 +54,11 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
             $comment['web']    = ($_REQUEST['blogtng']['comment_web']) ? $_REQUEST['blogtng']['comment_web'] : '';
             $comment['text']   = $_REQUEST['wikitext']; // FIXME clean text
             $comment['pid']    = $_REQUEST['pid'];
+            $comment['page']   = $_REQUEST['id'];
+
+            $BLOGTNG['comment'] = $comment;
 
             // check for empty fields
-            $BLOGTNG = array();
-            global $BLOGTNG;
             $BLOGTNG['comment_submit_errors'] = array();
             foreach(array('name', 'mail', 'text') as $field) {
                 if(empty($comment[$field])) {
@@ -60,22 +66,26 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
                 }
             }
 
-            // do we have any empty fields
+            // return on errors
             if(!empty($BLOGTNG['comment_submit_errors'])) {
-                $BLOGTNG['comment'] = $comment;
                 $event->data = 'show';
                 return false;
             }
 
-            if($_REQUEST['blogtng']['subscribe']) {
-                // FIXME handle subscription send opt-in etc
+            if($BLOGTNG['comment_action'] == 'submit') {
+
+                // FIXME check subscription
+                if($_REQUEST['blogtng']['subscribe']) {
+                }
+
+                // save comment and redirect FIXMe cid
+                $this->commenthelper->save($comment);
+                act_redirect($comment['page']);
+            } elseif($BLOGTNG['comment_action'] == 'preview') {
+                $event->data = 'show';
+                return false;
             }
 
-            // save comment
-            $this->commenthelper->save($comment);
-
-            $event->data = 'show';
-            return false;
         } else {
             return true;
         }
