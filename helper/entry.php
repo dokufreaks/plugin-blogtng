@@ -359,12 +359,12 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
     function tpl_linkbacks() {}
 
-    function tpl_tags($fmt_tags) {
+    function tpl_tags() {
         if (!$this->taghelper) {
             $this->taghelper =& plugin_load('helper', 'blogtng_tags');
         }
         $this->taghelper->load($this->entry['pid']);
-        $this->taghelper->tpl_tags($fmt_tags);
+        $this->taghelper->tpl_tags();
     }
 
     function is_valid_pid($pid) {

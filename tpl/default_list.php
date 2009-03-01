@@ -6,7 +6,7 @@
     &middot;
     <?php $entry->tpl_created('%Y-%m-%d')?>
     &middot;
-    <?php $entry->tpl_tags('Tags: %s')?>
+    <?php $entry->tpl_tags()?>
 </p>
 
 </div>

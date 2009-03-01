@@ -75,13 +75,48 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
         $this->tags = array_unique(array_filter(array_map('trim', $tags)));
     }
 
-    function tpl_tags($fmt_tags) {
+    function join_tag_query($tagquery) {
+        if (!$tagquery) {
+            return null;
+        }
+
+        $tags = array_map('trim', explode(' ', $tagquery));
+        $tag_clauses = array(
+            'OR' => array(),
+            'AND' => array(),
+            'NOT' => array(),
+        );
+        foreach ($tags as $tag) {
+            if ($tag{0} == '+') {
+                array_push($tag_clauses['AND'], 'tag = \'' . sqlite_escape_string(substr($tag, 1)) . '\'');
+            } else if ($tag{0} == '-') {
+                array_push($tag_clauses['NOT'], 'tag != \'' . sqlite_escape_string(substr($tag, 1)) . '\'');
+            } else {
+                array_push($tag_clauses['OR'], 'tag = \'' . sqlite_escape_string($tag) . '\'');
+            }
+        }
+        $tag_clauses = array_map('array_unique', $tag_clauses);
+
+        $where = '';
+        if ($tag_clauses['OR']) {
+            $where .= '('.join(' OR ', $tag_clauses['OR']).')';
+        }
+        if ($tag_clauses['AND']) {
+            $where .= (!empty($where) ? ' AND ' : '').join(' AND ', $tag_clauses['AND']);
+        }
+        if ($tag_clauses['NOT']) {
+            $where .= (!empty($where) ? ' AND ' : '').join(' AND ', $tag_clauses['NOT']);
+        }
+        return $where;
+    }
+
+    function tpl_tags() {
         $count = count($this->tags);
         $prepared = array();
         foreach ($this->tags as $tag) {
-            array_push($prepared, '<a href="#" class="tag">'.hsc($tag).'</a>');
+            array_push($prepared, DOKU_TAB.'<li><a href="#" class="tag">'.hsc($tag).'</a></li>');
         }
-        $html = '<span class="blogtng_tags">'.sprintf($fmt_tags, join(', ', $prepared)).'</span>';
+        $html = '<ul class="blogtng_tags">'.DOKU_LF.join(DOKU_LF, $prepared).'</ul>'.DOKU_LF;
         print $html;
     }
 }
