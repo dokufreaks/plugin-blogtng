@@ -300,9 +300,10 @@ class blogtng_comment{
     }
 
     function tpl_comment(){
-        //FIXME implement renderer and handle references
+        //FIXME add caching
 
-        echo hsc($this->data['text']);
+        $inst = p_get_instructions($this->data['text']);
+        echo p_render('blogtng_comment',$inst,$info);
     }
 
     function tpl_cid(){
