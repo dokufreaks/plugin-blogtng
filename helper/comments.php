@@ -232,9 +232,15 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      */
     function tpl_count($fmt_zero_comments='', $fmt_one_comment='', $fmt_comments='', $types=null) {
         if(!$this->pid) return false;
-        $count = $this->get_count($types);
 
-        //FIXME add localized defaults
+        if(!$fmt_zero_comments)
+            $fmt_zero_comments = $this->getLang('0comments');
+        if(!$fmt_one_comments)
+            $fmt_one_comments = $this->getLang('1comments');
+        if(!$fmt_comments)
+            $fmt_comments = $this->getLang('Xcomments');
+
+        $count = $this->get_count($types);
 
         switch($count) {
             case 0:
