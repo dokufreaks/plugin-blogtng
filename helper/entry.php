@@ -269,6 +269,10 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         echo $content;
     }
 
+    function tpl_link(){
+        echo wl($this->entry['page']);
+    }
+
     function tpl_abstract($len=0) {
         if($len){
             $abstract = utf8_substr($this->entry, 0, $len).'…';

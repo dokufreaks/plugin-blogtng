@@ -362,5 +362,23 @@ class blogtng_comment{
         echo hsc(strftime($fmt,$this->data['created']));
     }
 
+    function tpl_avatar($w=0,$h=0){
+        $img = '';
+        if($this->data['avatar'])
+            $img = $this->data['avatar'];
+        if($this->data['mail'])
+            $img = 'http://gravatar/'.md5($this->data['mail']).'png';
+        //FIXME correct gravatar URL
+        //FIXME config options for gravatar
+
+        //FIXME add hook for additional methods
+
+        //use fetch for caching and resizing
+        if($img){
+            $img = ml($img,array('w'=>$w,'h'=>$h,'cache'=>'recache'));
+        }else{
+            $img = DOKU_BASE.'lib/images/blank.gif';
+        }
+    }
 }
 // vim:ts=4:sw=4:et:enc=utf-8:
