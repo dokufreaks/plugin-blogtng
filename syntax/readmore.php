@@ -40,7 +40,6 @@ class syntax_plugin_blogtng_readmore extends DokuWiki_Syntax_Plugin {
     function render($mode, &$renderer, $indata) {
         if ($mode == 'xhtml') {
             global $ID;
-            $hid = 
             // render a simple anchor
             $renderer->doc .= '<a name="readmore_'.str_replace(':', '_', $ID).'"></a>';
             return true;
