@@ -80,7 +80,7 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
 
                 // save comment and redirect FIXMe cid
                 $this->commenthelper->save($comment);
-                act_redirect($comment['page']);
+                act_redirect($comment['page'], 'show');
             } elseif($BLOGTNG['comment_action'] == 'preview') {
                 $event->data = 'show';
                 return false;
