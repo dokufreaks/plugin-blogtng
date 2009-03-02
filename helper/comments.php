@@ -49,6 +49,22 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         //$this->comments = $this->sqlitehelper->res2arr($resid);
     }
 
+    function comment_by_cid($cid) {
+        $query = 'SELECT pid, source, name, mail, web, avatar, created, text, status FROM comments WHERE cid = ?';
+        $resid = $this->sqlitehelper->query($query, $cid);
+        if ($resid === false) {
+            return false;
+        }
+        if (sqlite_num_rows($resid) == 0) {
+            return null;
+        }
+        $result = $this->sqlitehelper->res2arr($resid);
+
+        $comment = new blogtng_comment();
+        $comment->init($result[0]);
+        return $comment;
+    }
+
     /**
      * Get comment count
      */
