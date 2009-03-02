@@ -174,7 +174,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         global $INFO;
         global $BLOGTNG;
 
-        $form = new DOKU_Form('blogtng__comment_form');
+        $form = new DOKU_Form('blogtng__comment_form',wl($page).'#blogtng__comment_form');
         $form->addHidden('pid', $pid);
         $form->addHidden('id', $page);
         $form->addHidden('blogtng[comment_source]', 'comment');
@@ -223,7 +223,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
             $comment->output('default');
             print '</div>' . DOKU_LF;
         } else {
-            print '<div id="blogtng__ajax_preview">&nbsp;</div>' . DOKU_LF;
+            print '<div id="blogtng__comment_preview"></div>' . DOKU_LF;
         }
     }
 

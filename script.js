@@ -11,8 +11,8 @@ blogtng = {
 
     validate: function() {
         var inputs = new Array(
-                        'blogtng__comment_name', 
-                        'blogtng__comment_mail', 
+                        'blogtng__comment_name',
+                        'blogtng__comment_mail',
                         'wiki__text');
 
         for(var i = 0; i < inputs.length; i++) {
@@ -32,38 +32,48 @@ blogtng = {
 
     preview_attach: function(obj, preview) {
         if(!obj) return;
-        addEvent(obj, 'click', function() { return blogtng.preview(preview); });
+        if(!preview) return;
+
+        addEvent(obj, 'click', function(e) {
+            blogtng.preview(preview);
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        });
     },
 
     preview: function(obj) {
         if(!obj) return;
         if(!blogtng.validate()) return false;
 
+        obj.innerHTML = '<img src="'+DOKU_BASE+'/lib/images/throbber.gif" />';
+
         var ajax = new sack(DOKU_BASE+'lib/plugins/blogtng/ajax/preview.php');
-        ajax_qsearch.sack.AjaxFailedAlert = ''; 
-        ajax_qsearch.sack.encodeURIString = false;
+        ajax.AjaxFailedAlert = '';
+        ajax.encodeURIString = false;
 
         // define callback
         ajax.onCompletion = function(){
             var data = this.response;
             if(data === '') return;
-            obj.style.visibility = 'hidden';
             obj.innerHTML = data;
-            obj.style.visibility = 'visible';
-        };  
+        };
 
-        var name = $('blogtng__comment_name').value;
-        var mail = $('blogtng__comment_mail').value;
-        var web  = $('blogtng__comment_web').value;
-        var text = $('wiki__text').value;
-
-        ajax.runAJAX('name=' + name + '&mail=' + mail + '&web=' + web + '&text=' + text);
+        if($('blogtng__comment_name'))
+            ajax.setVar('name',$('blogtng__comment_name').value);
+        if($('blogtng__comment_mail'))
+            ajax.setVar('mail',$('blogtng__comment_mail').value);
+        if($('blogtng__comment_web'))
+            ajax.setVar('web',$('blogtng__comment_web').value);
+        if($('wiki__text'))
+            ajax.setVar('text',$('wiki__text').value);
+        ajax.runAJAX();
         return false;
     }
 };
 
 addInitEvent(function() {
     blogtng.validate_attach($('blogtng__comment_submit'));
-    blogtng.preview_attach($('blogtng__preview_submit'), $('blogtng__ajax_preview'));
+    blogtng.preview_attach($('blogtng__preview_submit'), $('blogtng__comment_preview'));
 });
 // vim:ts=4:sw=4:et:enc=utf-8:

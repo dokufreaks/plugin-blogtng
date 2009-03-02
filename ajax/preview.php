@@ -3,10 +3,10 @@
  * AJAX functionality for DokuWiki Plugin Discussion
  */
 
-if(!count($_POST) && $HTTP_RAW_POST_DATA){
+if(!count($_POST) && isset($HTTP_RAW_POST_DATA)){
   parse_str($HTTP_RAW_POST_DATA, $_POST);
 }
- 
+
 if(!defined('DOKU_INC')) define('DOKU_INC',realpath(dirname(__FILE__).'/../../../../').'/');
 if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
 
