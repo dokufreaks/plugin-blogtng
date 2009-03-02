@@ -1,11 +1,9 @@
 <?php
 /**
- * Provides a syntax for defining arbitrary locations for a "readmore" Link
- * in a blog post.
+ * Provides a syntax for referring/replying to comments in own comments.
  *
  * @license GPL 2 (http://www.gnu.org/licenses/gpl.html)
- * @author  Gina Haeussge <osd@foosel.net>
- * @author  Michael Klier <chi@chimeric.de>
+ * @author  Gina Haeussge <gina@foosel.net>
  */
 
 if (!defined('DOKU_INC'))
