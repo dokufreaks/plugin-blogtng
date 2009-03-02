@@ -41,6 +41,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         return confToHash(dirname(__FILE__).'/../INFO');
     }
 
+    //~~ data access methods
+
     function load_by_pid($pid) {
         $pid = trim($pid);
         if (!$this->is_valid_pid($pid)) {
@@ -193,23 +195,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
     }
 
-    function get_blogs() {
-        $pattern = DOKU_PLUGIN . 'blogtng/tpl/*_entry.php';
-        $files = glob($pattern);
-        $blogs = array('');
-        foreach ($files as $file) {
-            array_push($blogs, substr($file, strlen(DOKU_PLUGIN . 'blogtng/tpl/'), -10));
-        }
-        return $blogs;
-    }
-
-    function get_blog() {
-        if ($this->entry != null) {
-            return $this->entry['blog'];
-        } else {
-            return '';
-        }
-    }
+    //~~ template methods
 
     function tpl_content($name, $type) {
         $whitelist = array('list', 'entry');
@@ -223,8 +209,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
     }
 
-    // FIXME readmore
-    function tpl_entry() {
+    function tpl_entry($included, $readmore, $inc_level = true) {
         static $recursion = false;
         if($recursion){
             msg('blogtng: preventing infinite loop',-1);
@@ -233,44 +218,33 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $recursion = true;
 
         $id = $this->entry['page'];
-        $content = p_wiki_xhtml($id,'');
+
+        // FIXME do some caching here!
+        global $ID;
+        $info = array();
+
+        $ins = p_cached_instructions(wikiFN($id));
+        $backupID = $ID;
+        $ID = $id;
+        $this->_convert_instructions($ins, $inc_level, $readmore);
+        $content = p_render('xhtml', $ins, $info);
+        $ID = $backupID;
 
         $recursion = false;
 
-        // clean up content
-        $patterns = array(
-            '!<div class="toc">.*?(</div>\n</div>)!s', // remove toc
-            '!<h4>(.*?)</h4>!s',                       // downsize
-            '!<h3>(.*?)</h3>!s',                       // downsize
-            '!<h2>(.*?)</h2>!s',                       // downsize
-            '!<h1>(.*?)</h1>!s',                       // downsize
-            '!<div class="level4">!s',                 // downsize
-            '!<div class="level3">!s',                 // downsize
-            '!<div class="level2">!s',                 // downsize
-            '!<div class="level1">!s',                 // downsize
-            '! href="#!',                              // fix internal links
-        );
-        $replace  = array(
-            '',
-            '<h5>\\1</h5>',
-            '<h4>\\1</h4>',
-            '<h3>\\1</h3>',
-            '<h2>\\1</h2>',
-            '<div class="level5">',
-            '<div class="level4">',
-            '<div class="level3">',
-            '<div class="level2">',
-            ' href="'.wl($id).'#');
-        $content  = preg_replace($patterns,$replace,$content);
+        if ($included) {
+            $content = $this->_convert_footnotes($content);
+            $content .= $this->_edit_button();
+        } else {
+            $content = tpl_toc(true).$content;
+        }
 
-        // replace first headline with link
-        $content = preg_replace('!<h2><a !s','<h2><a href="'.wl($id).'" ',$content,1);
-
-        echo $content;
+        echo html_secedit($content, !$included);
+        return true;
     }
 
-    function tpl_link(){
-        echo wl($this->entry['page']);
+    function tpl_link($anchor=''){
+        echo wl($this->entry['page']).(!empty($anchor) ? '#'.$anchor : '');
     }
 
     function tpl_abstract($len=0) {
@@ -371,8 +345,193 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $this->taghelper->tpl_tags();
     }
 
+    //~~ utility methods
+
+    function get_blogs() {
+        $pattern = DOKU_PLUGIN . 'blogtng/tpl/*_entry.php';
+        $files = glob($pattern);
+        $blogs = array('');
+        foreach ($files as $file) {
+            array_push($blogs, substr($file, strlen(DOKU_PLUGIN . 'blogtng/tpl/'), -10));
+        }
+        return $blogs;
+    }
+
+    function get_blog() {
+        if ($this->entry != null) {
+            return $this->entry['blog'];
+        } else {
+            return '';
+        }
+    }
+
     function is_valid_pid($pid) {
         return (preg_match('/^[0-9a-f]{32}$/', trim($pid)));
     }
+
+    //~~ private methods
+
+    function _convert_instructions(&$ins, $inc_level, $readmore) {
+        global $ID;
+
+        $id = $this->entry['page'];
+        if (!page_exists($id)) return false;
+
+        // check if included page is in same namespace
+        $ns = getNS($id);
+        $convert = (getNS($ID) == $ns) ? false : true;
+
+        $first_header = true;
+        $open_sections = 0;
+        $n = count($ins);
+        for ($i = 0; $i < $n; $i++) {
+            $current = $ins[$i][0];
+            if ($convert && (substr($current, 0, 8) == 'internal')) {
+                // convert internal links and media from relative to absolute
+                $ins[$i][1][0] = $this->_convert_internal_link($ins[$i][1][0], $ns);
+            } elseif ($current == 'header') {
+                // convert header levels and convert first header to permalink
+                $text = $ins[$i][1][0];
+                $level = $ins[$i][1][1];
+
+                // change first header to permalink
+                if ($first_header) {
+                    $ins[$i] = array('plugin',
+                        array(
+                            'blogtng_header',
+                            array(
+                                $text,
+                                $level
+                            ),
+                        ),
+                        $ins[$i][1][2]
+                    );
+                }
+                $first_header = false;
+
+                // increase level of header
+                if ($inc_level) {
+                    $level = $level + 1;
+                    if ($level > 5) $level = 5;
+                    if (is_array($ins[$i][1][1])) {
+                        // permalink header
+                        $ins[$i][1][1][1] = $level;
+                    } else {
+                        // normal header
+                        $ins[$i][1][1] = $level;
+                    }
+                }
+            } elseif ($current == 'section_open') {
+                // the same for sections
+                if ($inc_level) $level = $ins[$i][1][0] + 1;
+                if ($level > 5) $level = 5;
+                $ins[$i][1][0] = $level;
+                $open_sections++;
+            } elseif ($current == 'section_close') {
+                $open_sections--;
+            } elseif (($current == 'plugin') && ($ins[$i][1][0] == 'blogtng_readmore') && $readmore) {
+                // cut off the instructions here
+                $this->_read_more($ins, $i, $open_sections, $inc_level);
+                $open_sections = 0;
+                break;
+            }
+        }
+        $this->_finish_convert($ins, $open_sections);
+        return true;
+    }
+
+    /**
+     * Convert relative internal links and media
+     *
+     * @param    integer $i: counter for current instruction
+     * @param    string  $ns: namespace of included page
+     * @return   string  $link: converted, now absolute link
+     */
+    function _convert_internal_link($link, $ns) {
+        if ($link{0} == '.') {
+            // relative subnamespace
+            if ($link{1} == '.') {
+                // parent namespace
+                return getNS($ns).':'.substr($link, 2);
+            } else {
+                // current namespace
+                return $ns.':'.substr($link, 1);
+            }
+        } elseif (strpos($link, ':') === false) {
+            // relative link
+            return $ns.':'.$link;
+        } elseif ($link{0} == '#') {
+            // anchor
+            return $this->entry['page'].$link;
+        } else {
+            // absolute link - don't change
+            return $link;
+        }
+    }
+
+    function _read_more(&$ins, $i, $open_sections, $inc_level) {
+        $append_link = (is_array($ins[$i+1]) && $ins[$i+1][0] != 'document_end');
+        $ins = array_slice($ins, 0, $i);
+        if ($append_link) {
+            $last = $ins[$i-1];
+            for ($i = 0; $i < $open_sections; $i++) {
+                $ins[] = array('section_close', array(), $last[2]);
+            }
+            $ins[] = array('section_open', array(($inc_level ? 2 : 1)), $last[2]);
+            $ins[] = array('p_open', array(), $last[2]);
+            $ins[] = array('internallink',array($this->entry['page'].'#readmore_'.str_replace(':', '_', $this->entry['page']), $this->getLang('readmore')),$last[2]);
+            $ins[] = array('p_close', array(), $last[2]);
+            $ins[] = array('section_close', array(), $last[2]);
+        }
+    }
+
+    /**
+     * Adds 'document_start' and 'document_end' instructions if not already there
+     */
+    function _finish_convert(&$ins, $open_sections) {
+        if ($ins[0][0] != 'document_start')
+            @array_unshift($ins, array('document_start', array(), 0));
+        $c = count($ins) - 1;
+        if ($ins[$c][0] != 'document_end')
+            $ins[] = array('document_end', array(), 0);
+    }
+
+    function _convert_footnotes($html) {
+        $id = str_replace(':', '_', $this->entry['page']);
+        $replace = array(
+            '!<a href="#fn__(\d+)" name="fnt__(\d+)" id="fnt__(\d+)" class="fn_top">!' => 
+                '<a href="#fn__'.$id.'__\1" name="fnt__'.$id.'__\2" id="fnt__'.$id.'__\3" class="fn_top">',
+            '!<a href="#fnt__(\d+)" id="fn__(\d+)" name="fn__(\d+)" class="fn_bot">!' => 
+                '<a href="#fnt__'.$id.'__\1" name="fn__'.$id.'__\2" id="fn__'.$id.'__\3" class="fn_bot">',
+        );
+        $html = preg_replace(array_keys($replace), array_values($replace), $html);
+        return $html;
+    }
+
+    /**
+     * Display an edit button for the included page
+     */
+    function _edit_button() {
+        global $ID;
+        $id = $this->entry['page'];
+        $perm = auth_quickaclcheck($id);
+
+        if (page_exists($id)) {
+            if (($perm >= AUTH_EDIT) && (is_writable(wikiFN($id)))) {
+                $action = 'edit';
+            } else {
+                return '';
+            }
+        } elseif ($perm >= AUTH_CREATE) {
+            $action = 'create';
+        }
+
+        $params = array('do' => 'edit');
+        $params['redirect_id'] = $ID;
+        return '<div class="secedit">'.DOKU_LF.DOKU_TAB.
+            html_btn($action, $id, '', $params, 'post').DOKU_LF.
+            '</div>'.DOKU_LF;
+    }
+
 }
 // vim:ts=4:sw=4:et:enc=utf-8:

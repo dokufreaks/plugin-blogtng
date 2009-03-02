@@ -117,7 +117,7 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
             array_push($prepared, DOKU_TAB.'<li><a href="#" class="tag">'.hsc($tag).'</a></li>');
         }
         $html = '<ul class="blogtng_tags">'.DOKU_LF.join(DOKU_LF, $prepared).'</ul>'.DOKU_LF;
-        print $html;
+        echo $html;
     }
 }
 // vim:ts=4:sw=4:et:enc=utf-8:

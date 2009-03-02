@@ -7,6 +7,16 @@ div.dokuwiki fieldset#blogtng__edit {
   text-align: left;
 }
 
+div.dokuwiki div.blogtng_list div.blogtng_footer {
+  border-top: 1px solid __border__;
+}
+
+div.dokuwiki div.blogtng_entry div.blogtng_footer {
+  border: 1px solid __border__;
+  background: __background_alt__;
+  padding: 1em;
+}
+
 div.dokuwiki div.blogtng_commentform {
   padding: 2em;
   width: 500px;
