@@ -72,59 +72,145 @@ blogtng = {
     },
 
     reply_attach: function() {
-        objs = getElementsByClass('blogtng_num', null, 'a');
+        var objs = getElementsByClass('blogtng_num', null, 'a');
         for (var i = 0; i < objs.length; i++) {
             addEvent(objs[i], 'click', function(e) {
-                insertAtCarret('wiki__text', '@#'+this.href.substring(this.href.lastIndexOf('#')+'#comment_'.length)+': ');
+                commentInsertAtCarret('wiki__text', '@#'+this.href.substring(this.href.lastIndexOf('#')+'#comment_'.length)+': ');
                 e.preventDefault();
                 e.stopPropagation();
                 return false;
             });
         }
+
+        objs = getElementsByClass('blogtng_reply', null, 'a');
+        for (var i = 0; i < objs.length; i++) {
+            addEvent(objs[i], 'mouseover', function(e) {
+                commentPopup(e, this.href.substring(this.href.lastIndexOf('#')+'#comment_'.length));
+            });
+        }
     }
+
+
 };
 
-/*
+/**
  * Insert the given value at the current cursor position
  *
  * @see http://www.alexking.org/index.php?content=software/javascript/content.php
  *
  * FIXME: Is there a way to include this function from edit.js instead?
  */
-function insertAtCarret(edid,value){
-  var field = document.getElementById(edid);
+function commentInsertAtCarret(edid, value) {
+    var field = document.getElementById(edid);
 
-  //IE support
-  if (document.selection) {
-    field.focus();
-    sel = document.selection.createRange();
-    sel.text = value;
+    if (document.selection) {
+        // IE support
+        field.focus();
+        sel = document.selection.createRange();
+        sel.text = value;
 
-  //MOZILLA/NETSCAPE support
-  }else if (field.selectionStart || field.selectionStart == '0') {
-    var startPos  = field.selectionStart;
-    var endPos    = field.selectionEnd;
-    var scrollTop = field.scrollTop;
-    field.value = field.value.substring(0, startPos) +
-                  value +
-                  field.value.substring(endPos, field.value.length);
+    } else if (field.selectionStart || field.selectionStart == '0') {
+        // MOZILLA/NETSCAPE support
+        var startPos = field.selectionStart;
+        var endPos = field.selectionEnd;
+        var scrollTop = field.scrollTop;
+        field.value = field.value.substring(0, startPos) + value
+                + field.value.substring(endPos, field.value.length);
 
-    field.focus();
-    var cPos=startPos+(value.length);
-    field.selectionStart=cPos;
-    field.selectionEnd=cPos;
-    field.scrollTop=scrollTop;
-  } else {
-    field.value += "\n"+value;
-  }
-  // reposition cursor if possible
-  if (field.createTextRange){
-    field.caretPos = document.selection.createRange().duplicate();
-  }
-  if(value){
-    window.textChanged = true;
-    summaryCheck();
-  }
+        field.focus();
+        var cPos = startPos + (value.length);
+        field.selectionStart = cPos;
+        field.selectionEnd = cPos;
+        field.scrollTop = scrollTop;
+    } else {
+        field.value += "\n" + value;
+    }
+
+    // reposition cursor if possible
+    if (field.createTextRange) {
+        field.caretPos = document.selection.createRange().duplicate();
+    }
+}
+
+/**
+ * Display an insitu comment popup. Heavily copied from the footnote insitu
+ * popup.
+ *
+ * FIXME: make the footnote one wrap a generic function to define popups?
+ *
+ * @author Andreas Gohr <andi@splitbrain.org>
+ * @author Chris Smith <chris@jalakai.co.uk>
+ * @author Gina Haeussge <gina@foosel.net>
+ */
+function commentPopup(e, id){
+    var obj = e.target;
+
+    // get or create the comment popup div
+    var comment_div = $('insitu__comment');
+    if(!comment_div){
+        comment_div = document.createElement('div');
+        comment_div.id        = 'insitu__comment';
+        comment_div.className = 'insitu-footnote JSpopup dokuwiki';
+
+        // autoclose on mouseout - ignoring bubbled up events
+        addEvent(comment_div,'mouseout',function(e){
+            if(e.target != comment_div){
+                e.stopPropagation();
+                return;
+            }
+            // check if the element was really left
+            if(e.pageX){        // Mozilla
+                var bx1 = findPosX(comment_div);
+                var bx2 = bx1 + comment_div.offsetWidth;
+                var by1 = findPosY(comment_div);
+                var by2 = by1 + comment_div.offsetHeight;
+                var x = e.pageX;
+                var y = e.pageY;
+                if(x > bx1 && x < bx2 && y > by1 && y < by2){
+                    // we're still inside boundaries
+                    e.stopPropagation();
+                    return;
+                }
+            }else{              // IE
+                if(e.offsetX > 0 && e.offsetX < comment_div.offsetWidth-1 &&
+                   e.offsetY > 0 && e.offsetY < comment_div.offsetHeight-1){
+                    // we're still inside boundaries
+                    e.stopPropagation();
+                    return;
+                }
+            }
+            // okay, hide it
+            comment_div.style.display='none';
+        });
+        document.body.appendChild(comment_div);
+    }
+
+    // locate the comment anchor element
+    var a = $( "comment_"+id );
+    if (!a){ return; }
+
+    // anchor parent is the footnote container, get its innerHTML
+    var content = new String (a.innerHTML);
+
+    // prefix ids on any elements with "insitu__" to ensure they remain unique
+    content = content.replace(/\bid=\"(.*?)\"/gi,'id="insitu__$1');
+
+    // now put the content into the wrapper
+    comment_div.innerHTML = content;
+
+    // position the div and make it visible
+    var x; var y;
+    if(e.pageX){        // Mozilla
+        x = e.pageX;
+        y = e.pageY;
+    }else{              // IE
+        x = e.offsetX;
+        y = e.offsetY;
+    }
+    comment_div.style.position = 'absolute';
+    comment_div.style.left = (x+2)+'px';
+    comment_div.style.top  = (y+2)+'px';
+    comment_div.style.display = '';
 }
 
 addInitEvent(function() {
