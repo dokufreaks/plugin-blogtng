@@ -38,35 +38,33 @@ class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
 
         $data = $event->data;
 
-        // if date_created is not set, we are still in the first run of the
-        // metadata rendering processed as triggered by p_set_metadata, so we
-        // refuse to do any work here
-        //
-        // if that stupid behavior of double-rendering the metadata with missing
-        // data in the first run is to be fixed in the future, the two lines
-        // below can be happily removed again ;)
+        $pid = md5($ID);
+        $this->entryhelper->load_by_pid($pid);
 
         // fetch author info
-        $creator = $data['current']['creator'];
+        $login = $this->entryhelper->entry['login'];
+        if(!$login) $login = $data['current']['creator'];
+        if(!$login) $login = $_SERVER['REMOTE_USER'];
+
         $userdata = false;
-        if ($auth != null)
-            $userdata = $auth->getUserData($creator);
+        if($login){
+            if ($auth != null)
+                $userdata = $auth->getUserData($login);
+        }
 
         // fetch dates
         $date_created = $data['current']['date']['created'];
         $date_modified = $data['current']['date']['modified'];
 
         // prepare entry ...
-        $pid = md5($ID);
-        $this->entryhelper->load_by_pid($pid);
         $entry = array(
             'page' => $ID,
             'title' => $data['current']['title'],
             'image' => $data['current']['relation']['firstimage'],
             'created' => $date_created,
             'lastmod' => (!$date_modified) ? $date_created : $date_modified,
-            'login' => $creator,
-            'author' => ($userdata) ? $userdata['name'] : $creator,
+            'login' => $login,
+            'author' => ($userdata) ? $userdata['name'] : $login,
             'email' => ($userdata) ? $userdata['email'] : '',
         );
         $this->entryhelper->set($entry);
