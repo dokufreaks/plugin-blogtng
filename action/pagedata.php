@@ -36,7 +36,7 @@ class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
         global $ID;
         global $auth;
 
-        $data = $event->data;
+        $data = $event->result; //newly rendered data is here.
 
         $pid = md5($ID);
         $this->entryhelper->load_by_pid($pid);
@@ -48,8 +48,9 @@ class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
 
         $userdata = false;
         if($login){
-            if ($auth != null)
+            if ($auth != null){
                 $userdata = $auth->getUserData($login);
+            }
         }
 
         // fetch dates
@@ -65,7 +66,7 @@ class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
             'lastmod' => (!$date_modified) ? $date_created : $date_modified,
             'login' => $login,
             'author' => ($userdata) ? $userdata['name'] : $login,
-            'email' => ($userdata) ? $userdata['email'] : '',
+            'email' => ($userdata) ? $userdata['mail'] : '',
         );
         $this->entryhelper->set($entry);
 
