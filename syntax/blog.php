@@ -231,7 +231,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
 
         // we're done - build the output
         $out = '';
-        $out .= '<div class="paginator">';
+        $out .= '<div class="blogtng_pagination">';
         if($cur > 1){
             $out .= '<a href="'.wl($conf['target'],
                                    array('btngs'=>$conf['limit']*($cur-2))).
