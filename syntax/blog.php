@@ -237,6 +237,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
                                    array('btngs'=>$conf['limit']*($cur-2))).
                              '" class="prev">'.$this->getLang('prev').'</a> ';
         }
+        $out .= '<span class="blogtng_pages">';
         $last = 0;
         foreach($pages as $page){
             if($page - $last > 1){
@@ -251,6 +252,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
             }
             $last = $page;
         }
+        $out .= '</span>';
         if($cur < $max){
             $out .= '<a href="'.wl($conf['target'],
                                    array('btngs'=>$conf['limit']*($cur))).
