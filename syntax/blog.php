@@ -10,8 +10,14 @@ if (!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN', DOKU_INC.'lib/plugins/');
 
 require_once(DOKU_PLUGIN.'syntax.php');
 
+/**
+ * Creates a list of blog entries using a *_list template
+ */
 class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
 
+    /**
+     * Default configuration
+     */
     var $config = array(
         'sortorder' => 'DESC',
         'sortby'    => 'created',
@@ -61,19 +67,21 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
      * Render Output
      */
     function render($mode, &$renderer, $data) {
+        if($mode != 'xhtml') return false;
 
-        // do cool stuff here
-        if (plugin_isdisabled('blogtng')) return; // FIXME do nothing and scream
-        //$this->helper =& plugin_load('helper', 'blogtng_FIXME'));
-
-        if($mode == 'xhtml') {
-            $renderer->info['cache'] = false;
-            $renderer->doc .= $this->_list($data);
+        // add additional data from request parameters
+        if(isset($_REQUEST['btngs'])){
+            $data['offset'] = (int) $_REQUEST['btngs'];  // start offset
         }
+
+        $renderer->info['cache'] = false;
+        $renderer->doc .= $this->_list($data);
+
+        return true;
     }
 
     /**
-     * Parse Options
+     * Parse options given in the syntax
      */
     function _parse_opt($opt) {
         switch(true) {
@@ -97,6 +105,12 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         }
     }
 
+    /**
+     * List matching blog entries
+     *
+     * Creates the needed SQL query from the given config data, executes
+     * it and calles the *_list template for each entry in the result set
+     */
     function _list($data){
         $sortkey = ($data['sortby'] == 'random') ? 'Random()' : $data['sortby'];
         $blog_query = $this->_join_blog_query($data['blog']);
@@ -123,6 +137,9 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         return $output;
     }
 
+    /**
+     * Create SQL for using multiple blog names in a query
+     */
     function _join_blog_query($blogs) {
         $parts = array();
         foreach ($blogs as $blog) {
