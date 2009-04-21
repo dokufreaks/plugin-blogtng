@@ -149,7 +149,9 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
     function _list($conf){
 
         $sortkey = ($conf['sortby'] == 'random') ? 'Random()' : $conf['sortby'];
-        $blog_query = $this->_join_blog_query($conf['blog']);
+        $blog_query = 'blog = '.
+                      $this->sqlitehelper->quote_and_join($conf['blog'],
+                                                          ' OR blog = ');
 
         $query = 'SELECT pid, page, title, blog, image, created,
                          lastmod, login, author, email
@@ -180,7 +182,9 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
      */
     function _pagination($conf){
         $sortkey = ($conf['sortby'] == 'random') ? 'Random()' : $conf['sortby'];
-        $blog_query = $this->_join_blog_query($conf['blog']);
+        $blog_query = 'blog = '.
+                      $this->sqlitehelper->quote_and_join($conf['blog'],
+                                                          ' OR blog = ');
 
         // get the number of all matching entries
         $query = 'SELECT COUNT(pid) as cnt
@@ -252,17 +256,5 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         return $out;
     }
 
-
-
-    /**
-     * Create SQL for using multiple blog names in a query
-     */
-    function _join_blog_query($blogs) {
-        $parts = array();
-        foreach ($blogs as $blog) {
-            array_push($parts, 'blog = \''.sqlite_escape_string($blog).'\'');
-        }
-        return join(' OR ', $parts);
-    }
 }
 // vim:ts=4:sw=4:et:enc=utf-8:

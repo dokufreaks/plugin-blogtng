@@ -189,4 +189,22 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
         }
         return sqlite_fetch_array($res);
     }
+
+
+    /**
+     * Join the given values and quote them for SQL insertion
+     */
+    function quote_and_join($vals,$sep=',') {
+        $vals = array_map(array('helper_plugin_blogtng_sqlite','quote_string'),$vals);
+        return join($sep,$vals);
+    }
+
+    /**
+     * Run sqlite_escape_string() on the given string and surround it
+     * with quotes
+     */
+    function quote_string($string){
+        return "'".sqlite_escape_string($string)."'";
+    }
+
 }
