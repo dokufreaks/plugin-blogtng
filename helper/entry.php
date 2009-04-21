@@ -323,6 +323,63 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $this->commenthelper->tpl_count($fmt_zero_comments, $fmt_one_comment, $fmt_comments);
     }
 
+
+    /**
+     * Print a list of related posts
+     *
+     * Can be called statically. Also exported as syntax <blog related>
+     *
+     * @param int    $num    - maximum number of links
+     * @param array  $blogs  - blogs to search
+     * @param string $id     - reference page (false for current)
+     * @param array  $tags   - additional tags to consider
+     */
+    function tpl_related($num=5,$blogs=array('default'),$id=false,$tags=array()){
+        global $INFO;
+        if($id === false) $id = $INFO['id']; //sidebar safe
+
+        $pid = md5(cleanID($id));
+
+        $query = "SELECT tag
+                    FROM tags
+                   WHERE pid = '$pid'";
+        $res = $this->sqlitehelper->query($query);
+        $res = $this->sqlitehelper->res2arr($res);
+        foreach($res as $row){
+            $tags[] = $row['tag'];
+        }
+        $tags = array_unique($tags);
+        $tags = array_filter($tags);
+        if(!count($tags)) return; // no tags for comparison
+
+        $tags  = $this->sqlitehelper->quote_and_join($tags,',');
+        $blog_query = 'A.blog = '.
+                       $this->sqlitehelper->quote_and_join($blogs,
+                                                           ' OR A.blog = ');
+
+        $query = "SELECT page, title, COUNT(B.pid) AS cnt
+                    FROM entries A, tags B
+                   WHERE $blog_query
+                     AND A.pid != '$pid'
+                     AND A.pid = B.pid
+                     AND B.tag IN ($tags)
+                GROUP BY B.pid HAVING cnt > 0
+                ORDER BY cnt DESC, created DESC
+                   LIMIT ".(int) $num;
+        $res = $this->sqlitehelper->query($query);
+        if(!sqlite_num_rows($res)) return; // no results found
+        $res = $this->sqlitehelper->res2arr($res);
+
+        // now do the output
+        echo '<ul class="related">';
+        foreach($res as $row){
+            echo '<li class="level1"><div class="li">';
+            echo '<a href="'.wl($row['page']).'" class="wikilink1">'.hsc($row['title']).'</a>';
+            echo '</div></li>';
+        }
+        echo '</ul>';
+    }
+
     /**
      * Print comment form
      *

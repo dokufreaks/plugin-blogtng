@@ -16,7 +16,7 @@ require_once(DOKU_PLUGIN.'syntax.php');
 class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
 
     /**
-     * Default configuration
+     * Default configuration for all setups
      */
     var $config = array(
         'sortorder' => 'DESC',
@@ -24,7 +24,9 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         'tpl'       => 'default',
         'limit'     => 5,
         'offset'    => 0,
-        'blog'        => null
+        'blog'      => null,
+        'tags'      => null,
+        'page'      => false,
     );
 
     var $sqlitehelper = null;
@@ -32,7 +34,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
     /**
      * Types we accept in our syntax
      */
-    var $type_whitelist = array('list', 'pagination');
+    var $type_whitelist = array('list', 'pagination', 'related');
 
     var $data_whitelist = array(
         'sortyorder' => array('asc', 'desc'),
@@ -76,9 +78,9 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
             $type = 'list';
         }
 
-        // handle multiple blogs
-        $blogs = array_map('trim', explode(' ', $conf['blog']));
-        $conf['blog'] = $blogs;
+        // handle multi keys
+        $conf['blog'] = array_map('trim', explode(',', $conf['blog']));
+        $conf['tags'] = array_map('trim', explode(',', $conf['tags']));
 
         // merge with default config
         $conf = array_merge($this->config, $conf);
@@ -97,15 +99,18 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
             $data['conf']['offset'] = (int) $_REQUEST['btngs'];  // start offset
         }
 
-        // disable caching here FIXME we might have a better solution here?
-        $renderer->info['cache'] = false;
 
         // dispatch to the correct type handler
         switch($data['type']){
+            case 'related':
+                $renderer->doc .= $this->_related($data['conf']);
+                break;
             case 'pagination':
+                $renderer->info['cache'] = false;
                 $renderer->doc .= $this->_pagination($data['conf']);
                 break;
             default:
+                $renderer->info['cache'] = false;
                 $renderer->doc .= $this->_list($data['conf']);
         }
 
@@ -254,6 +259,15 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         $out .= '</div>';
 
         return $out;
+    }
+
+    function _related($conf){
+        ob_start();
+        $entryhelper =& plugin_load('helper', 'blogtng_entry');
+        $entryhelper->tpl_related($conf['limit'],$conf['blog'],$conf['page'],$conf['tags']);
+        $output = ob_get_contents();
+        ob_end_clean();
+        return $output;
     }
 
 }
