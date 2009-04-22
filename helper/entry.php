@@ -209,7 +209,16 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
     }
 
-    function tpl_entry($included, $readmore, $inc_level = true) {
+    /**
+     * Print the whole entry, reformat it or cut it when needed
+     *
+     * @param bool   $included   - set true if you want content to be reformated
+     * @param string $readmore   - where to cut the entry valid: 'syntax', FIXME
+     * @param bool   $inc_level  - FIXME
+     * @param bool   $skipheader - Remove the first header
+     */
+    function tpl_entry($included=true, $readmore='syntax',
+                       $inc_level=true, $skipheader=false) {
         static $recursion = false;
         if($recursion){
             msg('blogtng: preventing infinite loop',-1);
@@ -226,7 +235,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $ins = p_cached_instructions(wikiFN($id));
         $backupID = $ID;
         $ID = $id;
-        $this->_convert_instructions($ins, $inc_level, $readmore);
+        $this->_convert_instructions($ins, $inc_level, $readmore, $skipheader);
         $content = p_render('xhtml', $ins, $info);
         $ID = $backupID;
 
@@ -428,7 +437,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
     //~~ private methods
 
-    function _convert_instructions(&$ins, $inc_level, $readmore) {
+    function _convert_instructions(&$ins, $inc_level, $readmore, $skipheader) {
         global $ID;
 
         $id = $this->entry['page'];
@@ -453,16 +462,20 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
                 // change first header to permalink
                 if ($first_header) {
-                    $ins[$i] = array('plugin',
-                        array(
-                            'blogtng_header',
+                    if($skipheader){
+                        unset($ins[$i]);
+                    }else{
+                        $ins[$i] = array('plugin',
                             array(
-                                $text,
-                                $level
+                                'blogtng_header',
+                                array(
+                                    $text,
+                                    $level
+                                ),
                             ),
-                        ),
-                        $ins[$i][1][2]
-                    );
+                            $ins[$i][1][2]
+                        );
+                    }
                 }
                 $first_header = false;
 
