@@ -27,6 +27,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         'blog'      => null,
         'tags'      => array(),
         'page'      => false,
+        'cache'     => false,
     );
 
     var $sqlitehelper = null;
@@ -109,16 +110,15 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         $data['conf']['tags'] = array_filter($data['conf']['tags']);
 
         // dispatch to the correct type handler
+        $renderer->info['cache'] = (bool)$conf['cache'];
         switch($data['type']){
             case 'related':
                 $renderer->doc .= $this->_related($data['conf']);
                 break;
             case 'pagination':
-                $renderer->info['cache'] = false;
                 $renderer->doc .= $this->_pagination($data['conf']);
                 break;
             default:
-                $renderer->info['cache'] = false;
                 $renderer->doc .= $this->_list($data['conf']);
         }
 
