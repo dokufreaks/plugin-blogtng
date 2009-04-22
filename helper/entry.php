@@ -257,8 +257,9 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     }
 
     function tpl_abstract($len=0) {
+        $this->_load_abstract();
         if($len){
-            $abstract = utf8_substr($this->entry, 0, $len).'…';
+            $abstract = utf8_substr($this->entry['abstract'], 0, $len).'…';
         }else{
             $abstract = $this->entry['abstract'];
         }
@@ -362,9 +363,9 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         if(!count($tags)) return; // no tags for comparison
 
         $tags  = $this->sqlitehelper->quote_and_join($tags,',');
-        $blog_query = 'A.blog = '.
+        $blog_query = '(A.blog = '.
                        $this->sqlitehelper->quote_and_join($blogs,
-                                                           ' OR A.blog = ');
+                                                           ' OR A.blog = ').')';
 
         $query = "SELECT page, title, COUNT(B.pid) AS cnt
                     FROM entries A, tags B
@@ -403,12 +404,17 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
     function tpl_linkbacks() {}
 
-    function tpl_tags() {
+    /**
+     * Print a list of tags associated with the entry
+     *
+     * @param string $target - tag links will point to this page, tag is passed as parameter
+     */
+    function tpl_tags($target) {
         if (!$this->taghelper) {
             $this->taghelper =& plugin_load('helper', 'blogtng_tags');
         }
         $this->taghelper->load($this->entry['pid']);
-        $this->taghelper->tpl_tags();
+        $this->taghelper->tpl_tags($target);
     }
 
     //~~ utility methods
@@ -436,6 +442,13 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     }
 
     //~~ private methods
+
+    function _load_abstract(){
+        if($this->entry['abstract']) return;
+        $id = $this->entry['page'];
+
+        $this->entry['abstract'] = p_get_metadata($id,'description abstract',true);
+    }
 
     function _convert_instructions(&$ins, $inc_level, $readmore, $skipheader) {
         global $ID;

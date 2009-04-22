@@ -25,7 +25,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         'limit'     => 5,
         'offset'    => 0,
         'blog'      => null,
-        'tags'      => null,
+        'tags'      => array(),
         'page'      => false,
     );
 
@@ -95,10 +95,18 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         if($mode != 'xhtml') return false;
 
         // add additional data from request parameters
-        if(isset($_REQUEST['btngs'])){
-            $data['conf']['offset'] = (int) $_REQUEST['btngs'];  // start offset
+        if(isset($_REQUEST['btngs'])){  // start offset
+            $data['conf']['offset'] = (int) $_REQUEST['btngs'];
         }
 
+        if(isset($_REQUEST['btngt'])){  // tags
+           $data['conf']['tags'] = array_merge(
+                                       $data['conf']['tags'],
+                                       explode(',',$_REQUEST['btngt']));
+        }
+        $data['conf']['tags'] = array_map('trim',$data['conf']['tags']);
+        $data['conf']['tags'] = array_unique($data['conf']['tags']);
+        $data['conf']['tags'] = array_filter($data['conf']['tags']);
 
         // dispatch to the correct type handler
         switch($data['type']){
@@ -154,14 +162,20 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
     function _list($conf){
 
         $sortkey = ($conf['sortby'] == 'random') ? 'Random()' : $conf['sortby'];
-        $blog_query = 'blog = '.
+        $blog_query = '(blog = '.
                       $this->sqlitehelper->quote_and_join($conf['blog'],
-                                                          ' OR blog = ');
+                                                          ' OR blog = ').')';
+        if(count($conf['tags'])){
+            $tag_query  = ' AND (tag = '.
+                          $this->sqlitehelper->quote_and_join($conf['tags'],
+                                                              ' OR tag = ').') AND A.pid = B.pid';
+        }
 
-        $query = 'SELECT pid, page, title, blog, image, created,
+        $query = 'SELECT A.pid, page, title, blog, image, created,
                          lastmod, login, author, email
-                    FROM entries
-                   WHERE '.$blog_query.'
+                    FROM entries A, tags B
+                   WHERE '.$blog_query.$tag_query.'
+                GROUP BY A.pid
                 ORDER BY '.$sortkey.' '.$conf['sortorder'].
                  ' LIMIT '.$conf['limit'].
                 ' OFFSET '.$conf['offset'];
@@ -187,19 +201,24 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
      */
     function _pagination($conf){
         $sortkey = ($conf['sortby'] == 'random') ? 'Random()' : $conf['sortby'];
-        $blog_query = 'blog = '.
+        $blog_query = '(blog = '.
                       $this->sqlitehelper->quote_and_join($conf['blog'],
-                                                          ' OR blog = ');
+                                                          ' OR blog = ').')';
+        if(count($conf['tags'])){
+            $tag_query  = ' AND (tag = '.
+                          $this->sqlitehelper->quote_and_join($conf['tags'],
+                                                              ' OR tag = ').
+                          ') AND A.pid = B.pid GROUP BY A.pid';
+            $tag_table  = ', tags B';
+        }
 
         // get the number of all matching entries
-        $query = 'SELECT COUNT(pid) as cnt
-                    FROM entries
-                   WHERE '.$blog_query;
+        $query = 'SELECT A.pid
+                    FROM entries A'.$tag_table.'
+                   WHERE '.$blog_query.$tag_query;
         $resid = $this->sqlitehelper->query($query);
         if (!$resid) return;
-        $count = $this->sqlitehelper->res2row($resid,0);
-        $count = (int) $count['cnt'];
-
+        $count = sqlite_num_rows($resid);
         if($count <= $conf['limit']) return '';
 
         // we now prepare an array of pages to show
@@ -234,7 +253,8 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         $out .= '<div class="blogtng_pagination">';
         if($cur > 1){
             $out .= '<a href="'.wl($conf['target'],
-                                   array('btngs'=>$conf['limit']*($cur-2))).
+                                   array('btngs'=>$conf['limit']*($cur-2),
+                                         'btngt'=>join(',',$conf['tags']))).
                              '" class="prev">'.$this->getLang('prev').'</a> ';
         }
         $out .= '<span class="blogtng_pages">';
@@ -247,7 +267,8 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
                 $out .= '<span class="cur">'.$page.'</span> ';
             }else{
                 $out .= '<a href="'.wl($conf['target'],
-                                    array('btngs'=>$conf['limit']*($page-1))).
+                                    array('btngs'=>$conf['limit']*($page-1),
+                                          'btngt'=>join(',',$conf['tags']))).
                                  '">'.$page.'</a> ';
             }
             $last = $page;
@@ -255,7 +276,8 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         $out .= '</span>';
         if($cur < $max){
             $out .= '<a href="'.wl($conf['target'],
-                                   array('btngs'=>$conf['limit']*($cur))).
+                                   array('btngs'=>$conf['limit']*($cur),
+                                         'btngt'=>join(',',$conf['tags']))).
                              '" class="next">'.$this->getLang('next').'</a> ';
         }
         $out .= '</div>';
