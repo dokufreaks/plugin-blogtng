@@ -129,6 +129,7 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
     function query(){
         if(!$this->_dbconnect()) return false;
 
+        // get function arguments
         $args = func_get_args();
         $sql  = trim(array_shift($args));
 
@@ -138,20 +139,27 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
         }
 
         if(is_array($args[0])) $args = $args[0];
+        $argc = count($args);
 
-        if(count($args) < substr_count($sql,'?')){
+        // check number of arguments
+        if($argc < substr_count($sql,'?')){
             msg('Not enough arguments passed for statement. '.
                 'Expected '.substr_count($sql,'?').' got '.
-                count($args).' - '.hsc($sql),-1);
+                $argc.' - '.hsc($sql),-1);
             return false;
         }
 
-        $args = array_map('sqlite_escape_string',$args);
+        // explode at wildcard, then join again
+        $parts = explode('?',$sql,$argc+1);
+        $args  = array_map(array($this,'quote_string'),$args);
+        $sql   = '';
 
-        while( ($arg = array_shift($args)) !== null ){
-            $sql = substr_replace($sql,"'$arg'",strpos($sql,'?'),1);
+        while( ($part = array_shift($parts)) !== null ){
+            $sql .= $part;
+            $sql .= array_shift($args);
         }
 
+        // execute query
         $err = '';
         $res = @sqlite_query($this->db,$sql,SQLITE_ASSOC,$err);
         if($err){
