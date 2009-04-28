@@ -44,9 +44,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
 
     // default plugin functions...
     function syntax_plugin_blogtng_blog() {
-        global $ID;
         $this->sqlitehelper =& plugin_load('helper', 'blogtng_sqlite');
-        $this->config['target'] = $ID;
     }
     function getInfo() {
         return confToHash(dirname(__FILE__).'/../INFO');
@@ -94,6 +92,10 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
      */
     function render($mode, &$renderer, $data) {
         if($mode != 'xhtml') return false;
+
+        // set target if not set yet
+        global $ID;
+        if(!$data['conf']['target']) $data['conf']['target'] = $ID;
 
         // add additional data from request parameters
         if(isset($_REQUEST['btngs'])){  // start offset
