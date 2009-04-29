@@ -5,5 +5,5 @@ $lang['1comments']   = '%d Kommentar';
 $lang['Xcomments']   = '%d Kommentare';
 $lang['readmore']    = 'Weiter lesen...';
 
-$lang['prev'] = '&lt; Zurück';
-$lang['next'] = 'Vor &gt;';
+$lang['prev'] = '&lt; Neuere Beiträge';;
+$lang['next'] = 'Ältere Beiträge &gt;';
