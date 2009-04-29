@@ -173,7 +173,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
                                                               ' OR tag = ').') AND A.pid = B.pid';
         }
 
-        $query = 'SELECT A.pid, page, title, blog, image, created,
+        $query = 'SELECT A.pid as pid, page, title, blog, image, created,
                          lastmod, login, author, email
                     FROM entries A, tags B
                    WHERE '.$blog_query.$tag_query.'
