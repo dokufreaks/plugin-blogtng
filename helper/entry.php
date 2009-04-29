@@ -441,6 +441,17 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         return (preg_match('/^[0-9a-f]{32}$/', trim($pid)));
     }
 
+    /**
+     * Returns a reference to the comment helper plugin preloaded with
+     * the current entry
+     */
+    function &getCommentHelper(){
+        if(!$this->commenthelper) {
+            $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
+        }
+        return $this->commenthelper;
+    }
+
     //~~ private methods
 
     function _load_abstract(){
