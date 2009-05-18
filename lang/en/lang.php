@@ -7,3 +7,7 @@ $lang['readmore']    = 'Read more...';
 
 $lang['prev'] = '&lt; Newer Posts';
 $lang['next'] = 'Older Posts &gt;';
+
+$lang['title']  = 'Title:';
+$lang['create'] = 'Create';
+

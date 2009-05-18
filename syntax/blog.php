@@ -28,14 +28,17 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         'tags'      => array(),
         'page'      => false,
         'cache'     => false,
+        'title'     => '',
+        'format'    => '', #FIXME
     );
 
     var $sqlitehelper = null;
+    var $toolshelper  = null;
 
     /**
      * Types we accept in our syntax
      */
-    var $type_whitelist = array('list', 'pagination', 'related');
+    var $type_whitelist = array('list', 'pagination', 'related', 'newform');
 
     var $data_whitelist = array(
         'sortyorder' => array('asc', 'desc'),
@@ -45,6 +48,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
     // default plugin functions...
     function syntax_plugin_blogtng_blog() {
         $this->sqlitehelper =& plugin_load('helper', 'blogtng_sqlite');
+        $this->toolshelper  =& plugin_load('helper', 'blogtng_tools');
     }
     function getInfo() {
         return confToHash(dirname(__FILE__).'/../INFO');
@@ -119,6 +123,10 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
                 break;
             case 'pagination':
                 $renderer->doc .= $this->_pagination($data['conf']);
+                break;
+            case 'newform':
+                $renderer->info['cache'] = false; //never cache this
+                $renderer->doc .= $this->_newform($data['conf']);
                 break;
             default:
                 $renderer->doc .= $this->_list($data['conf']);
@@ -294,6 +302,28 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         $output = ob_get_contents();
         ob_end_clean();
         return $output;
+    }
+
+    function _newform($conf){
+        global $ID;
+
+        // allowed to create?
+        $new = $this->toolshelper->mkpostid($conf['format'],'dummy');
+        if(auth_quickaclcheck($new) < AUTH_CREATE) return '';
+
+        $out = '';
+        $out .= '<div class="blogtng_newform">';
+        $out .= '<form method="post" action="'.wl($ID,array('do'=>'btngnew')).'">';
+        if($conf['title']) $out .= '<h3>'.hsc($conf['title']).'<h3>';
+        $out .= '<label for="btng__nt">'.$this->getLang('title').'</label>&nbsp;';
+        $out .= '<input type="text" name="btngnt" class="edit" id="btng__nt" />';
+        $out .= '<input type="submit" value="'.$this->getLang('create').'" class="button" />';
+        $out .= '<input type="hidden" name="btngnf" value="'.hsc($conf['format']).'" />';
+        $out .= '<input type="hidden" name="btngnb" value="'.hsc($conf['blog'][0]).'" />';
+        $out .= '</form>';
+        $out .= '</div>';
+
+        return $out;
     }
 
 }

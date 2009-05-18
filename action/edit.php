@@ -44,6 +44,7 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
         $pid = md5($ID);
         $this->entryhelper->load_by_pid($pid);
         $blog = $this->entryhelper->get_blog();
+        if(!$blog && $_REQUEST['btngnb']) $blog = $_REQUEST['btngnb'];
         $blogs = $this->entryhelper->get_blogs();
 
         $event->data->insertElement($pos, form_openfieldset(array('_legend' => 'BlogTNG', 'class' => 'edit', 'id' => 'blogtng__edit')));

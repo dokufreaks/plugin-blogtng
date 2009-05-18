@@ -7,3 +7,7 @@ $lang['readmore']    = 'Weiter lesen...';
 
 $lang['prev'] = '&lt; Neuere Beiträge';;
 $lang['next'] = 'Ältere Beiträge &gt;';
+
+$lang['title']  = 'Titel:';
+$lang['create'] = 'Anlegen';
+
