@@ -11,3 +11,5 @@ $lang['next'] = 'Ältere Beiträge &gt;';
 $lang['title']  = 'Titel:';
 $lang['create'] = 'Anlegen';
 
+$lang['err_notitle'] = 'Kein Beitragstitel angegeben!';
+

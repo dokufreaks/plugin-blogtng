@@ -31,6 +31,12 @@ class action_plugin_blogtng_new extends DokuWiki_Action_Plugin{
 
     function handle_act_preprocess(&$event, $param) {
         if($event->data != 'btngnew') return true;
+        if(!$_REQUEST['btngnt']){
+            msg($this->getLang('err_notitle'),-1);
+            $event->data = 'show';
+            return true;
+        }
+
         $tools =& plugin_load('helper', 'blogtng_tools');
         $new = $tools->mkpostid($_REQUEST['btngnf'],$_REQUEST['btngnt']);
         send_redirect(wl($new,array('do'=>'edit','btngnb'=>$_REQUEST['btngnb']),true,'&'));

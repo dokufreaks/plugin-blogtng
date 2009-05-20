@@ -11,3 +11,4 @@ $lang['next'] = 'Older Posts &gt;';
 $lang['title']  = 'Title:';
 $lang['create'] = 'Create';
 
+$lang['err_notitle'] = 'No post title given!';
