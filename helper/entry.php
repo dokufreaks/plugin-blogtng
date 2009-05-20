@@ -23,6 +23,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
     var $sqlitehelper = null;
     var $commenthelper = null;
+    var $taghelper = null;
 
     /**
      * Constructor, loads the sqlite helper plugin
@@ -44,6 +45,10 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     //~~ data access methods
 
     function load_by_pid($pid) {
+        $this->entry = $this->prototype();
+        $this->taghelper = null;
+        $this->commenthelper = null;
+
         $pid = trim($pid);
         if (!$this->is_valid_pid($pid)) {
             // FIXME we got an invalid pid, shout at the user accordingly
@@ -75,6 +80,10 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     }
 
     function load_by_res($resid, $index) {
+        $this->entry = $this->prototype();
+        $this->taghelper = null;
+        $this->commenthelper = null;
+
         // FIXME validate resid and index
         if($resid === false) {
             msg('blogtng plugin: failed to load entry, did not get a valid resource id!', -1);
@@ -273,12 +282,14 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     function tpl_created($format='') {
         global $conf;
         if(!$format) $format = $conf['dformat'];
+        if(!$this->entry['created']) return; // uh oh, something went wrong
         print strftime($format, $this->entry['created']);
     }
 
     function tpl_lastmodified($format='') {
         global $conf;
         if(!$format) $format = $conf['dformat'];
+        if(!$this->entry['lastmod']) return; // uh oh, something went wrong
         print strftime($format, $this->entry['lastmod']);
     }
 
@@ -295,7 +306,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     function tpl_hcard() {
         if(empty($this->entry['author'])) return;
 
-        // FIXME 
+        // FIXME
         // which url to link email/wiki/user page
         // option to link author name with email or webpage?
 
@@ -448,9 +459,24 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     function &getCommentHelper(){
         if(!$this->commenthelper) {
             $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
+            $this->commenthelper->load($this->entry['pid']);
         }
         return $this->commenthelper;
     }
+
+    /**
+     * Returns a reference to the tag helper plugin preloaded with
+     * the current entry
+     */
+    function &getTagHelper(){
+        if (!$this->taghelper) {
+            $this->taghelper =& plugin_load('helper', 'blogtng_tags');
+            $this->taghelper->load($this->entry['pid']);
+        }
+        return $this->taghelper;
+    }
+
+
 
     //~~ private methods
 
@@ -593,9 +619,9 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     function _convert_footnotes($html) {
         $id = str_replace(':', '_', $this->entry['page']);
         $replace = array(
-            '!<a href="#fn__(\d+)" name="fnt__(\d+)" id="fnt__(\d+)" class="fn_top">!' => 
+            '!<a href="#fn__(\d+)" name="fnt__(\d+)" id="fnt__(\d+)" class="fn_top">!' =>
                 '<a href="#fn__'.$id.'__\1" name="fnt__'.$id.'__\2" id="fnt__'.$id.'__\3" class="fn_top">',
-            '!<a href="#fnt__(\d+)" id="fn__(\d+)" name="fn__(\d+)" class="fn_bot">!' => 
+            '!<a href="#fnt__(\d+)" id="fn__(\d+)" name="fn__(\d+)" class="fn_bot">!' =>
                 '<a href="#fnt__'.$id.'__\1" name="fn__'.$id.'__\2" id="fn__'.$id.'__\3" class="fn_bot">',
         );
         $html = preg_replace(array_keys($replace), array_values($replace), $html);
