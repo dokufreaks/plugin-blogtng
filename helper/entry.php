@@ -129,9 +129,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * If page does not exist, delete DB entry
      */
     function poke(){
-        if(!$this->entry['page']) return true;
-
-        if(!page_exists($this->entry['page'])){
+        if(!$this->entry['page'] or !page_exists($this->entry['page'])){
             $this->delete();
             return false;
         }
