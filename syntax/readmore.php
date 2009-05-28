@@ -21,7 +21,7 @@ class syntax_plugin_blogtng_readmore extends DokuWiki_Syntax_Plugin {
     }
 
     function getType() { return 'substition'; }
-    function getPType() { return 'block'; }
+    function getPType() { return 'normal'; }
     function getSort() { return 300; }
 
     function connectTo($mode) {
