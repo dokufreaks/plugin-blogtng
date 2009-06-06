@@ -48,9 +48,11 @@ blogtng = {
 
         obj.innerHTML = '<img src="'+DOKU_BASE+'/lib/images/throbber.gif" />';
 
-        var ajax = new sack(DOKU_BASE+'lib/plugins/blogtng/ajax/preview.php');
+        //var ajax = new sack(DOKU_BASE+'lib/plugins/blogtng/ajax/preview.php');
+        var ajax = new sack(DOKU_BASE + 'lib/exe/ajax.php');
         ajax.AjaxFailedAlert = '';
         ajax.encodeURIString = false;
+        ajax.setVar('call', 'blogtng__comment_preview');
 
         // define callback
         ajax.onCompletion = function(){
