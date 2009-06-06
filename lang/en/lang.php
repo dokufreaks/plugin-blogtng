@@ -11,4 +11,12 @@ $lang['next'] = 'Older Posts &gt;';
 $lang['title']  = 'Title:';
 $lang['create'] = 'Create';
 
+$lang['comment_mail']      = 'E-Mail';
+$lang['comment_name']      = 'Name';
+$lang['comment_web']       = 'Website';
+$lang['comment_preview']   = 'Preview';
+$lang['comment_submit']    = 'Comment';
+$lang['comment_subscribe'] = 'Subscribe to new comments';
+
+
 $lang['err_notitle'] = 'No post title given!';

@@ -99,7 +99,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         $comment['status']  = ($this->getconf('moderate_comments')) ? 'hidden' : 'visible';
         $comment['created'] = time();
         $comment['avatar']  = ''; // FIXME create avatar using a helper function
-        $this->sqlitehelper->query($query, 
+        $this->sqlitehelper->query($query,
             $comment['pid'],
             $comment['source'],
             $comment['name'],
@@ -200,16 +200,16 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
 
             if(isset($_SERVER['REMOTE_USER']) && ($field == 'name' || $field == 'mail')) {
                 $form->addHidden('blogtng[comment_' . $field . ']', $BLOGTNG['comment'][$field]);
-            } elseif($field == 'web' && !$this->getConf('allow_web')) {
+            } elseif($field == 'web' && !$this->getConf('comments_allow_web')) {
                 continue;
             } else {
                 $form->addElement(
                         form_makeTextField(
                         'blogtng[comment_' . $field . ']',
-                        $BLOGTNG['comment'][$field], 
-                        $field, // FIXME localize
-                        'blogtng__comment_' . $field, 
-                        'edit block', 
+                        $BLOGTNG['comment'][$field],
+                        $this->getLang('comment_'.$field),
+                        'blogtng__comment_' . $field,
+                        'edit block',
                         $attr)
                 );
             }
@@ -224,9 +224,9 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
             $form->addElement(form_makeWikiText($BLOGTNG['comment']['text']));
         }
 
-        $form->addElement(form_makeButton('submit', 'comment_preview', 'preview', array('class' => 'button', 'id' => 'blogtng__preview_submit')));
-        $form->addElement(form_makeButton('submit', 'comment_submit', 'comment', array('class' => 'button', 'id' => 'blogtng__comment_submit')));
-        $form->addElement(form_makeCheckboxField('blogtng[subscribe]', 0, 'subscribe'));
+        $form->addElement(form_makeButton('submit', 'comment_preview', $this->getLang('comment_preview'), array('class' => 'button', 'id' => 'blogtng__preview_submit')));
+        $form->addElement(form_makeButton('submit', 'comment_submit', $this->getLang('comment_submit'), array('class' => 'button', 'id' => 'blogtng__comment_submit')));
+        $form->addElement(form_makeCheckboxField('blogtng[subscribe]', 0, $this->getLang('comment_subscribe')));
 
         print '<div class="blogtng_commentform">' . DOKU_LF;
         $form->printForm();
@@ -392,8 +392,8 @@ class blogtng_comment{
             //FIXME add hook for additional methods
         } elseif ($this->data['mail']) {
             $img = 'http://gravatar.com/avatar.php'
-                 . '?gravatar_id=' . md5($this->data['mail']) 
-                 . '&size=' . $w 
+                 . '?gravatar_id=' . md5($this->data['mail'])
+                 . '&size=' . $w
                  . '&rating=' . $conf['plugin']['blogtng']['comments_gravatar_rating']
                  . '&default=' . DOKU_URL . 'lib/images/blank.gif'
                  . '&.png';
