@@ -30,6 +30,10 @@ div.dokuwiki div.blogtng_comment {
   margin-bottom: 2em;
 }
 
+div.dokuwiki div.blogtng_comment img.avatar {
+  padding: 0 0.5em 0.5em 0;
+}
+
 div.dokuwiki input.error,
 div.dokuwiki textarea.error {
   background: #fcc !important;

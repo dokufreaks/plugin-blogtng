@@ -385,22 +385,27 @@ class blogtng_comment{
     }
 
     function tpl_avatar($w=0,$h=0){
+        global $conf;
         $img = '';
-        if($this->data['avatar'])
+        if($this->data['avatar']) {
             $img = $this->data['avatar'];
-        if($this->data['mail'])
-            $img = 'http://gravatar/'.md5($this->data['mail']).'png';
-        //FIXME correct gravatar URL
-        //FIXME config options for gravatar
+            //FIXME add hook for additional methods
+        } elseif ($this->data['mail']) {
+            $img = 'http://gravatar.com/avatar.php'
+                 . '?gravatar_id=' . md5($this->data['mail']) 
+                 . '&size=' . $w 
+                 . '&rating=' . $conf['plugin']['blogtng']['comments_gravatar_rating']
+                 . '&default=' . DOKU_URL . 'lib/images/blank.gif'
+                 . '&.png';
+        }
 
-        //FIXME add hook for additional methods
+        // FIXME config options for gravatar
 
         //use fetch for caching and resizing
         if($img){
             $img = ml($img,array('w'=>$w,'h'=>$h,'cache'=>'recache'));
-        }else{
-            $img = DOKU_BASE.'lib/images/blank.gif';
         }
+        print $img;
     }
 }
 // vim:ts=4:sw=4:et:enc=utf-8:

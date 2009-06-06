@@ -9,3 +9,4 @@ $meta['comments_xhtml_renderer'] = array(
                                        'multicheckbox', 
                                        '_choices' => array_diff(plugin_list('syntax'), $blogtng_meta__excluded_syntax),
                                    );
+$meta['comments_gravatar_rating'] = array('multichoice', '_choices' => array('X', 'R', 'PG', 'G'));
