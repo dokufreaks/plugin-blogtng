@@ -26,6 +26,10 @@ div.dokuwiki div.blogtng_commentform textarea {
   margin-bottom: 0.5em;
 }
 
+div.dokuwiki div.blogtng_comment {
+  margin-bottom: 2em;
+}
+
 div.dokuwiki input.error,
 div.dokuwiki textarea.error {
   background: #fcc !important;
@@ -33,19 +37,22 @@ div.dokuwiki textarea.error {
 
 div.dokuwiki ul.blogtng_tags {
   list-style: none;
-  display: inline;
   margin: 0;
+  display: inline;
 }
 
 div.dokuwiki ul.blogtng_tags li {
   display: inline;
+  float: left;
 }
 
-div.dokuwiki ul.blogtng_tags li:after {
+div.dokuwiki ul.blogtng_tags div.li:after {
   content: ", ";
+  display: inline;
+  float: left;
 }
 
-div.dokuwiki ul.blogtng_tags li:last-child:after {
+div.dokuwiki ul.blogtng_tags li:last-child div.li:after {
   content: "" !important;
 }
 
