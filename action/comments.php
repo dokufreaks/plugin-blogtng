@@ -27,20 +27,12 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
 
     function register(&$controller) {
         $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handle_act_preprocess', array());
-        $controller->register_hook('ACTION_SHOW_REDIRECT', 'BEFORE', $this, 'handle_show_redirect', array());
-    }
-
-    function handle_show_redirect(&$event, $param) {
-        if($event->data['preact']['comment_submit'] || $event->data['preact']['comment_preview']) {
-            $event->preventDefault();
-        }
     }
 
     function handle_act_preprocess(&$event, $param) {
         global $INFO;
 
         if(is_array($event->data) && (isset($event->data['comment_submit']) || isset($event->data['comment_preview']))) {
-
             $BLOGTNG = array();
             global $BLOGTNG;
 
@@ -78,7 +70,7 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
                 if($_REQUEST['blogtng']['subscribe']) {
                 }
 
-                // save comment and redirect FIXMe cid
+                // save comment and redirect FIXME cid
                 $this->commenthelper->save($comment);
                 act_redirect($comment['page'], 'show');
             } elseif($BLOGTNG['comment_action'] == 'preview') {
