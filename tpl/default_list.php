@@ -11,7 +11,7 @@
     &middot;
     <a href="<?php $entry->tpl_link('the__comments')?>" class="wikilink1 blogtng_commentlink"><?php $entry->tpl_commentcount('%d Comments', '%d Comment','%d Comments')?></a>
     &middot;
-    Tags: <?php $entry->tpl_tags()?>
+    Tags: <?php $entry->tpl_tags('')?>
 </div>
 <?php
     }
