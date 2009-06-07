@@ -30,23 +30,31 @@ blogtng = {
         return true;
     },
 
-    preview_attach: function(obj, preview) {
+    preview_attach: function(obj, wrap, previewid) {
         if(!obj) return;
-        if(!preview) return;
+        if(!wrap) return;
 
         addEvent(obj, 'click', function(e) {
-            blogtng.preview(preview);
+            blogtng.preview(wrap,previewid);
             e.preventDefault();
             e.stopPropagation();
             return false;
         });
     },
 
-    preview: function(obj) {
-        if(!obj) return;
+    preview: function(wrap,previewid) {
         if(!blogtng.validate()) return false;
 
-        obj.innerHTML = '<img src="'+DOKU_BASE+'/lib/images/throbber.gif" />';
+        var preview = $(previewid);
+        if(!preview){
+            if(!wrap) return false;
+
+            preview = document.createElement('div');
+            preview.id = previewid;
+            wrap.appendChild(preview);
+        }
+
+        preview.innerHTML = '<img src="'+DOKU_BASE+'/lib/images/throbber.gif" />';
 
         //var ajax = new sack(DOKU_BASE+'lib/plugins/blogtng/ajax/preview.php');
         var ajax = new sack(DOKU_BASE + 'lib/exe/ajax.php');
@@ -58,7 +66,7 @@ blogtng = {
         ajax.onCompletion = function(){
             var data = this.response;
             if(data === '') return;
-            obj.innerHTML = data;
+            preview.innerHTML = data;
         };
 
         if($('blogtng__comment_name'))
@@ -217,7 +225,7 @@ function commentPopup(e, id){
 
 addInitEvent(function() {
     blogtng.validate_attach($('blogtng__comment_submit'));
-    blogtng.preview_attach($('blogtng__preview_submit'), $('blogtng__comment_preview'));
+    blogtng.preview_attach($('blogtng__preview_submit'),$('blogtng__comment_form_wrap'),'blogtng__comment_preview');
     blogtng.reply_attach();
 });
 // vim:ts=4:sw=4:et:enc=utf-8:

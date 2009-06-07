@@ -228,9 +228,8 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         $form->addElement(form_makeButton('submit', 'comment_submit', $this->getLang('comment_submit'), array('class' => 'button', 'id' => 'blogtng__comment_submit')));
         $form->addElement(form_makeCheckboxField('blogtng[subscribe]', 0, $this->getLang('comment_subscribe')));
 
-        print '<div class="blogtng_commentform">' . DOKU_LF;
+        print '<div id="blogtng__comment_form_wrap">'.DOKU_LF;
         $form->printForm();
-        print '</div>' . DOKU_LF;
         if($BLOGTNG['comment_action'] == 'preview' && empty($BLOGTNG['comment_submit_errors'])) {
             print '<div id="blogtng__comment_preview">' . DOKU_LF;
             $comment = new blogtng_comment();
@@ -238,9 +237,8 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
             $comment->data['cid'] = 'preview';
             $comment->output('default');
             print '</div>' . DOKU_LF;
-        } else {
-            print '<div id="blogtng__comment_preview"></div>' . DOKU_LF;
         }
+        print '</div>'.DOKU_LF;
     }
 
     /**
