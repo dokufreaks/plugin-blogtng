@@ -223,6 +223,13 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
             $form->addElement(form_makeWikiText($BLOGTNG['comment']['text']));
         }
 
+        //add captcha if available
+        $helper = null;
+        if(@is_dir(DOKU_PLUGIN.'captcha')) $helper = plugin_load('helper','captcha');
+        if(!is_null($helper) && $helper->isEnabled()){
+            $form->addElement($helper->getHTML());
+        }
+
         $form->addElement(form_makeButton('submit', 'comment_preview', $this->getLang('comment_preview'), array('class' => 'button', 'id' => 'blogtng__preview_submit')));
         $form->addElement(form_makeButton('submit', 'comment_submit', $this->getLang('comment_submit'), array('class' => 'button', 'id' => 'blogtng__comment_submit')));
         $form->addElement(form_makeCheckboxField('blogtng[subscribe]', 0, $this->getLang('comment_subscribe')));

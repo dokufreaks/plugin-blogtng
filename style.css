@@ -27,6 +27,14 @@ div.dokuwiki form#blogtng__comment_form textarea {
   margin-bottom: 0.5em;
 }
 
+div.dokuwiki form#blogtng__comment_form div#plugin__captcha_wrapper label{
+  display: block;
+}
+
+div.dokuwiki form#blogtng__comment_form div#plugin__captcha_wrapper {
+  padding-bottom: 1em;
+}
+
 div.dokuwiki div.blogtng_comment {
   margin-bottom: 2em;
 }

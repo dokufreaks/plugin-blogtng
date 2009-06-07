@@ -59,9 +59,20 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
                 }
             }
 
+            // check CAPTCHA if available (on submit only)
+            $captchaok = true;
+            if($BLOGTNG['comment_action'] == 'submit'){
+                $helper = null;
+                if(@is_dir(DOKU_PLUGIN.'captcha')) $helper = plugin_load('helper','captcha');
+                if(!is_null($helper) && $helper->isEnabled()){
+                    $captchaok = $helper->check();
+                }
+            }
+
             // return on errors
-            if(!empty($BLOGTNG['comment_submit_errors'])) {
+            if(!empty($BLOGTNG['comment_submit_errors']) || !$captchaok) {
                 $event->data = 'show';
+                $_SERVER['REQUEST_METHOD'] = 'get'; //FIXME hack to avoid redirect
                 return false;
             }
 
