@@ -182,7 +182,6 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      * Prints the comment form
      *
      * FIXME
-     *  localization
      *  allow comments only for registered users
      *  add toolbar
      */

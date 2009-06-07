@@ -39,6 +39,7 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
             if(isset($event->data['comment_submit']))  $BLOGTNG['comment_action'] = 'submit';
             if(isset($event->data['comment_preview'])) $BLOGTNG['comment_action'] = 'preview';
 
+
             $comment = array();
             $comment['source'] = $_REQUEST['blogtng']['comment_source'];
             $comment['name']   = ($INFO['userinfo']['name']) ? $INFO['userinfo']['name'] : $_REQUEST['blogtng']['comment_name'];
@@ -75,6 +76,7 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
                 act_redirect($comment['page'], 'show');
             } elseif($BLOGTNG['comment_action'] == 'preview') {
                 $event->data = 'show';
+                $_SERVER['REQUEST_METHOD'] = 'get'; //FIXME hack to avoid redirect
                 return false;
             }
 
