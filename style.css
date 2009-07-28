@@ -5,6 +5,34 @@
 div.dokuwiki fieldset#blogtng__edit {
   margin: 0 0 0.5em 0;
   text-align: left;
+  width: 99%;
+}
+
+div.dokuwiki fieldset#blogtng__edit label {
+  float: left;
+  margin-right: 0.2em;
+}
+
+div.dokuwiki fieldset#blogtng__edit label span {
+  font-weight: bold;
+}
+
+div.dokuwiki fieldset#blogtng__edit input#blogtng__tags {
+  width: 300px;
+  margin-right: 0.5em;
+}
+
+div.dokuwiki fieldset#blogtng__edit input#blogtng__date_YY {
+  width: 38px;
+  float: left;
+}
+
+div.dokuwiki fieldset#blogtng__edit input#blogtng__date_MM,
+div.dokuwiki fieldset#blogtng__edit input#blogtng__date_DD,
+div.dokuwiki fieldset#blogtng__edit input#blogtng__date_hh,
+div.dokuwiki fieldset#blogtng__edit input#blogtng__date_mm {
+  width: 24px;
+  float: left;
 }
 
 div.dokuwiki div.blogtng_list div.blogtng_footer {
