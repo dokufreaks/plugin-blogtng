@@ -12,3 +12,4 @@ $meta['comments_xhtml_renderer']  = array(
                                        'multicheckbox', 
                                        '_choices' => array_diff(plugin_list('syntax'), $blogtng_meta__excluded_syntax),
                                    );
+$meta['editform_set_date']        = array('onoff');
