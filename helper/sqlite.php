@@ -21,7 +21,7 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
     function helper_plugin_blogtng_sqlite(){
         if (!extension_loaded('sqlite')) {
             $prefix = (PHP_SHLIB_SUFFIX === 'dll') ? 'php_' : '';
-            @dl($prefix . 'sqlite.' . PHP_SHLIB_SUFFIX);
+            if(function_exists('dl')) @dl($prefix . 'sqlite.' . PHP_SHLIB_SUFFIX);
         }
 
         if(!function_exists('sqlite_open')){
