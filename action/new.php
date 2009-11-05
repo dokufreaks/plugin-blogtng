@@ -30,6 +30,9 @@ class action_plugin_blogtng_new extends DokuWiki_Action_Plugin{
     }
 
     function handle_act_preprocess(&$event, $param) {
+        global $TEXT;
+        global $ID;
+
         if($event->data != 'btngnew') return true;
         if(!$_REQUEST['btngnt']){
             msg($this->getLang('err_notitle'),-1);
@@ -37,10 +40,21 @@ class action_plugin_blogtng_new extends DokuWiki_Action_Plugin{
             return true;
         }
 
+        $event->preventDefault();
         $tools =& plugin_load('helper', 'blogtng_tools');
-        $new = $tools->mkpostid($_REQUEST['btngnf'],$_REQUEST['btngnt']);
-        send_redirect(wl($new,array('do'=>'edit','btngnb'=>$_REQUEST['btngnb']),true,'&'));
-        return false; //never reached
+        $ID = $tools->mkpostid($_REQUEST['btngnf'],$_REQUEST['btngnt']);
+        $TEXT = $this->_prepare_template($ID, $_REQUEST['btngnt']);
+        $event->data = 'preview';
+    }
+
+    function _prepare_template($id, $title) {
+        $tpl = io_readFile(DOKU_PLUGIN . 'blogtng/tpl/newentry.txt');
+        $replace = array(
+            '@ID@' => $id,
+            '@TITLE@' => $title,
+        );
+        $tpl = str_replace(array_keys($replace), array_values($replace), $tpl);
+        return $tpl;
     }
 }
 // vim:ts=4:sw=4:et:enc=utf-8:

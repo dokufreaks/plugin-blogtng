@@ -27,10 +27,14 @@ class helper_plugin_blogtng_tools extends DokuWiki_Plugin {
     static public function mkpostid($format,$title){
         global $conf;
 
+        $replace = array(
+            '%{title}' => $title,
+            '%{user}' => $_SERVER['REMOTE_USER'],
+        );
+
         $title = str_replace(':',$conf['sepchar'],cleanID($title));
         $out = $format;
-        $out = str_replace('%{title}',$title,$out);
-        $out = str_replace('%{user}',$_SERVER['REMOTE_USER'],$out);
+        $out = str_replace(array_keys($replace), array_values($replace), $out);
         $out = strftime($out);
         return $out;
     }

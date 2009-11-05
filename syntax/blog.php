@@ -29,7 +29,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         'page'      => false,
         'cache'     => false,
         'title'     => '',
-        'format'    => '', #FIXME
+        'format'    => ':blog:%Y:%m:%{title}', #FIXME
     );
 
     var $sqlitehelper = null;
