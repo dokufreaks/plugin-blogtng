@@ -609,7 +609,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     function _finish_convert(&$ins, $open_sections) {
         if ($ins[0][0] != 'document_start')
             @array_unshift($ins, array('document_start', array(), 0));
-        $c = count($ins) - 1;
+        $c = array_pop(array_keys($ins)); // we can't use count here, instructions are not even indexed
         if ($ins[$c][0] != 'document_end')
             $ins[] = array('document_end', array(), 0);
     }
