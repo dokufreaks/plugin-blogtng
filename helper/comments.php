@@ -404,7 +404,7 @@ class blogtng_comment{
             //FIXME add hook for additional methods
         } elseif ($this->data['mail']) {
             $dfl = $conf['plugin']['blogtng']['comments_gravatar_default'];
-            if($dfl == 'blank') $dfl = DOKU_URL . 'lib/images/blank.gif';
+            if(!isset($dfl) || $dfl == 'blank') $dfl = DOKU_URL . 'lib/images/blank.gif';
 
             $img = 'http://gravatar.com/avatar.php'
                  . '?gravatar_id=' . md5($this->data['mail'])
