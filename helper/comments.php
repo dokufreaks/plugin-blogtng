@@ -403,15 +403,17 @@ class blogtng_comment{
             $img = $this->data['avatar'];
             //FIXME add hook for additional methods
         } elseif ($this->data['mail']) {
+            $dfl = $conf['plugin']['blogtng']['comments_gravatar_default'];
+            if($dfl == 'blank') $dfl = DOKU_URL . 'lib/images/blank.gif';
+
             $img = 'http://gravatar.com/avatar.php'
                  . '?gravatar_id=' . md5($this->data['mail'])
                  . '&size=' . $w
                  . '&rating=' . $conf['plugin']['blogtng']['comments_gravatar_rating']
-                 . '&default=' . DOKU_URL . 'lib/images/blank.gif'
+                 . '&default='.rawurlencode($dfl)
                  . '&.png';
         }
 
-        // FIXME config options for gravatar
 
         //use fetch for caching and resizing
         if($img){
