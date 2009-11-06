@@ -311,6 +311,65 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
             $comment->output($name);
         }
     }
+
+    /**
+     * Displays a list of recent comments
+     */
+    function xhtml_recentcomments($conf){
+        ob_start();
+        if(!$conf['nolistwrap']) echo '<ul>';
+        $this->tpl_recentcomments($conf['tpl'],$conf['limit'],$conf['blog'],$conf['type']);
+        if(!$conf['nolistwrap']) echo '</ul>';
+        $output = ob_get_contents();
+        ob_end_clean();
+        return $output;
+    }
+
+    /**
+     * FIXME
+     */
+    function tpl_recentcomments($tpl='default',$num=5,$blogs=array('default'),$types=array()){
+        global $INFO;
+
+        // check template
+        $tpl = DOKU_PLUGIN.'blogtng/tpl/'.$tpl.'_recentcomments.php';
+        if(!file_exists($tpl)){
+            msg('blogtng plugin: template ' . $tpl . ' does not exist!', -1);
+            return false;
+        }
+
+        // prepare and execute query
+        if(count($types)){
+            $types  = $this->sqlitehelper->quote_and_join($types,',');
+            $tquery = " AND B.source IN ($types) ";
+        }else{
+            $tquery = "";
+        }
+        $blog_query = '(A.blog = '.
+                       $this->sqlitehelper->quote_and_join($blogs,
+                                                           ' OR A.blog = ').')';
+        $query = "SELECT A.pid as pid, page, title, cid
+                    FROM entries A, comments B
+                   WHERE $blog_query
+                     AND A.pid = B.pid
+                     $tquery
+                     AND B.status = 'visible'
+                ORDER BY B.created DESC
+                   LIMIT ".(int) $num;
+
+        $res = $this->sqlitehelper->query($query);
+        if(!sqlite_num_rows($res)) return; // no results found
+        $res = $this->sqlitehelper->res2arr($res);
+
+        // print all hits using the template
+        foreach($res as $row){
+            $entry   =& plugin_load('helper', 'blogtng_entry');
+            $entry->load_by_pid($row['pid']);
+            $comment = $this->comment_by_cid($row['cid']);
+            include($tpl);
+        }
+    }
+
 }
 
 /**
@@ -389,9 +448,7 @@ class blogtng_comment{
     }
 
     function tpl_created($fmt=''){
-        global $conf;
-        if(!$fmt) $fmt = $conf['dformat'];
-        echo hsc(strftime($fmt,$this->data['created']));
+        echo hsc(dformat($this->data['created'],$fmt));
     }
 
     function tpl_avatar($w=0,$h=0,$return=false){

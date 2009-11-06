@@ -34,11 +34,12 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
 
     var $entryhelper  = null;
     var $tools = null;
+    var $commenthelper  = null;
 
     /**
      * Types we accept in our syntax
      */
-    var $type_whitelist = array('list', 'pagination', 'related', 'newform');
+    var $type_whitelist = array('list', 'pagination', 'related', 'recentcomments', 'newform');
 
     var $data_whitelist = array(
         'sortyorder' => array('asc', 'desc'),
@@ -80,8 +81,11 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         }
 
         // handle multi keys
-        $conf['blog'] = array_map('trim', explode(',', $conf['blog']));
-        $conf['tags'] = array_map('trim', explode(',', $conf['tags']));
+        $conf['blog'] = array_filter(array_map('trim', explode(',', $conf['blog'])));
+        $conf['tags'] = array_filter(array_map('trim', explode(',', $conf['tags'])));
+        $conf['type'] = array_filter(array_map('trim', explode(',', $conf['type'])));
+
+        if(!count($conf['blog'])) $conf['blog'] = array('default');
 
         // merge with default config
         $conf = array_merge($this->config, $conf);
@@ -128,6 +132,11 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
             case 'newform':
                 $renderer->info['cache'] = false; //never cache this
                 $renderer->doc .= $this->entryhelper->xhtml_newform($data['conf']);
+                break;
+            case 'recentcomments':
+                // FIXME to cache or not to cache?
+                $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
+                $renderer->doc .= $this->commenthelper->xhtml_recentcomments($data['conf']);
                 break;
             default:
                 $renderer->doc .= $this->entryhelper->xhtml_list($data['conf']);

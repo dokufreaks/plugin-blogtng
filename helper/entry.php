@@ -461,10 +461,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     }
 
     function tpl_created($format='') {
-        global $conf;
-        if(!$format) $format = $conf['dformat'];
         if(!$this->entry['created']) return; // uh oh, something went wrong
-        print strftime($format, $this->entry['created']);
+        print dformat($this->entry['created'],$format);
     }
 
     function tpl_lastmodified($format='') {
