@@ -273,7 +273,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
                 printf($fmt_zero_comments, $count);
                 break;
             case 1:
-                printf($fmt_one_comment, $count);
+                printf($fmt_one_comments, $count);
                 break;
             default:
                 printf($fmt_comments, $count);
