@@ -363,16 +363,22 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $new = $this->toolshelper->mkpostid($conf['format'],'dummy');
         if(auth_quickaclcheck($new) < AUTH_CREATE) return '';
 
-        $out = '';
-        $out .= '<div class="blogtng_newform">';
-        $out .= '<form method="post" action="'.wl($ID,array('do'=>'btngnew')).'">';
-        if($conf['title']) $out .= '<h3>'.hsc($conf['title']).'</h3>';
-        $out .= '<label for="btng__nt">'.$this->getLang('title').'</label>&nbsp;';
-        $out .= '<input type="text" name="btngnt" class="edit" id="btng__nt" />';
-        $out .= '<input type="submit" value="'.$this->getLang('create').'" class="button" />';
-        $out .= '<input type="hidden" name="btngnf" value="'.hsc($conf['format']).'" />';
-        $out .= '<input type="hidden" name="btngnb" value="'.hsc($conf['blog'][0]).'" />';
-        $out .= '</form>';
+        $form = new Doku_Form($ID, wl($ID,array('do'=>'btngnew')));
+        if ($conf['title']) {
+            $form->addElement(form_makeOpenTag('h3'));
+            $form->addElement(hsc($conf['title']));
+            $form->addElement(form_makeCloseTag('h3'));
+        }
+        $form->addElement(form_makeTextField('btngn[title]', '', $this->getLang('title'), 'btng__nt', 'edit'));
+        $form->addElement(form_makeButton('submit', null, $this->getLang('create')));
+        $form->addHidden('btngn[format]', hsc($conf['format']));
+        $form->addHidden('btngn[blog]', hsc($conf['blog'][0]));
+
+        $out = '<div class="blogtng_newform">';
+        ob_start();
+        $form->printForm();
+        $out .= ob_get_contents();
+        ob_clean();
         $out .= '</div>';
 
         return $out;
