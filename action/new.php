@@ -34,20 +34,20 @@ class action_plugin_blogtng_new extends DokuWiki_Action_Plugin{
         global $ID;
 
         if($event->data != 'btngnew') return true;
-        if(!$_REQUEST['btngn']['title']){
+        $tools =& plugin_load('helper', 'blogtng_tools');
+        if(!$tools->getParam('new/title')){
             msg($this->getLang('err_notitle'),-1);
             $event->data = 'show';
             return true;
         }
 
         $event->preventDefault();
-        $tools =& plugin_load('helper', 'blogtng_tools');
-        $new = $tools->mkpostid($_REQUEST['btngn']['format'],$_REQUEST['btngn']['title']);
+        $new = $tools->mkpostid($tools->getParam('new/format'),$tools->getParam('new/title'));
         if ($ID != $new) {
-            send_redirect(wl($new,array('do'=>'btngnew','btngn[blog]'=>$_REQUEST['btngn']['blog'], 'btngn[format]'=>$_REQUEST['btngn']['format'], 'btngn[title]' => $_REQUEST['btngn']['title']),true,'&'));
+            send_redirect(wl($new,array('do'=>'btngnew','btng[post][blog]'=>$tools->getParam('post/blog'), 'btng[new][format]'=>$tools->getParam('new/format'), 'btng[new][title]' => $tools->getParam('new/title')),true,'&'));
             return false; //never reached
         } else {
-            $TEXT = $this->_prepare_template($new, $_REQUEST['btngn']['title']);
+            $TEXT = $this->_prepare_template($new, $tools->getParam('new/title'));
             $event->data = 'preview';
             return false;
         }

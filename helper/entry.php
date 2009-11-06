@@ -307,8 +307,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $out .= '<div class="blogtng_pagination">';
         if($cur > 1){
             $out .= '<a href="'.wl($conf['target'],
-                                   array('btngs'=>$conf['limit']*($cur-2),
-                                         'btngt'=>join(',',$conf['tags']))).
+                                   array('btng[pagination][start]'=>$conf['limit']*($cur-2),
+                                         'btng[post][tags]'=>join(',',$conf['tags']))).
                              '" class="prev">'.$this->getLang('prev').'</a> ';
         }
         $out .= '<span class="blogtng_pages">';
@@ -321,8 +321,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
                 $out .= '<span class="cur">'.$page.'</span> ';
             }else{
                 $out .= '<a href="'.wl($conf['target'],
-                                    array('btngs'=>$conf['limit']*($page-1),
-                                          'btngt'=>join(',',$conf['tags']))).
+                                    array('btng[pagination][start]'=>$conf['limit']*($page-1),
+                                          'btng[pagination][tags]'=>join(',',$conf['tags']))).
                                  '">'.$page.'</a> ';
             }
             $last = $page;
@@ -330,8 +330,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $out .= '</span>';
         if($cur < $max){
             $out .= '<a href="'.wl($conf['target'],
-                                   array('btngs'=>$conf['limit']*($cur),
-                                         'btngt'=>join(',',$conf['tags']))).
+                                   array('btng[pagination][start]'=>$conf['limit']*($cur),
+                                         'btng[pagination][tags]'=>join(',',$conf['tags']))).
                              '" class="next">'.$this->getLang('next').'</a> ';
         }
         $out .= '</div>';
@@ -369,16 +369,16 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             $form->addElement(hsc($conf['title']));
             $form->addElement(form_makeCloseTag('h3'));
         }
-        $form->addElement(form_makeTextField('btngn[title]', '', $this->getLang('title'), 'btng__nt', 'edit'));
+        $form->addElement(form_makeTextField('btng[new][title]', '', $this->getLang('title'), 'btng__nt', 'edit'));
         $form->addElement(form_makeButton('submit', null, $this->getLang('create')));
-        $form->addHidden('btngn[format]', hsc($conf['format']));
-        $form->addHidden('btngn[blog]', hsc($conf['blog'][0]));
+        $form->addHidden('btng[new][format]', hsc($conf['format']));
+        $form->addHidden('btng[post][blog]', hsc($conf['blog'][0]));
 
         $out = '<div class="blogtng_newform">';
         ob_start();
         $form->printForm();
         $out .= ob_get_contents();
-        ob_clean();
+        ob_end_clean();
         $out .= '</div>';
 
         return $out;
@@ -405,6 +405,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * @param string $readmore   - where to cut the entry valid: 'syntax', FIXME
      * @param bool   $inc_level  - FIXME
      * @param bool   $skipheader - Remove the first header
+     * @return bool false if a recursion was detected and the entry could not be printed, true otherwise
      */
     function tpl_entry($included=true, $readmore='syntax',
                        $inc_level=true, $skipheader=false) {
