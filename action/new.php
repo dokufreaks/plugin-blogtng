@@ -34,7 +34,7 @@ class action_plugin_blogtng_new extends DokuWiki_Action_Plugin{
         global $ID;
 
         if($event->data != 'btngnew') return true;
-        if(!$_REQUEST['btngnt']){
+        if(!$_REQUEST['btngn']['title']){
             msg($this->getLang('err_notitle'),-1);
             $event->data = 'show';
             return true;
@@ -42,15 +42,20 @@ class action_plugin_blogtng_new extends DokuWiki_Action_Plugin{
 
         $event->preventDefault();
         $tools =& plugin_load('helper', 'blogtng_tools');
-        $ID = $tools->mkpostid($_REQUEST['btngnf'],$_REQUEST['btngnt']);
-        $TEXT = $this->_prepare_template($ID, $_REQUEST['btngnt']);
-        $event->data = 'preview';
+        $new = $tools->mkpostid($_REQUEST['btngn']['format'],$_REQUEST['btngn']['title']);
+        if ($ID != $new) {
+            send_redirect(wl($new,array('do'=>'btngnew','btngn[blog]'=>$_REQUEST['btngn']['blog'], 'btngn[format]'=>$_REQUEST['btngn']['format'], 'btngn[title]' => $_REQUEST['btngn']['title']),true,'&'));
+            return false; //never reached
+        } else {
+            $TEXT = $this->_prepare_template($new, $_REQUEST['btngn']['title']);
+            $event->data = 'preview';
+            return false;
+        }
     }
 
     function _prepare_template($id, $title) {
         $tpl = io_readFile(DOKU_PLUGIN . 'blogtng/tpl/newentry.txt');
         $replace = array(
-            '@ID@' => $id,
             '@TITLE@' => $title,
         );
         $tpl = str_replace(array_keys($replace), array_values($replace), $tpl);

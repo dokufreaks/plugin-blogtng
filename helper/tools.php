@@ -28,15 +28,14 @@ class helper_plugin_blogtng_tools extends DokuWiki_Plugin {
         global $conf;
 
         $replace = array(
-            '%{title}' => $title,
+            '%{title}' => str_replace(':',$conf['sepchar'],$title),
             '%{user}' => $_SERVER['REMOTE_USER'],
         );
 
-        $title = str_replace(':',$conf['sepchar'],cleanID($title));
         $out = $format;
         $out = str_replace(array_keys($replace), array_values($replace), $out);
         $out = strftime($out);
-        return $out;
+        return cleanID($out);
     }
 
 
