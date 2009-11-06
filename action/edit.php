@@ -34,6 +34,9 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
         $controller->register_hook('ACTION_ACT_PREPROCESS', 'AFTER', $this, 'handle_action_act_preprocess', array('after'));
     }
 
+    /**
+     * Adds additional fields of used by the BlogTNG plugin to the editor.
+     */
     function handle_editform_output(&$event, $param) {
         global $ID;
 
@@ -43,47 +46,54 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
 
         $pid = md5($ID);
         $this->entryhelper->load_by_pid($pid);
-        $blog = $this->entryhelper->get_blog();
-        if(!$blog && $_REQUEST['btngnb']) $blog = $_REQUEST['btngnb'];
+        $blog = (isset($_REQUEST['btngb'])) ? $_REQUEST['btngb'] : $this->entryhelper->get_blog();
         $blogs = $this->entryhelper->get_blogs();
 
         $event->data->insertElement($pos, form_openfieldset(array('_legend' => 'BlogTNG', 'class' => 'edit', 'id' => 'blogtng__edit')));
         $pos += 1;
 
-        $event->data->insertElement($pos, form_makeMenuField('blog', $blogs, $blog, 'Blog', 'blogtng__blog', 'edit'));
+        $event->data->insertElement($pos, form_makeMenuField('btngb', $blogs, $blog, 'Blog', 'blogtng__blog', 'edit'));
         $pos += 1;
 
         $this->taghelper->load($pid);
-        $tags = join(', ', $this->taghelper->tags);
-        $event->data->insertElement($pos, form_makeTextField('tags', $tags, 'Tags', 'blogtng__tags', 'edit'));
+        $tags = (isset($_REQUEST['btngt'])) ? $_REQUEST['btngt'] : join(', ', $this->taghelper->tags);
+        $event->data->insertElement($pos, form_makeTextField('btngt', $tags, 'Tags', 'blogtng__tags', 'edit'));
         $pos += 1;
 
         if($this->getConf('editform_set_date')) {
-            $created = $this->entryhelper->entry['created'];
-            if($created) {
-                $YY = strftime('%Y', $created);
-                $MM = strftime('%m', $created);
-                $DD = strftime('%d', $created);
-                $hh = strftime('%H', $created);
-                $mm = strftime('%M', $created);
+            if($_REQUEST['btngd']) {
+                $YY = $_REQUEST['btngd']['YY'];
+                $MM = $_REQUEST['btngd']['MM'];
+                $DD = $_REQUEST['btngd']['DD'];
+                $hh = $_REQUEST['btngd']['hh'];
+                $mm = $_REQUEST['btngd']['mm'];
             } else {
-                $time = mktime();
-                $YY = strftime('%Y', $time);
-                $MM = strftime('%m', $time);
-                $DD = strftime('%d', $time);
-                $hh = strftime('%H', $time);
-                $mm = strftime('%M', $time);
+                $created = $this->entryhelper->entry['created'];
+                if($created) {
+                    $YY = strftime('%Y', $created);
+                    $MM = strftime('%m', $created);
+                    $DD = strftime('%d', $created);
+                    $hh = strftime('%H', $created);
+                    $mm = strftime('%M', $created);
+                } else {
+                    $time = mktime();
+                    $YY = strftime('%Y', $time);
+                    $MM = strftime('%m', $time);
+                    $DD = strftime('%d', $time);
+                    $hh = strftime('%H', $time);
+                    $mm = strftime('%M', $time);
+                }
             }
 
-            $event->data->insertElement($pos, form_makeTextField('blogtng_date[YY]', $YY, 'YYYY', 'blogtng__date_YY', 'edit', array('maxlength'=>4)));
+            $event->data->insertElement($pos, form_makeTextField('btngd[YY]', $YY, 'YYYY', 'blogtng__date_YY', 'edit', array('maxlength'=>4)));
             $pos += 1;
-            $event->data->insertElement($pos, form_makeTextField('blogtng_date[MM]', $MM, 'MM', 'blogtng__date_MM', 'edit', array('maxlength'=>2)));
+            $event->data->insertElement($pos, form_makeTextField('btngd[MM]', $MM, 'MM', 'blogtng__date_MM', 'edit', array('maxlength'=>2)));
             $pos += 1;
-            $event->data->insertElement($pos, form_makeTextField('blogtng_date[DD]', $DD, 'DD', 'blogtng__date_DD', 'edit', array('maxlength'=>2)));
+            $event->data->insertElement($pos, form_makeTextField('btngd[DD]', $DD, 'DD', 'blogtng__date_DD', 'edit', array('maxlength'=>2)));
             $pos += 1;
-            $event->data->insertElement($pos, form_makeTextField('blogtng_date[hh]', $hh, 'hh', 'blogtng__date_hh', 'edit', array('maxlength'=>2)));
+            $event->data->insertElement($pos, form_makeTextField('btngd[hh]', $hh, 'hh', 'blogtng__date_hh', 'edit', array('maxlength'=>2)));
             $pos += 1;
-            $event->data->insertElement($pos, form_makeTextField('blogtng_date[mm]', $mm, 'mm', 'blogtng__date_mm', 'edit', array('maxlength'=>2)));
+            $event->data->insertElement($pos, form_makeTextField('btngd[mm]', $mm, 'mm', 'blogtng__date_mm', 'edit', array('maxlength'=>2)));
             $pos += 1;
         }
 
@@ -112,7 +122,7 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
                 // does the page still exist? might be a deletion
                 if(!page_exists($ID)) return;
 
-                $blog = $_REQUEST['blog'];
+                $blog = $_REQUEST['btngb'];
                 $blogs = $this->entryhelper->get_blogs();
                 if (!in_array($blog, $blogs)) $blog = null;
 
@@ -122,22 +132,22 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
                 $this->entryhelper->entry['blog'] = $blog;
 
                 // allow to override created date
-                if(isset($_REQUEST['blogtng_date']) && $this->getConf('editform_set_date')) {
+                if(isset($_REQUEST['btngd']) && $this->getConf('editform_set_date')) {
                     foreach(array('hh', 'mm', 'MM', 'DD') as $key) {
-                        $_REQUEST['blogtng_date'][$key] = ($_REQUEST['blogtng_date'][$key]{0} == 0) ? $_REQUEST['blogtng_date'][$key]{1} : $_REQUEST['blogtng_date'][$key];
+                        $_REQUEST['btngd'][$key] = ($_REQUEST['btngd'][$key]{0} == 0) ? $_REQUEST['btngd'][$key]{1} : $_REQUEST['btngd'][$key];
                     }
-                    $time = mktime($_REQUEST['blogtng_date']['hh'],
-                                   $_REQUEST['blogtng_date']['mm'],
+                    $time = mktime($_REQUEST['btngd']['hh'],
+                                   $_REQUEST['btngd']['mm'],
                                    0,
-                                   $_REQUEST['blogtng_date']['MM'],
-                                   $_REQUEST['blogtng_date']['DD'],
-                                   $_REQUEST['blogtng_date']['YY']);
+                                   $_REQUEST['btngd']['MM'],
+                                   $_REQUEST['btngd']['DD'],
+                                   $_REQUEST['btngd']['YY']);
                     $this->entryhelper->entry['created'] = $time;
                 }
 
                 $this->entryhelper->save();
 
-                $tags = $_REQUEST['tags'];
+                $tags = $_REQUEST['btngt'];
                 $this->taghelper->load($pid);
                 $this->taghelper->set(explode(',', $tags));
                 $this->taghelper->save();
