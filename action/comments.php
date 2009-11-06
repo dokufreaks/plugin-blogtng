@@ -38,8 +38,8 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
         // prepare data for comment form
         $comment = array();
         $comment['source'] = $_REQUEST['blogtng']['comment_source'];
-        $comment['name']   = ($INFO['userinfo']['name']) ? $INFO['userinfo']['name'] : $_REQUEST['blogtng']['comment_name'];
-        $comment['mail']   = ($INFO['userinfo']['mail']) ? $INFO['userinfo']['mail'] : $_REQUEST['blogtng']['comment_mail'];
+        $comment['name']   = $_REQUEST['blogtng']['comment_name'];
+        $comment['mail']   = $_REQUEST['blogtng']['comment_mail'];
         $comment['web']    = ($_REQUEST['blogtng']['comment_web']) ? $_REQUEST['blogtng']['comment_web'] : '';
         $comment['text']   = $_REQUEST['wikitext']; // FIXME clean text
         $comment['pid']    = $_REQUEST['pid'];
