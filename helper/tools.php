@@ -22,7 +22,11 @@ class helper_plugin_blogtng_tools extends DokuWiki_Plugin {
 
 
     /**
-     * Return a page using the given format and title
+     * Return a page id based on the given format and title.
+     *
+     * @param $format string the format of the id to generate
+     * @param $title  string the title of the page to create
+     * @return string a page id
      */
     static public function mkpostid($format,$title){
         global $conf;
@@ -36,6 +40,31 @@ class helper_plugin_blogtng_tools extends DokuWiki_Plugin {
         $out = str_replace(array_keys($replace), array_values($replace), $out);
         $out = strftime($out);
         return cleanID($out);
+    }
+
+    /**
+     * Return the blogtng request parameter corresponding to the given path.
+     *
+     * @param $path string a / separated path to the parameter to return
+     * @return mixed returns the value of the referenced parameter, or false if something went wrong while retrieving it
+     */
+    static public function getParam($path) {
+        if (!isset($_REQUEST['btng'])) return false;
+        if (!is_array($path)) {
+            $path = array_filter(split('/',$path));
+        }
+
+        $elem = $_REQUEST['btng'];
+        foreach ($path as $p) {
+            dbglog('PATH: ' . $p . ', elem: ' . print_r($elem, true));
+            if (is_array($elem) && isset($elem[$p])) {
+                $elem = $elem[$p];
+            } else {
+                return false;
+            }
+        }
+
+        return $elem;
     }
 
 

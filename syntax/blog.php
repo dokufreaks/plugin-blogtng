@@ -33,6 +33,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
     );
 
     var $entryhelper  = null;
+    var $tools = null;
     var $commenthelper  = null;
 
     /**
@@ -99,20 +100,21 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         if($mode != 'xhtml') return false;
 
         $this->entryhelper =& plugin_load('helper', 'blogtng_entry');
+        $this->tools =& plugin_load('helper', 'blogtng_tools');
 
         // set target if not set yet
         global $ID;
         if(!$data['conf']['target']) $data['conf']['target'] = $ID;
 
         // add additional data from request parameters
-        if(isset($_REQUEST['btngs'])){  // start offset
-            $data['conf']['offset'] = (int) $_REQUEST['btngs'];
+        if($start = $this->tools->getParam('pagination/start')){  // start offset
+            $data['conf']['offset'] = (int) $start;
         }
 
-        if(isset($_REQUEST['btngt'])){  // tags
+        if($tags = $this->tools->getParam('post/tags')){  // tags
            $data['conf']['tags'] = array_merge(
                                        $data['conf']['tags'],
-                                       explode(',',$_REQUEST['btngt']));
+                                       explode(',',$tags));
         }
         $data['conf']['tags'] = array_map('trim',$data['conf']['tags']);
         $data['conf']['tags'] = array_unique($data['conf']['tags']);

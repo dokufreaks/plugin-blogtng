@@ -16,9 +16,11 @@ require_once(DOKU_PLUGIN.'action.php');
 class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
 
     var $commenthelper = null;
+    var $tools = null;
 
     function action_plugin_blogtng_comments() {
         $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
+        $this->tools =& plugin_load('helper', 'blogtng_tools');
     }
 
     function getInfo() {
@@ -37,10 +39,10 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
 
         // prepare data for comment form
         $comment = array();
-        $comment['source'] = $_REQUEST['blogtng']['comment_source'];
-        $comment['name']   = ($INFO['userinfo']['name']) ? $INFO['userinfo']['name'] : $_REQUEST['blogtng']['comment_name'];
-        $comment['mail']   = ($INFO['userinfo']['mail']) ? $INFO['userinfo']['mail'] : $_REQUEST['blogtng']['comment_mail'];
-        $comment['web']    = ($_REQUEST['blogtng']['comment_web']) ? $_REQUEST['blogtng']['comment_web'] : '';
+        $comment['source'] = $this->tools->getParam('comment/source');
+        $comment['name']   = (($commentname = $this->tools->getParam('comment/name'))) ? $commentname : $INFO['userinfo']['name'];
+        $comment['mail']   = (($commentmail = $this->tools->getParam('comment/mail'))) ? $commentmail : $INFO['userinfo']['mail'];
+        $comment['web']    = (($commentweb = $this->tools->getParam('comment/web'))) ? $commentweb : '';
         $comment['text']   = $_REQUEST['wikitext']; // FIXME clean text
         $comment['pid']    = $_REQUEST['pid'];
         $comment['page']   = $_REQUEST['id'];

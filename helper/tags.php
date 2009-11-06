@@ -114,7 +114,7 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
         $count = count($this->tags);
         $prepared = array();
         foreach ($this->tags as $tag) {
-            array_push($prepared, DOKU_TAB.'<li><div class="li"><a href="'.wl($target,array('btngt'=>$tag)).'" class="tag">'.hsc($tag).'</a></div></li>');
+            array_push($prepared, DOKU_TAB.'<li><div class="li"><a href="'.wl($target,array('btng[post][tags]'=>$tag)).'" class="tag">'.hsc($tag).'</a></div></li>');
         }
         $html = '<ul class="blogtng_tags">'.DOKU_LF.join(DOKU_LF, $prepared).'</ul>'.DOKU_LF;
         echo $html;
