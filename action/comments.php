@@ -46,6 +46,7 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
         $comment['text']   = $_REQUEST['wikitext']; // FIXME clean text
         $comment['pid']    = $_REQUEST['pid'];
         $comment['page']   = $_REQUEST['id'];
+        $comment['subscribe'] = $_REQUEST['blogtng']['subscribe'];
 
         $BLOGTNG['comment'] = $comment;
 
@@ -81,11 +82,6 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
             }
 
             if($BLOGTNG['comment_action'] == 'submit') {
-
-                // FIXME check subscription
-                if($_REQUEST['blogtng']['subscribe']) {
-                }
-
                 // save comment and redirect FIXME cid
                 $this->commenthelper->save($comment);
                 act_redirect($comment['page'], 'show');
@@ -94,7 +90,6 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
                 $_SERVER['REQUEST_METHOD'] = 'get'; //FIXME hack to avoid redirect
                 return false;
             }
-
         } else {
             return true;
         }

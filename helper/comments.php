@@ -110,6 +110,14 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
             $comment['text'],
             $comment['status']
         );
+        if($this->getConf('comments_subscription')){
+            if($comment['subscribe']){
+                // subscribe commenter:
+                $this->subscribe($comment['pid'],$comment['mail']);
+            }
+            // send subscriber mails
+            $this->send_subscriber_mails($comment);
+        }
     }
 
     /**
@@ -137,9 +145,76 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     }
 
     /**
+     * Send a mail about the new comment to all subscribers
+     * that opted-in for mail
+     */
+    function send_subscriber_mails($comment){
+        global $conf;
+
+        $sql = "SELECT A.mail as mail, title, page
+                  FROM subscriptions A, optin B, entries C
+                 WHERE A.mail = B.mail
+                   AND C.pid = A.pid
+                   AND B.optin = 1
+                   AND A.pid = ?";
+        $res = $this->sqlitehelper->query($sql,$comment['pid']);
+        $rows = $this->sqlitehelper->res2arr($res);
+        $mails = array();
+        foreach($rows as $row){
+            // ignore commenter herself:
+            if($row['mail'] == $comment['mail']) continue;
+            $mails[] = $row['mail'];
+        }
+        if(!count($mails)) return;
+
+        // FIXME add author of the post
+        // FIXME add $conf['notify']
+
+        $text  = io_readFile(BLOGTNG_DIR.'tpl/subscribermail.txt');
+        $title = sprintf($this->getLang('subscr_subject'),$rows[0]['title']);
+
+        $repl = array(
+            '@TITLE@'       => $rows[0]['title'],
+            '@NAME@'        => $comment['name'],
+            '@COMMENT@'     => $comment['text'],
+            '@USER@'        => $comment['name'],
+            '@URL@'         => wl($rows[0]['page'],'',true), #FIXME cid
+            '@DOKUWIKIURL@' => DOKU_URL,
+        );
+        $text = str_replace(array_keys($repl),array_values($repl),$text);
+
+        mail_send('', $title, $text, $conf['mailfrom'], '', join(',',$mails));
+    }
+
+    /**
      * Subscribe entry
      */
-    function subscribe($pid, $mail) {
+    function subscribe($pid, $mail, $optin=0) {
+        // add to subscription list
+        $sql = "INSERT OR IGNORE INTO subscriptions
+                      (pid, mail) VALUES (?,?)";
+        $this->sqlitehelper->query($sql,$pid,strtolower($mail));
+
+        // add to optin list
+        if($optin){
+            $sql = "INSERT OR REPLACE INTO optin
+                          (mail,optin) VALUES (?,?,?)";
+            $this->sqlitehelper->query($sql,strtolower($mail),$optin,md5(time());
+        }else{
+            $sql = "INSERT OR IGNORE INTO optin
+                          (mail,optin,key) VALUES (?,?,?)";
+            $this->sqlitehelper->query($sql,strtolower($mail),$optin,md5(time()));
+
+            // see if we need to send a optin mail
+            $sql = "SELECT optin, key FROM optin WHERE mail = ?";
+            $res = $this->sqlitehelper->query($sql,strtolower($mail),$optin,md5(time()));
+            $row = $this->sqlitehelper->res2row($res,0);
+            if(!$row['optin']){
+                // FIXME send mail with key
+            }
+        }
+
+
     }
 
     /**
@@ -232,7 +307,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         $form->addElement(form_makeButton('submit', 'comment_submit', $this->getLang('comment_submit'), array('class' => 'button', 'id' => 'blogtng__comment_submit')));
 
         if($this->getConf('comments_subscription')){
-            $form->addElement(form_makeCheckboxField('blogtng[subscribe]', 0, $this->getLang('comment_subscribe')));
+            $form->addElement(form_makeCheckboxField('blogtng[subscribe]', 1, $this->getLang('comment_subscribe')));
         }
 
         print '<div id="blogtng__comment_form_wrap">'.DOKU_LF;
@@ -326,7 +401,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     }
 
     /**
-     * FIXME
+     * Display a list of recent comments
      */
     function tpl_recentcomments($tpl='default',$num=5,$blogs=array('default'),$types=array()){
         global $INFO;
