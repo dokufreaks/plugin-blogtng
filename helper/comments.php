@@ -192,7 +192,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         $form = new DOKU_Form('blogtng__comment_form',wl($page).'#blogtng__comment_form');
         $form->addHidden('pid', $pid);
         $form->addHidden('id', $page);
-        $form->addHidden('blogtng[comment_source]', 'comment');
+        $form->addHidden('btng[comment][source]', 'comment');
 
         foreach(array('name', 'mail', 'web') as $field) {
             $attr = ($BLOGTNG['comment_submit_errors'][$field]) ?  array('class' => 'edit error') : array();
@@ -202,7 +202,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
             } else {
                 $form->addElement(
                         form_makeTextField(
-                        'blogtng[comment_' . $field . ']',
+                        'btng[comment][' . $field . ']',
                         $BLOGTNG['comment'][$field],
                         $this->getLang('comment_'.$field),
                         'blogtng__comment_' . $field,
