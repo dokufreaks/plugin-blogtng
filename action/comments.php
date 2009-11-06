@@ -32,24 +32,26 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
     function handle_act_preprocess(&$event, $param) {
         global $INFO;
 
+        global $BLOGTNG;
+        $BLOGTNG = array();
+
+        // prepare data for comment form
+        $comment = array();
+        $comment['source'] = $_REQUEST['blogtng']['comment_source'];
+        $comment['name']   = ($INFO['userinfo']['name']) ? $INFO['userinfo']['name'] : $_REQUEST['blogtng']['comment_name'];
+        $comment['mail']   = ($INFO['userinfo']['mail']) ? $INFO['userinfo']['mail'] : $_REQUEST['blogtng']['comment_mail'];
+        $comment['web']    = ($_REQUEST['blogtng']['comment_web']) ? $_REQUEST['blogtng']['comment_web'] : '';
+        $comment['text']   = $_REQUEST['wikitext']; // FIXME clean text
+        $comment['pid']    = $_REQUEST['pid'];
+        $comment['page']   = $_REQUEST['id'];
+
+        $BLOGTNG['comment'] = $comment;
+
         if(is_array($event->data) && (isset($event->data['comment_submit']) || isset($event->data['comment_preview']))) {
-            $BLOGTNG = array();
-            global $BLOGTNG;
 
             if(isset($event->data['comment_submit']))  $BLOGTNG['comment_action'] = 'submit';
             if(isset($event->data['comment_preview'])) $BLOGTNG['comment_action'] = 'preview';
 
-
-            $comment = array();
-            $comment['source'] = $_REQUEST['blogtng']['comment_source'];
-            $comment['name']   = ($INFO['userinfo']['name']) ? $INFO['userinfo']['name'] : $_REQUEST['blogtng']['comment_name'];
-            $comment['mail']   = ($INFO['userinfo']['mail']) ? $INFO['userinfo']['mail'] : $_REQUEST['blogtng']['comment_mail']; 
-            $comment['web']    = ($_REQUEST['blogtng']['comment_web']) ? $_REQUEST['blogtng']['comment_web'] : '';
-            $comment['text']   = $_REQUEST['wikitext']; // FIXME clean text
-            $comment['pid']    = $_REQUEST['pid'];
-            $comment['page']   = $_REQUEST['id'];
-
-            $BLOGTNG['comment'] = $comment;
 
             // check for empty fields
             $BLOGTNG['comment_submit_errors'] = array();

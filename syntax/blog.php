@@ -32,8 +32,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         'format'    => ':blog:%Y:%m:%{title}', #FIXME
     );
 
-    var $sqlitehelper = null;
-    var $toolshelper  = null;
+    var $entryhelper  = null;
 
     /**
      * Types we accept in our syntax
@@ -47,8 +46,6 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
 
     // default plugin functions...
     function syntax_plugin_blogtng_blog() {
-        $this->sqlitehelper =& plugin_load('helper', 'blogtng_sqlite');
-        $this->toolshelper  =& plugin_load('helper', 'blogtng_tools');
     }
     function getInfo() {
         return confToHash(dirname(__FILE__).'/../INFO');
@@ -97,6 +94,8 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
     function render($mode, &$renderer, $data) {
         if($mode != 'xhtml') return false;
 
+        $this->entryhelper =& plugin_load('helper', 'blogtng_entry');
+
         // set target if not set yet
         global $ID;
         if(!$data['conf']['target']) $data['conf']['target'] = $ID;
@@ -119,19 +118,18 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         $renderer->info['cache'] = (bool)$conf['cache'];
         switch($data['type']){
             case 'related':
-                $renderer->doc .= $this->_related($data['conf']);
+                $renderer->doc .= $this->entryhelper->xhtml_related($data['conf']);
                 break;
             case 'pagination':
-                $renderer->doc .= $this->_pagination($data['conf']);
+                $renderer->doc .= $this->entryhelper->xhtml_pagination($data['conf']);
                 break;
             case 'newform':
                 $renderer->info['cache'] = false; //never cache this
-                $renderer->doc .= $this->_newform($data['conf']);
+                $renderer->doc .= $this->entryhelper->xhtml_newform($data['conf']);
                 break;
             default:
-                $renderer->doc .= $this->_list($data['conf']);
+                $renderer->doc .= $this->entryhelper->xhtml_list($data['conf']);
         }
-
 
         return true;
     }
@@ -160,171 +158,5 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
                 continue;
         }
     }
-
-    /**
-     * List matching blog entries
-     *
-     * Creates the needed SQL query from the given config data, executes
-     * it and calles the *_list template for each entry in the result set
-     *
-     * @fixme move SQL creation to its own function?
-     */
-    function _list($conf){
-
-        $sortkey = ($conf['sortby'] == 'random') ? 'Random()' : $conf['sortby'];
-        $blog_query = '(blog = '.
-                      $this->sqlitehelper->quote_and_join($conf['blog'],
-                                                          ' OR blog = ').')';
-        if(count($conf['tags'])){
-            $tag_query  = ' AND (tag = '.
-                          $this->sqlitehelper->quote_and_join($conf['tags'],
-                                                              ' OR tag = ').') AND A.pid = B.pid';
-        }
-
-        $query = 'SELECT A.pid as pid, page, title, blog, image, created,
-                         lastmod, login, author, email
-                    FROM entries A, tags B
-                   WHERE '.$blog_query.$tag_query.'
-                GROUP BY A.pid
-                ORDER BY '.$sortkey.' '.$conf['sortorder'].
-                 ' LIMIT '.$conf['limit'].
-                ' OFFSET '.$conf['offset'];
-        $resid = $this->sqlitehelper->query($query);
-        if (!$resid) return '';
-
-        ob_start();
-        $entryhelper =& plugin_load('helper', 'blogtng_entry');
-        $count = sqlite_num_rows($resid);
-        for ($i = 0; $i < $count; $i++) {
-            $entryhelper->load_by_res($resid, $i);
-            $entryhelper->tpl_content($conf['tpl'], 'list');
-        }
-        $output = ob_get_contents();
-        ob_end_clean();
-        return $output;
-    }
-
-    /**
-     * Display pagination links for the configured list of entries
-     *
-     * @author Andreas Gohr <gohr@cosmocode.de>
-     */
-    function _pagination($conf){
-        $sortkey = ($conf['sortby'] == 'random') ? 'Random()' : $conf['sortby'];
-        $blog_query = '(blog = '.
-                      $this->sqlitehelper->quote_and_join($conf['blog'],
-                                                          ' OR blog = ').')';
-        if(count($conf['tags'])){
-            $tag_query  = ' AND (tag = '.
-                          $this->sqlitehelper->quote_and_join($conf['tags'],
-                                                              ' OR tag = ').
-                          ') AND A.pid = B.pid GROUP BY A.pid';
-            $tag_table  = ', tags B';
-        }
-
-        // get the number of all matching entries
-        $query = 'SELECT A.pid
-                    FROM entries A'.$tag_table.'
-                   WHERE '.$blog_query.$tag_query;
-        $resid = $this->sqlitehelper->query($query);
-        if (!$resid) return;
-        $count = sqlite_num_rows($resid);
-        if($count <= $conf['limit']) return '';
-
-        // we now prepare an array of pages to show
-        $pages = array();
-
-        // calculate page boundaries
-        $max = ceil($count/$conf['limit']);
-        $cur = floor($conf['offset']/$conf['limit'])+1;
-
-        $pages[] = 1;     // first page always
-        $pages[] = $max;  // last page always
-        $pages[] = $cur;  // current always
-
-        if($max > 1){                // if enough pages
-            $pages[] = 2;            // second and ..
-            $pages[] = $max-1;       // one before last
-        }
-
-        // three around current
-        if($cur-1 > 0) $pages[] = $cur-1;
-        if($cur-2 > 0) $pages[] = $cur-2;
-        if($cur-3 > 0) $pages[] = $cur-3;
-        if($cur+1 < $max) $pages[] = $cur+1;
-        if($cur+2 < $max) $pages[] = $cur+2;
-        if($cur+3 < $max) $pages[] = $cur+3;
-
-        sort($pages);
-        $pages = array_unique($pages);
-
-        // we're done - build the output
-        $out = '';
-        $out .= '<div class="blogtng_pagination">';
-        if($cur > 1){
-            $out .= '<a href="'.wl($conf['target'],
-                                   array('btngs'=>$conf['limit']*($cur-2),
-                                         'btngt'=>join(',',$conf['tags']))).
-                             '" class="prev">'.$this->getLang('prev').'</a> ';
-        }
-        $out .= '<span class="blogtng_pages">';
-        $last = 0;
-        foreach($pages as $page){
-            if($page - $last > 1){
-                $out .= ' <span class="sep">...</span> ';
-            }
-            if($page == $cur){
-                $out .= '<span class="cur">'.$page.'</span> ';
-            }else{
-                $out .= '<a href="'.wl($conf['target'],
-                                    array('btngs'=>$conf['limit']*($page-1),
-                                          'btngt'=>join(',',$conf['tags']))).
-                                 '">'.$page.'</a> ';
-            }
-            $last = $page;
-        }
-        $out .= '</span>';
-        if($cur < $max){
-            $out .= '<a href="'.wl($conf['target'],
-                                   array('btngs'=>$conf['limit']*($cur),
-                                         'btngt'=>join(',',$conf['tags']))).
-                             '" class="next">'.$this->getLang('next').'</a> ';
-        }
-        $out .= '</div>';
-
-        return $out;
-    }
-
-    function _related($conf){
-        ob_start();
-        $entryhelper =& plugin_load('helper', 'blogtng_entry');
-        $entryhelper->tpl_related($conf['limit'],$conf['blog'],$conf['page'],$conf['tags']);
-        $output = ob_get_contents();
-        ob_end_clean();
-        return $output;
-    }
-
-    function _newform($conf){
-        global $ID;
-
-        // allowed to create?
-        $new = $this->toolshelper->mkpostid($conf['format'],'dummy');
-        if(auth_quickaclcheck($new) < AUTH_CREATE) return '';
-
-        $out = '';
-        $out .= '<div class="blogtng_newform">';
-        $out .= '<form method="post" action="'.wl($ID,array('do'=>'btngnew')).'">';
-        if($conf['title']) $out .= '<h3>'.hsc($conf['title']).'</h3>';
-        $out .= '<label for="btng__nt">'.$this->getLang('title').'</label>&nbsp;';
-        $out .= '<input type="text" name="btngnt" class="edit" id="btng__nt" />';
-        $out .= '<input type="submit" value="'.$this->getLang('create').'" class="button" />';
-        $out .= '<input type="hidden" name="btngnf" value="'.hsc($conf['format']).'" />';
-        $out .= '<input type="hidden" name="btngnb" value="'.hsc($conf['blog'][0]).'" />';
-        $out .= '</form>';
-        $out .= '</div>';
-
-        return $out;
-    }
-
 }
 // vim:ts=4:sw=4:et:enc=utf-8:
