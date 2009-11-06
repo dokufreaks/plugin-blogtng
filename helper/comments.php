@@ -394,7 +394,7 @@ class blogtng_comment{
         echo hsc(strftime($fmt,$this->data['created']));
     }
 
-    function tpl_avatar($w=0,$h=0){
+    function tpl_avatar($w=0,$h=0,$return=false){
         global $conf;
         $img = '';
         if($this->data['avatar']) {
@@ -417,7 +417,11 @@ class blogtng_comment{
         if($img){
             $img = ml($img,array('w'=>$w,'h'=>$h,'cache'=>'recache'));
         }
-        print $img;
+        if($return) {
+            return $img;
+        } else {
+            print $img;
+        }
     }
 }
 // vim:ts=4:sw=4:et:enc=utf-8:
