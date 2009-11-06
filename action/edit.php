@@ -119,11 +119,15 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
                     return;
                 }
 
+                // does the page still exist? might be a deletion
+                if(!page_exists($ID)) return;
+
                 $blog = $_REQUEST['btngb'];
                 $blogs = $this->entryhelper->get_blogs();
                 if (!in_array($blog, $blogs)) $blog = null;
 
                 $pid = md5($ID);
+
                 $this->entryhelper->load_by_pid($pid);
                 $this->entryhelper->entry['blog'] = $blog;
 

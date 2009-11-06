@@ -314,7 +314,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         $out = '';
         $out .= '<div class="blogtng_newform">';
         $out .= '<form method="post" action="'.wl($ID,array('do'=>'btngnew')).'">';
-        if($conf['title']) $out .= '<h3>'.hsc($conf['title']).'<h3>';
+        if($conf['title']) $out .= '<h3>'.hsc($conf['title']).'</h3>';
         $out .= '<label for="btng__nt">'.$this->getLang('title').'</label>&nbsp;';
         $out .= '<input type="text" name="btngnt" class="edit" id="btng__nt" />';
         $out .= '<input type="submit" value="'.$this->getLang('create').'" class="button" />';

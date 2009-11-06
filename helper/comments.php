@@ -252,8 +252,13 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
 
     /**
      * Print the number of comments
+     *
+     * @param string $fmt_zero_comments - text for no comment
+     * @param string $fmt_one_comments - text for 1 comment
+     * @param string $fmt_comments - text for 1+ comment
+     * @param array  $types - a list of wanted comment sources (empty for all)
      */
-    function tpl_count($fmt_zero_comments='', $fmt_one_comment='', $fmt_comments='', $types=null) {
+    function tpl_count($fmt_zero_comments='', $fmt_one_comments='', $fmt_comments='', $types=null) {
         if(!$this->pid) return false;
 
         if(!$fmt_zero_comments)
@@ -398,15 +403,17 @@ class blogtng_comment{
             $img = $this->data['avatar'];
             //FIXME add hook for additional methods
         } elseif ($this->data['mail']) {
+            $dfl = $conf['plugin']['blogtng']['comments_gravatar_default'];
+            if($dfl == 'blank') $dfl = DOKU_URL . 'lib/images/blank.gif';
+
             $img = 'http://gravatar.com/avatar.php'
                  . '?gravatar_id=' . md5($this->data['mail'])
                  . '&size=' . $w
                  . '&rating=' . $conf['plugin']['blogtng']['comments_gravatar_rating']
-                 . '&default=' . DOKU_URL . 'lib/images/blank.gif'
+                 . '&default='.rawurlencode($dfl)
                  . '&.png';
         }
 
-        // FIXME config options for gravatar
 
         //use fetch for caching and resizing
         if($img){
