@@ -25,7 +25,6 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     var $commenthelper = null;
     var $taghelper     = null;
     var $toolshelper   = null;
-    var $entryhelper   = null;
 
     /**
      * Constructor, loads the sqlite helper plugin
@@ -345,11 +344,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      */
     function xhtml_related($conf){
         ob_start();
-        if(!$this->entryhelper) {
-            $this->entryhelper =& plugin_load('helper', 'blogtng_entry');
-        }
-        $this->entryhelper =& plugin_load('helper', 'blogtng_entry');
-        $this->entryhelper->tpl_related($conf['limit'],$conf['blog'],$conf['page'],$conf['tags']);
+        $this->tpl_related($conf['limit'],$conf['blog'],$conf['page'],$conf['tags']);
         $output = ob_get_contents();
         ob_end_clean();
         return $output;
