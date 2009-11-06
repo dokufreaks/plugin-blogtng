@@ -197,9 +197,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         foreach(array('name', 'mail', 'web') as $field) {
             $attr = ($BLOGTNG['comment_submit_errors'][$field]) ?  array('class' => 'edit error') : array();
 
-            if(isset($_SERVER['REMOTE_USER']) && ($field == 'name' || $field == 'mail')) {
-                $form->addHidden('blogtng[comment_' . $field . ']', $BLOGTNG['comment'][$field]);
-            } elseif($field == 'web' && !$this->getConf('comments_allow_web')) {
+            if($field == 'web' && !$this->getConf('comments_allow_web')) {
                 continue;
             } else {
                 $form->addElement(
