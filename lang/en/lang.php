@@ -1,5 +1,19 @@
 <?php
 
+$lang['menu'] = 'Manage Blogs (BlogTNG)';
+
+$lang['entry_latest']   = 'Latest %d Entrys';
+$lang['comment_latest'] = 'Latest %d Comments';
+$lang['numhits'] = 'Number of Hits';
+
+$lang['blog']    = 'Blog';
+$lang['dashboard'] = 'Dashboard';
+$lang['entry']   = 'Entry';
+$lang['filter']  = 'Filter';
+
+$lang['searchresults']  = 'Search Results';
+
+$lang['comments']    = 'Comments';
 $lang['0comments']   = '%d Comments';
 $lang['1comments']   = '%d Comment';
 $lang['Xcomments']   = '%d Comments';
@@ -12,13 +26,25 @@ $lang['title']  = 'Title:';
 $lang['create'] = 'Create';
 
 $lang['comment_mail']      = 'E-Mail';
+$lang['comment_avatar']    = 'Avatar';
 $lang['comment_name']      = 'Name';
 $lang['comment_web']       = 'Website';
 $lang['comment_preview']   = 'Preview';
 $lang['comment_submit']    = 'Comment';
+$lang['comment_source']    = 'Source';
+$lang['comment_status']    = 'Status';
+$lang['comment_text']      = 'Text';
 $lang['comment_subscribe'] = 'Subscribe to new comments';
 
 $lang['subscr_subject'] = 'New comment on %s';
 $lang['optin_subject']  = 'Please confirm your subscription';
+
+$lang['optin_ok']  = 'Thank you. You\'ll now receive comment updates via mail';
+$lang['optin_err'] = 'Ooops. Couldn\'t find that key. Maybe a copy\'n\'paste error?';
+$lang['btn_comment_edit']  = 'Edit';
+$lang['act_comment_edit']  = 'Edit Comment';
+
+$lang['msg_comment_save']   = 'Comment changes have been saved';
+$lang['msg_comment_delete'] = 'The comment was deleted';
 
 $lang['err_notitle'] = 'No post title given!';
