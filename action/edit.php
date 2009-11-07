@@ -59,7 +59,7 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
 
         $this->taghelper->load($pid);
         $tags = $this->tools->getParam('post/tags');
-        if (!tags) join(', ', $this->taghelper->tags);
+        if (!$tags) $tags = join(', ', $this->taghelper->tags);
         $event->data->insertElement($pos, form_makeTextField('btng[post][tags]', $tags, 'Tags', 'blogtng__tags', 'edit'));
         $pos += 1;
 
