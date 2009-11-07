@@ -38,7 +38,7 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
         $pid = trim($pid);
         $query = 'SELECT COUNT(tag) AS tagcount FROM tags WHERE pid = ?';
 
-        $resid = $this->sqlitehelper->query($query, $this->pid);
+        $resid = $this->sqlitehelper->query($query, $pid);
         if ($resid === false) {
             msg('blogtng plugin: failed to load tags!', -1);
         }
