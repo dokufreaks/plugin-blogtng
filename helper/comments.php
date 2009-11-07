@@ -249,17 +249,21 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
 
     /**
      * Subscribe entry
+     *
+     * @param string $pid  - entry to subscribe
+     * @param string $mail - email of subscriber
+     * @param int $optin - set to 1 for immediate optin
      */
-    function subscribe($pid, $mail, $optin=0) {
+    function subscribe($pid, $mail, $optin=-3) {
         // add to subscription list
         $sql = "INSERT OR IGNORE INTO subscriptions
                       (pid, mail) VALUES (?,?)";
         $this->sqlitehelper->query($sql,$pid,strtolower($mail));
 
         // add to optin list
-        if($optin){
+        if($optin == 1){
             $sql = "INSERT OR REPLACE INTO optin
-                          (mail,optin) VALUES (?,?,?)";
+                          (mail,optin,key) VALUES (?,?,?)";
             $this->sqlitehelper->query($sql,strtolower($mail),$optin,md5(time()));
         }else{
             $sql = "INSERT OR IGNORE INTO optin
@@ -267,14 +271,13 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
             $this->sqlitehelper->query($sql,strtolower($mail),$optin,md5(time()));
 
             // see if we need to send a optin mail
-
-//FIXME use negative optin counter to limit optin mails
-
             $sql = "SELECT optin, key FROM optin WHERE mail = ?";
             $res = $this->sqlitehelper->query($sql,strtolower($mail));
             $row = $this->sqlitehelper->res2row($res,0);
-            if(!$row['optin']){
+            if($row['optin'] < 0){
                 $this->send_optin_mail($mail,$row['key']);
+                $sql = "UPDATE optin SET optin = optin+1 WHERE mail = ?";
+                $this->sqlitehelper->query($sql,strtolower($mail));
             }
         }
 
