@@ -50,7 +50,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     }
 
     function comment_by_cid($cid) {
-        $query = 'SELECT pid, source, name, mail, web, avatar, created, text, status FROM comments WHERE cid = ?';
+        $query = 'SELECT cid, pid, source, name, mail, web, avatar, created, text, status FROM comments WHERE cid = ?';
         $resid = $this->sqlitehelper->query($query, $cid);
         if ($resid === false) {
             return false;
