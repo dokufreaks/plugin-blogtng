@@ -57,7 +57,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             return self::RET_ERR_BADPID;
         }
 
-        $query = 'SELECT pid, page, title, blog, image, created, lastmod, author, login, email FROM entries WHERE pid = ?';
+        $query = 'SELECT pid, page, title, blog, image, created, lastmod, author, login, mail, comments_enabled FROM entries WHERE pid = ?';
         $resid = $this->sqlitehelper->query($query, $pid);
         if ($resid === false) {
             msg('blogtng plugin: failed to load entry!', -1);
@@ -167,7 +167,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             return false;
         }
 
-        $query = 'INSERT OR IGNORE INTO entries (pid, page, title, blog, image, created, lastmod, author, login, email) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+        $query = 'INSERT OR IGNORE INTO entries (pid, page, title, blog, image, created, lastmod, author, login, mail, comments_enabled) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
         $result = $this->sqlitehelper->query(
             $query,
             $this->entry['pid'],
@@ -179,9 +179,10 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             $this->entry['lastmod'],
             $this->entry['author'],
             $this->entry['login'],
-            $this->entry['email']
+            $this->entry['mail'],
+            $this->entry['comments_enabled']
         );
-        $query = 'UPDATE entries SET page = ?, title=?, blog=?, image=?, created = ?, lastmod=?, login = ?, author=?, email=? WHERE pid=?';
+        $query = 'UPDATE entries SET page = ?, title=?, blog=?, image=?, created = ?, lastmod=?, login = ?, author=?, mail=?, comments_enabled=? WHERE pid=?';
         $result = $this->sqlitehelper->query(
             $query,
             $this->entry['page'],
@@ -192,7 +193,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             $this->entry['lastmod'],
             $this->entry['login'],
             $this->entry['author'],
-            $this->entry['email'],
+            $this->entry['mail'],
+            $this->entry['comments_enabled'],
             $this->entry['pid']
         );
         if(!$result) {
@@ -226,7 +228,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
 
         $query = 'SELECT A.pid as pid, page, title, blog, image, created,
-                         lastmod, login, author, email
+                         lastmod, login, author, mail
                     FROM entries A, tags B
                    WHERE '.$blog_query.$tag_query.'
                 GROUP BY A.pid
