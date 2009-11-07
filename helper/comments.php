@@ -191,7 +191,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         global $conf;
 
         // get general article info
-        $sql = "SELECT title, page, email
+        $sql = "SELECT title, page, mail
                   FROM entries
                  WHERE pid = ?";
         $res = $this->sqlitehelper->query($sql,$comment['pid']);
@@ -220,7 +220,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         $stext = str_replace(array_keys($repl),array_values($repl),$stext);
 
         // notify author
-        mail_send('', $title, $atext, $conf['mailfrom'], '', $entry['email']);
+        mail_send('', $title, $atext, $conf['mailfrom'], '', $entry['mail']);
         // FIXME add $conf['notify']
 
         // finish here when subscriptions disabled
