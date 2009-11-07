@@ -557,11 +557,14 @@ class blogtng_comment{
     }
 
     function output($name){
+        global $INFO;
         $name = preg_replace('/[^a-zA-Z_\-]+/','',$name);
         $tpl = DOKU_PLUGIN . 'blogtng/tpl/' . $name . '_comments.php';
         if(file_exists($tpl)) {
             $comment = $this;
-            include($tpl);
+            if($comment->data['status'] == 'visible' || ($comment->data['status'] == 'hidden' && $INFO['isadmin'])) {
+                include($tpl);
+        }
         } else {
             msg('blogtng plugin: template ' . $tpl . ' does not exist!', -1);
         }
@@ -617,6 +620,10 @@ class blogtng_comment{
 
     function tpl_created($fmt=''){
         echo hsc(dformat($this->data['created'],$fmt));
+    }
+
+    function tpl_status() {
+        echo $this->data['status'];
     }
 
     function tpl_avatar($w=0,$h=0,$return=false){
