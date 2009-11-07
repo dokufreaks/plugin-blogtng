@@ -363,7 +363,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $new = $this->toolshelper->mkpostid($conf['format'],'dummy');
         if(auth_quickaclcheck($new) < AUTH_CREATE) return '';
 
-        $form = new Doku_Form($ID, wl($ID,array('do'=>'btngnew')));
+        $form = new Doku_Form($ID, wl($ID,array('do'=>'btngnew'),false,'&'));
         if ($conf['title']) {
             $form->addElement(form_makeOpenTag('h3'));
             $form->addElement(hsc($conf['title']));
