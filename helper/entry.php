@@ -607,6 +607,48 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $this->taghelper->tpl_tags($target);
     }
 
+    /**
+     * Renders the link to the previous blog post using the given template.
+     *
+     * @param $tpl    string a template specifing the link text. May contain placeholders
+     *                       for title, author and creation date of post
+     * @param $id     string page id of blog post for which to generate the adjacent link
+     * @param $return bool   whether to return the link or print it, defaults to print
+     * @param bool/string if there is no such link, false. otherwise, if $return is true,
+     *                    a string containing the generated HTML link, otherwise true.
+     */
+    function tpl_previouslink($tpl, $id=false, $return=false) {
+        $out =  $this->_navi_link($tpl, 'prev', $id);
+        if ($return) {
+            return $out;
+        } else if ($out !== false) {
+            echo $out;
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Renders the link to the next blog post using the given template.
+     *
+     * @param $tpl    string a template specifing the link text. May contain placeholders
+     *                       for title, author and creation date of post
+     * @param $id     string page id of blog post for which to generate the adjacent link
+     * @param $return bool   whether to return the link or print it, defaults to print
+     * @param bool/string if there is no such link, false. otherwise, if $return is true,
+     *                    a string containing the generated HTML link, otherwise true.
+     */
+    function tpl_nextlink($tpl, $id=false, $return=false) {
+        $out =  $this->_navi_link($tpl, 'next', $id);
+        if ($return) {
+            return $out;
+        } else if ($out !== false) {
+            echo $out;
+            return true;
+        }
+        return false;
+    }
+
     //~~ utility methods
 
     function get_blogs() {
@@ -629,6 +671,45 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
     function is_valid_pid($pid) {
         return (preg_match('/^[0-9a-f]{32}$/', trim($pid)));
+    }
+
+    function has_tags() {
+        if (!$this->taghelper) {
+            $this->taghelper =& plugin_load('helper', 'blogtng_tags');
+        }
+        return ($this->taghelper->count($this->entry['pid']) > 0);
+    }
+
+    /**
+     * Gets the adjacent (previous and next) links of a blog entry.
+     *
+     * @param $id string page id of the entry for which to get said links
+     * @param array 2d assoziative array containing page id, title, author and creation date
+     *              for both prev and next link
+     */
+    function getAdjacentLinks($id = false) {
+        global $INFO;
+        if($id === false) $id = $INFO['id']; //sidebar safe
+        $pid = md5(cleanID($id));
+
+        $related = array();
+        foreach (array('prev', 'next') as $type) {
+            $query = 'SELECT A.page AS page, A.title AS title,
+                             A.author AS author, A.created AS created
+                        FROM entries A, entries B
+                       WHERE B.pid = ?
+                         AND A.pid != B.pid
+                         AND A.created ' . (($type == 'prev') ? '<=' : '>=') . ' B.created
+                         AND A.blog = B.blog
+                    ORDER BY A.created ' . (($type == 'prev') ? 'DESC' : 'ASC') . '
+                       LIMIT 1';
+            $res = $this->sqlitehelper->query($query, $pid);
+            if (sqlite_num_rows($res) > 0) {
+                $row = $this->sqlitehelper->res2row($res, 0);
+                $related[$type] = $row;
+            }
+        }
+        return $related;
     }
 
     /**
@@ -830,6 +911,31 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         return '<div class="secedit">'.DOKU_LF.DOKU_TAB.
             html_btn($action, $id, '', $params, 'post').DOKU_LF.
             '</div>'.DOKU_LF;
+    }
+
+    /**
+     * Generates the HTML output of the link to the previous or to the next blog
+     * entry in respect to the given page id using the specified template.
+     *
+     * @param $tpl string  a template specifing the link text. May contain placeholders
+     *                     for title, author and creation date of post
+     * @param $type string type of link to generate, may be 'prev' or 'next'
+     * @param $id   string page id of blog post for which to generate the adjacent link
+     * @return string a string containing the prepared HTML anchor tag, or false if there
+     *                is no fitting post to link to
+     */
+    function _navi_link($tpl, $type, $id = false) {
+        $related = $this->getAdjacentLinks($id);
+        if (isset($related[$type])) {
+            $replace = array(
+                '@TITLE@' => $related[$type]['title'],
+                '@AUTHOR@' => $related[$type]['author'],
+                '@DATE@' => dformat($related[$type]['created']),
+            );
+            $out =  '<a href="' . wl($related[$type]['page'], '') . '" class="wikilink1" rel="'.$type.'">' . str_replace(array_keys($replace), array_values($replace), $tpl) . '</a>';
+            return $out;
+        }
+        return false;
     }
 
 }

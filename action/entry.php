@@ -29,6 +29,7 @@ class action_plugin_blogtng_entry extends DokuWiki_Action_Plugin{
 
     function register(&$controller) {
         $controller->register_hook('TPL_ACT_RENDER', 'BEFORE', $this, 'handle_tpl_act_render', array());
+        $controller->register_hook('TPL_METAHEADER_OUTPUT', 'BEFORE', $this, 'handle_metaheader_output', array ());
     }
 
     function handle_tpl_act_render(&$event, $param) {
@@ -39,11 +40,38 @@ class action_plugin_blogtng_entry extends DokuWiki_Action_Plugin{
         $this->entryhelper->load_by_pid($pid);
         if($this->entryhelper->get_blog($pid) == '') return true;
 
-        // we can handle it 
+        // we can handle it
         $event->preventDefault();
 
         $this->commenthelper->load($pid);
         $this->entryhelper->tpl_content($this->entryhelper->entry['blog'], 'entry');
+    }
+
+    function handle_metaheader_output(&$event, $param) {
+        global $ACT, $ID;
+
+        if ($ACT != 'show')
+            return;
+
+        $pid = md5($ID);
+        $this->entryhelper->load_by_pid($pid);
+        if($this->entryhelper->get_blog($pid) == '') return true;
+
+        $relatedentries = $this->entryhelper->getAdjacentLinks($ID);
+        if (isset ($relatedentries['prev'])) {
+            $event->data['link'][] = array (
+                'rel' => 'prev',
+                'href' => wl($relatedentries['prev']['page'], '')
+            );
+        }
+        if (isset ($relatedentries['next'])) {
+            $event->data['link'][] = array (
+                'rel' => 'next',
+                'href' => wl($relatedentries['next']['page'], '')
+            );
+        }
+
+        return true;
     }
 }
 // vim:ts=4:sw=4:et:enc=utf-8:

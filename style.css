@@ -107,3 +107,17 @@ div.dokuwiki div#blogtng__ajax_preview {
 div.dokuwiki div#blogtng__ajax_preview {
   visibility: hidden;
 }
+
+div.dokuwiki .blogtng_postnavigation {
+  text-align: center;
+  clear: both;
+  height: 1.5em;
+}
+
+div.dokuwiki .blogtng_prevlink {
+  float: left;
+}
+
+div.dokuwiki .blogtng_nextlink {
+  float:right;
+}
