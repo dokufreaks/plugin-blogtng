@@ -165,10 +165,10 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
 
             default:
                 // print latest entries/commits
-                printf('<h2>'.$this->getLang('entry_latest').'</h2>', 5);
-                $this->xhtml_entry_latest();
                 printf('<h2>'.$this->getLang('comment_latest').'</h2>', 5);
                 $this->xhtml_comment_latest();
+                printf('<h2>'.$this->getLang('entry_latest').'</h2>', 5);
+                $this->xhtml_entry_latest();
                 break;
         }
     }
@@ -484,6 +484,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         ptln('<th>' . $this->getLang('comment_name') . '</th>');
         ptln('<th>' . $this->getLang('comment_status') . '</th>');
         ptln('<th>' . $this->getLang('comment_source') . '</th>');
+        ptln('<th>' . $this->getLang('entry') . '</th>');
         ptln('<th>' . $this->getLang('comment_text') . '</th>');
         ptln('<th></th>');
 
@@ -523,6 +524,10 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         ptln('<td>' . $comment['name'] . '</td>');
         ptln('<td>' . $comment['status'] . '</td>');
         ptln('<td>' . $comment['source'] . '</td>');
+
+        $this->entryhelper->load_by_pid($comment['pid']);
+        ptln('<td>' . html_wikilink($this->entryhelper->entry['page'], $this->entryhelper->entry['title']) . '</td>');
+
         ptln('<td>' . $comment['text'] . '</td>');
 
         ptln('<td><a href="' . wl(DOKU_SCRIPT, array('do'=>'admin', 

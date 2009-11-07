@@ -88,7 +88,7 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
             $file = sprintf(BLOGTNG_DIR.'db/update%04d.sql',$i);
             if(file_exists($file)){
                 if(!$this->_runupdatefile($file,$i)){
-                    msg('blogtgng: Database upgrade failed for Version '.$i);
+                    msg('blogtgng: Database upgrade failed for Version '.$i, -1);
                     return false;
                 }
             }
@@ -111,7 +111,11 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
         foreach($sql as $s){
             $s = trim($s);
             if(!$s) continue;
-            sqlite_query($this->db,"$s;");
+            $res = @sqlite_query($this->db,"$s;");
+            if (!$res) {
+                sqlite_query($this->db, 'ROLLBACK TRANSACTION');
+                return false;
+            }
         }
 
         return ($version == $this->_currentDBversion());
