@@ -45,13 +45,21 @@ div.dokuwiki div.blogtng_entry div.blogtng_footer {
   padding: 1em;
 }
 
-div.dokuwiki form#blogtng__comment_form {
+div.dokuwiki form#blogtng__comment_form,
+div.dokuwiki form#blogtng__comment_edit_form {
   padding: 2em;
   width: 500px;
   display: block;
 }
 
-div.dokuwiki form#blogtng__comment_form textarea {
+div.dokuwiki form#blogtng__comment_edit_form {
+  text-align: right;
+}
+
+div.dokuwiki form#blogtng__comment_edit_form input,
+div.dokuwiki form#blogtng__comment_edit_form select,
+div.dokuwiki form#blogtng__comment_form textarea,
+div.dokuwiki form#blogtng__comment_edit_form textarea {
   margin-bottom: 0.5em;
 }
 

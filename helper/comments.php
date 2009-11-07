@@ -179,8 +179,10 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      * Moderate comment
      */
     function moderate($cid, $status) {
-        $query = 'FIXME';
-        $this->sqlitehelper->query($query, $cid, $status);
+        print $cid;
+        print $status;
+        $query = 'UPDATE comments SET status = ? WHERE cid = ?';
+        $this->sqlitehelper->query($query, $status, $cid);
     }
 
     /**
