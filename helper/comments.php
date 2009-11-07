@@ -163,7 +163,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      * Delete comment
      */
     function delete($cid) {
-        $query = 'FIXME';
+        $query = 'DELETE FROM comments WHERE cid = ?';
         $this->sqlitehelper->query($query, $cid);
     }
 
