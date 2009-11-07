@@ -290,14 +290,18 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     /**
      * Opt in
      */
-    function opt_in($mail) {
+    function optin($key) {
+        $sql = "UPDATE optin SET optin = 1 WHERE key = ?";
+        $this->sqlitehelper->query($sql,$key);
+        $upd = sqlite_changes($this->sqlitehelper->db);
+
+        if($upd){
+            msg($this->getLang('optin_ok'),1);
+        }else{
+            msg($this->getLang('optin_err'),-1);
+        }
     }
 
-    /**
-     * Opt out
-     */
-    function opt_out($mail) {
-    }
 
     /**
      * Enable discussion

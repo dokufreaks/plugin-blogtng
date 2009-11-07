@@ -123,7 +123,7 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
      * Takes care of escaping
      *
      * @param string $sql - the statement
-     * @param arguments
+     * @param arguments...
      */
     function query(){
         if(!$this->_dbconnect()) return false;

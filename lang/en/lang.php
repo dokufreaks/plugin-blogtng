@@ -21,4 +21,7 @@ $lang['comment_subscribe'] = 'Subscribe to new comments';
 $lang['subscr_subject'] = 'New comment on %s';
 $lang['optin_subject']  = 'Please confirm your subscription';
 
+$lang['optin_ok']  = 'Thank you. You\'ll now receive comment updates via mail';
+$lang['optin_err'] = 'Ooops. Couldn\'t find that key. Maybe a copy\'n\'paste error?';
+
 $lang['err_notitle'] = 'No post title given!';
