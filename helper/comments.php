@@ -50,7 +50,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     }
 
     function comment_by_cid($cid) {
-        $query = 'SELECT pid, source, name, mail, web, avatar, created, text, status FROM comments WHERE cid = ?';
+        $query = 'SELECT cid, pid, source, name, mail, web, avatar, created, text, status FROM comments WHERE cid = ?';
         $resid = $this->sqlitehelper->query($query, $cid);
         if ($resid === false) {
             return false;
@@ -95,10 +95,47 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      * FIXME escape stuff
      */
     function save($comment) {
-        $query = 'INSERT INTO comments (pid, source, name, mail, web, avatar, created, text, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+        $query = 'INSERT OR IGNORE INTO comments (';
+        if($comment['cid']) $query .= 'cid, ';
+
+        $query .= 'pid, source, name, mail, web, avatar, created, text, status) VALUES (';
+        if($comment['cid']) $query .= '?, ';
+
+        $query .= '?, ?, ?, ?, ?, ?, ?, ?, ?)';
         $comment['status']  = ($this->getconf('moderate_comments')) ? 'hidden' : 'visible';
-        $comment['created'] = time();
+
+        if(!$comment['created']) $comment['created'] = time();
+
         $comment['avatar']  = ''; // FIXME create avatar using a helper function
+
+        if($comment['cid']) {
+            $this->sqlitehelper->query($query,
+                $comment['cid'],
+                $comment['pid'],
+                $comment['source'],
+                $comment['name'],
+                $comment['mail'],
+                $comment['web'],
+                $comment['avatar'],
+                $comment['created'],
+                $comment['text'],
+                $comment['status']
+            );
+        } else {
+            $this->sqlitehelper->query($query,
+                $comment['pid'],
+                $comment['source'],
+                $comment['name'],
+                $comment['mail'],
+                $comment['web'],
+                $comment['avatar'],
+                $comment['created'],
+                $comment['text'],
+                $comment['status']
+            );
+        }
+
+        $query = 'UPDATE comments SET pid=?, source=?, name=?, mail=?, web=?, avatar=?, created=?, text=?, status=? WHERE cid=?';
         $this->sqlitehelper->query($query,
             $comment['pid'],
             $comment['source'],
@@ -108,15 +145,25 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
             $comment['avatar'],
             $comment['created'],
             $comment['text'],
-            $comment['status']
+            $comment['status'],
+            $comment['cid']
         );
+
+        if($this->getConf('comments_subscription')){
+            if($comment['subscribe']){
+                // subscribe commenter:
+                $this->subscribe($comment['pid'],$comment['mail']);
+            }
+            // send subscriber mails
+            $this->send_subscriber_mails($comment);
+        }
     }
 
     /**
      * Delete comment
      */
     function delete($cid) {
-        $query = 'FIXME';
+        $query = 'DELETE FROM comments WHERE cid = ?';
         $this->sqlitehelper->query($query, $cid);
     }
 
@@ -137,9 +184,101 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     }
 
     /**
+     * Send a mail about the new comment to all subscribers
+     * that opted-in for mail
+     */
+    function send_subscriber_mails($comment){
+        global $conf;
+
+        $sql = "SELECT A.mail as mail, title, page
+                  FROM subscriptions A, optin B, entries C
+                 WHERE A.mail = B.mail
+                   AND C.pid = A.pid
+                   AND B.optin = 1
+                   AND A.pid = ?";
+        $res = $this->sqlitehelper->query($sql,$comment['pid']);
+        $rows = $this->sqlitehelper->res2arr($res);
+        $mails = array();
+        foreach($rows as $row){
+            // ignore commenter herself:
+            if($row['mail'] == $comment['mail']) continue;
+            $mails[] = $row['mail'];
+        }
+        if(!count($mails)) return;
+
+        // FIXME add author of the post
+        // FIXME add $conf['notify']
+
+        $text  = io_readFile($this->localFN('subscribermail'));
+        $title = sprintf($this->getLang('subscr_subject'),$rows[0]['title']);
+
+        $repl = array(
+            '@TITLE@'       => $rows[0]['title'],
+            '@NAME@'        => $comment['name'],
+            '@COMMENT@'     => $comment['text'],
+            '@USER@'        => $comment['name'],
+            '@URL@'         => wl($rows[0]['page'],'',true), #FIXME cid
+            '@DOKUWIKIURL@' => DOKU_URL,
+        );
+        $text = str_replace(array_keys($repl),array_values($repl),$text);
+
+        mail_send('', $title, $text, $conf['mailfrom'], '', join(',',$mails));
+    }
+
+    /**
+     * Send a mail to commenter and let her login
+     */
+    function send_optin_mail($mail,$key){
+        global $conf;
+
+        $text  = io_readFile($this->localFN('optinmail'));
+        $title = sprintf($this->getLang('optin_subject'));
+
+        $repl = array(
+            '@TITLE@'       => $conf['title'],
+            '@NAME@'        => $comment['name'],
+            '@COMMENT@'     => $comment['text'],
+            '@USER@'        => $comment['name'],
+            '@URL@'         => wl('',array('btngo'=>$key),true),
+            '@DOKUWIKIURL@' => DOKU_URL,
+        );
+        $text = str_replace(array_keys($repl),array_values($repl),$text);
+
+        mail_send($mail, $title, $text, $conf['mailfrom']);
+    }
+
+    /**
      * Subscribe entry
      */
-    function subscribe($pid, $mail) {
+    function subscribe($pid, $mail, $optin=0) {
+        // add to subscription list
+        $sql = "INSERT OR IGNORE INTO subscriptions
+                      (pid, mail) VALUES (?,?)";
+        $this->sqlitehelper->query($sql,$pid,strtolower($mail));
+
+        // add to optin list
+        if($optin){
+            $sql = "INSERT OR REPLACE INTO optin
+                          (mail,optin) VALUES (?,?,?)";
+            $this->sqlitehelper->query($sql,strtolower($mail),$optin,md5(time()));
+        }else{
+            $sql = "INSERT OR IGNORE INTO optin
+                          (mail,optin,key) VALUES (?,?,?)";
+            $this->sqlitehelper->query($sql,strtolower($mail),$optin,md5(time()));
+
+            // see if we need to send a optin mail
+
+//FIXME use negative optin counter to limit optin mails
+
+            $sql = "SELECT optin, key FROM optin WHERE mail = ?";
+            $res = $this->sqlitehelper->query($sql,strtolower($mail));
+            $row = $this->sqlitehelper->res2row($res,0);
+            if(!$row['optin']){
+                $this->send_optin_mail($mail,$row['key']);
+            }
+        }
+
+
     }
 
     /**
@@ -232,7 +371,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         $form->addElement(form_makeButton('submit', 'comment_submit', $this->getLang('comment_submit'), array('class' => 'button', 'id' => 'blogtng__comment_submit')));
 
         if($this->getConf('comments_subscription')){
-            $form->addElement(form_makeCheckboxField('blogtng[subscribe]', 0, $this->getLang('comment_subscribe')));
+            $form->addElement(form_makeCheckboxField('blogtng[subscribe]', 1, $this->getLang('comment_subscribe')));
         }
 
         print '<div id="blogtng__comment_form_wrap">'.DOKU_LF;
@@ -326,7 +465,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     }
 
     /**
-     * FIXME
+     * Display a list of recent comments
      */
     function tpl_recentcomments($tpl='default',$num=5,$blogs=array('default'),$types=array()){
         global $INFO;

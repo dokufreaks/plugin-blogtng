@@ -80,11 +80,10 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
             msg('blogtng: no DB version found. DB probably broken.',-1);
             return false;
         }
-        $latest  = (int) trim(BLOGTNG_DIR.'db/latest.version');
+        $latest  = (int) trim(io_readFile(BLOGTNG_DIR.'db/latest.version'));
 
         // all up to date?
         if($current >= $latest) return true;
-
         for($i=$current+1; $i<=$latest; $i++){
             $file = sprintf(BLOGTNG_DIR.'db/update%04d.sql',$i);
             if(file_exists($file)){

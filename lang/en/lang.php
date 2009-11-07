@@ -18,5 +18,7 @@ $lang['comment_preview']   = 'Preview';
 $lang['comment_submit']    = 'Comment';
 $lang['comment_subscribe'] = 'Subscribe to new comments';
 
+$lang['subscr_subject'] = 'New comment on %s';
+$lang['optin_subject']  = 'Please confirm your subscription';
 
 $lang['err_notitle'] = 'No post title given!';
