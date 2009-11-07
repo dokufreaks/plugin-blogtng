@@ -170,7 +170,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         // FIXME add author of the post
         // FIXME add $conf['notify']
 
-        $text  = io_readFile(BLOGTNG_DIR.'tpl/subscribermail.txt');
+        $text  = io_readFile($this->localFN('subscribermail'));
         $title = sprintf($this->getLang('subscr_subject'),$rows[0]['title']);
 
         $repl = array(
@@ -184,6 +184,28 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         $text = str_replace(array_keys($repl),array_values($repl),$text);
 
         mail_send('', $title, $text, $conf['mailfrom'], '', join(',',$mails));
+    }
+
+    /**
+     * Send a mail to commenter and let her login
+     */
+    function send_optin_mail($mail,$key){
+        global $conf;
+
+        $text  = io_readFile($this->localFN('optinmail'));
+        $title = sprintf($this->getLang('optin_subject'));
+
+        $repl = array(
+            '@TITLE@'       => $conf['title'],
+            '@NAME@'        => $comment['name'],
+            '@COMMENT@'     => $comment['text'],
+            '@USER@'        => $comment['name'],
+            '@URL@'         => wl('',array('btngo'=>$key),true),
+            '@DOKUWIKIURL@' => DOKU_URL,
+        );
+        $text = str_replace(array_keys($repl),array_values($repl),$text);
+
+        mail_send($mail, $title, $text, $conf['mailfrom']);
     }
 
     /**
@@ -206,11 +228,14 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
             $this->sqlitehelper->query($sql,strtolower($mail),$optin,md5(time()));
 
             // see if we need to send a optin mail
+
+//FIXME use negative optin counter to limit optin mails
+
             $sql = "SELECT optin, key FROM optin WHERE mail = ?";
-            $res = $this->sqlitehelper->query($sql,strtolower($mail),$optin,md5(time()));
+            $res = $this->sqlitehelper->query($sql,strtolower($mail));
             $row = $this->sqlitehelper->res2row($res,0);
             if(!$row['optin']){
-                // FIXME send mail with key
+                $this->send_optin_mail($mail,$row['key']);
             }
         }
 
