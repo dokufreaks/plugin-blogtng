@@ -95,10 +95,47 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      * FIXME escape stuff
      */
     function save($comment) {
-        $query = 'INSERT INTO comments (pid, source, name, mail, web, avatar, created, text, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+        $query = 'INSERT OR IGNORE INTO comments (';
+        if($comment['cid']) $query .= 'cid, ';
+
+        $query .= 'pid, source, name, mail, web, avatar, created, text, status) VALUES (';
+        if($comment['cid']) $query .= '?, ';
+
+        $query .= '?, ?, ?, ?, ?, ?, ?, ?, ?)';
         $comment['status']  = ($this->getconf('moderate_comments')) ? 'hidden' : 'visible';
-        $comment['created'] = time();
+
+        if(!$comment['created']) $comment['created'] = time();
+
         $comment['avatar']  = ''; // FIXME create avatar using a helper function
+
+        if($comment['cid']) {
+            $this->sqlitehelper->query($query,
+                $comment['cid'],
+                $comment['pid'],
+                $comment['source'],
+                $comment['name'],
+                $comment['mail'],
+                $comment['web'],
+                $comment['avatar'],
+                $comment['created'],
+                $comment['text'],
+                $comment['status']
+            );
+        } else {
+            $this->sqlitehelper->query($query,
+                $comment['pid'],
+                $comment['source'],
+                $comment['name'],
+                $comment['mail'],
+                $comment['web'],
+                $comment['avatar'],
+                $comment['created'],
+                $comment['text'],
+                $comment['status']
+            );
+        }
+
+        $query = 'UPDATE comments SET pid=?, source=?, name=?, mail=?, web=?, avatar=?, created=?, text=?, status=? WHERE cid=?';
         $this->sqlitehelper->query($query,
             $comment['pid'],
             $comment['source'],
@@ -108,8 +145,10 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
             $comment['avatar'],
             $comment['created'],
             $comment['text'],
-            $comment['status']
+            $comment['status'],
+            $comment['cid']
         );
+
         if($this->getConf('comments_subscription')){
             if($comment['subscribe']){
                 // subscribe commenter:
