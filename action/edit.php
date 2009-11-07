@@ -101,6 +101,9 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
             $pos += 1;
         }
 
+        $event->data->insertElement($pos, form_makeMenuField('btng[post][commentstatus]', array('enabled', 'closed', 'disabled'), $this->entryhelper->entry['commentstatus'], $this->getLang('commentstatus'), 'blogtng__commentstatus', 'edit'));
+        $pos += 1;
+
         $event->data->insertElement($pos, form_closefieldset());
     }
 
@@ -134,6 +137,7 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
 
                 $this->entryhelper->load_by_pid($pid);
                 $this->entryhelper->entry['blog'] = $blog;
+                $this->entryhelper->entry['commentstatus'] = $this->tools->getParam('post/commentstatus');
 
                 // allow to override created date
                 if($this->tools->getParam('post/date') && $this->getConf('editform_set_date')) {

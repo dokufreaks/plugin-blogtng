@@ -57,7 +57,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             return self::RET_ERR_BADPID;
         }
 
-        $query = 'SELECT pid, page, title, blog, image, created, lastmod, author, login, mail, comments_enabled FROM entries WHERE pid = ?';
+        $query = 'SELECT pid, page, title, blog, image, created, lastmod, author, login, mail, commentstatus FROM entries WHERE pid = ?';
         $resid = $this->sqlitehelper->query($query, $pid);
         if ($resid === false) {
             msg('blogtng plugin: failed to load entry!', -1);
@@ -167,7 +167,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             return false;
         }
 
-        $query = 'INSERT OR IGNORE INTO entries (pid, page, title, blog, image, created, lastmod, author, login, mail, comments_enabled) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+        $query = 'INSERT OR IGNORE INTO entries (pid, page, title, blog, image, created, lastmod, author, login, mail, commentstatus) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
         $result = $this->sqlitehelper->query(
             $query,
             $this->entry['pid'],
@@ -180,9 +180,9 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             $this->entry['author'],
             $this->entry['login'],
             $this->entry['mail'],
-            $this->entry['comments_enabled']
+            $this->entry['commentstatus']
         );
-        $query = 'UPDATE entries SET page = ?, title=?, blog=?, image=?, created = ?, lastmod=?, login = ?, author=?, mail=?, comments_enabled=? WHERE pid=?';
+        $query = 'UPDATE entries SET page = ?, title=?, blog=?, image=?, created = ?, lastmod=?, login = ?, author=?, mail=?, commentstatus=? WHERE pid=?';
         $result = $this->sqlitehelper->query(
             $query,
             $this->entry['page'],
@@ -194,7 +194,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             $this->entry['login'],
             $this->entry['author'],
             $this->entry['mail'],
-            $this->entry['comments_enabled'],
+            $this->entry['commentstatus'],
             $this->entry['pid']
         );
         if(!$result) {
@@ -505,6 +505,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * Wrapper around commenthelper->tpl_comments()
      */
     function tpl_comments($name,$types=null) {
+        if ($this->entry['commentstatus'] == 'disabled') return;
         if(!$this->commenthelper) {
             $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
         }
@@ -588,6 +589,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * Wrapper around commenthelper->tpl_form()
      */
     function tpl_commentform() {
+        if ($this->entry['commentstatus'] == 'closed') return;
         if(!$this->commenthelper) {
             $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
         }

@@ -11,6 +11,7 @@ $lang['dashboard'] = 'Dashboard';
 $lang['entry']   = 'Entry';
 $lang['filter']  = 'Filter';
 $lang['tags']    = 'Tags';
+$lang['commentstatus'] = 'Comments are';
 
 $lang['searchresults']  = 'Search Results';
 

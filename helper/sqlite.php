@@ -109,10 +109,11 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
         array_push($sql,"COMMIT TRANSACTION");
 
         foreach($sql as $s){
+            $s = preg_replace('!^\s*--.*$!m', '', $s);
             $s = trim($s);
             if(!$s) continue;
-            $res = @sqlite_query($this->db,"$s;");
-            if (!$res) {
+            $res = sqlite_query($this->db,"$s;");
+            if ($res === false) {
                 sqlite_query($this->db, 'ROLLBACK TRANSACTION');
                 return false;
             }
