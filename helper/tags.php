@@ -32,6 +32,22 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
     }
 
     /**
+     * Count tags for specified pid
+     */
+    function count($pid) {
+        $pid = trim($pid);
+        $query = 'SELECT COUNT(tag) AS tagcount FROM tags WHERE pid = ?';
+
+        $resid = $this->sqlitehelper->query($query, $this->pid);
+        if ($resid === false) {
+            msg('blogtng plugin: failed to load tags!', -1);
+        }
+
+        $tagcount = $this->sqlitehelper->res2row($resid, 0);
+        return $tagcount['tagcount'];
+    }
+
+    /**
      * Load tags for specified pid
      */
     function load($pid) {
