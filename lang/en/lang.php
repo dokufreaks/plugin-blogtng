@@ -10,6 +10,7 @@ $lang['blog']    = 'Blog';
 $lang['dashboard'] = 'Dashboard';
 $lang['entry']   = 'Entry';
 $lang['filter']  = 'Filter';
+$lang['tags']    = 'Tags';
 
 $lang['searchresults']  = 'Search Results';
 
@@ -44,7 +45,8 @@ $lang['optin_err'] = 'Ooops. Couldn\'t find that key. Maybe a copy\'n\'paste err
 $lang['btn_comment_edit']  = 'Edit';
 $lang['act_comment_edit']  = 'Edit Comment';
 
-$lang['msg_comment_save']   = 'Comment changes have been saved';
-$lang['msg_comment_delete'] = 'The comment was deleted';
+$lang['msg_comment_save']           = 'Comment changes have been saved';
+$lang['msg_comment_status_change']  = 'Comment status changed';
+$lang['msg_comment_delete']         = 'The comment was deleted';
 
 $lang['err_notitle'] = 'No post title given!';

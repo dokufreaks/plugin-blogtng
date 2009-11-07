@@ -91,8 +91,6 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
 
     /**
      * Save comment
-     *
-     * FIXME escape stuff
      */
     function save($comment) {
         $query = 'INSERT OR IGNORE INTO comments (';
@@ -149,14 +147,11 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
             $comment['cid']
         );
 
-        if($this->getConf('comments_subscription')){
-            if($comment['subscribe']){
-                // subscribe commenter:
-                $this->subscribe($comment['pid'],$comment['mail']);
-            }
-            // send subscriber mails
-            $this->send_subscriber_mails($comment);
+        if($this->getConf('comments_subscription') && $comment['subscribe']){
+            $this->subscribe($comment['pid'],$comment['mail']);
         }
+        // send subscriber and notify mails
+        $this->send_subscriber_mails($comment);
     }
 
     /**
@@ -179,23 +174,59 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      * Moderate comment
      */
     function moderate($cid, $status) {
-        print $cid;
-        print $status;
         $query = 'UPDATE comments SET status = ? WHERE cid = ?';
         $this->sqlitehelper->query($query, $status, $cid);
     }
 
     /**
-     * Send a mail about the new comment to all subscribers
-     * that opted-in for mail
+     * Send a mail about the new comment
+     *
+     * Mails are sent to the author of the post and
+     * all subscribers that opted-in
      */
     function send_subscriber_mails($comment){
         global $conf;
 
-        $sql = "SELECT A.mail as mail, title, page
-                  FROM subscriptions A, optin B, entries C
+        // get general article info
+        $sql = "SELECT title, page, email
+                  FROM entries
+                 WHERE pid = ?";
+        $res = $this->sqlitehelper->query($sql,$comment['pid']);
+        $entry = $this->sqlitehelper->res2row($res,0);
+
+        // prepare mail bodies
+        $atext = io_readFile($this->localFN('notifymail'));
+        $stext = io_readFile($this->localFN('subscribermail'));
+        $title = sprintf($this->getLang('subscr_subject'),$entry['title']);
+
+        $repl = array(
+            '@TITLE@'       => $entry['title'],
+            '@NAME@'        => $comment['name'],
+            '@COMMENT@'     => $comment['text'],
+            '@USER@'        => $comment['name'],
+            '@MAIL@'        => $comment['mail'],
+            '@DATE@'        => dformat(time()),
+            '@BROWSER@'     => $_SERVER['HTTP_USER_AGENT'],
+            '@IPADDRESS@'   => clientIP(),
+            '@HOSTNAME@'    => gethostsbyaddrs(clientIP()),
+            '@URL@'         => wl($entry['page'],'',true), #FIXME cid
+            '@DOKUWIKIURL@' => DOKU_URL,
+        );
+
+        $atext = str_replace(array_keys($repl),array_values($repl),$atext);
+        $stext = str_replace(array_keys($repl),array_values($repl),$stext);
+
+        // notify author
+        mail_send('', $title, $atext, $conf['mailfrom'], '', $entry['email']);
+        // FIXME add $conf['notify']
+
+        // finish here when subscriptions disabled
+        if(!$this->getConf('comments_subscription')) return;
+
+        // get subscribers
+        $sql = "SELECT A.mail as mail
+                  FROM subscriptions A, optin B
                  WHERE A.mail = B.mail
-                   AND C.pid = A.pid
                    AND B.optin = 1
                    AND A.pid = ?";
         $res = $this->sqlitehelper->query($sql,$comment['pid']);
@@ -204,27 +235,13 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         foreach($rows as $row){
             // ignore commenter herself:
             if($row['mail'] == $comment['mail']) continue;
+            // ignore author herself:
+            if($row['mail'] == $entry['email']) continue;
             $mails[] = $row['mail'];
         }
         if(!count($mails)) return;
 
-        // FIXME add author of the post
-        // FIXME add $conf['notify']
-
-        $text  = io_readFile($this->localFN('subscribermail'));
-        $title = sprintf($this->getLang('subscr_subject'),$rows[0]['title']);
-
-        $repl = array(
-            '@TITLE@'       => $rows[0]['title'],
-            '@NAME@'        => $comment['name'],
-            '@COMMENT@'     => $comment['text'],
-            '@USER@'        => $comment['name'],
-            '@URL@'         => wl($rows[0]['page'],'',true), #FIXME cid
-            '@DOKUWIKIURL@' => DOKU_URL,
-        );
-        $text = str_replace(array_keys($repl),array_values($repl),$text);
-
-        mail_send('', $title, $text, $conf['mailfrom'], '', join(',',$mails));
+        mail_send('', $title, $stext, $conf['mailfrom'], '', join(',',$mails));
     }
 
     /**
