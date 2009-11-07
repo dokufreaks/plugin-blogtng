@@ -165,10 +165,10 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
 
             default:
                 // print latest entries/commits
-                printf('<h2>'.$this->getLang('entry_latest').'</h2>', 5);
-                $this->xhtml_entry_latest();
                 printf('<h2>'.$this->getLang('comment_latest').'</h2>', 5);
                 $this->xhtml_comment_latest();
+                printf('<h2>'.$this->getLang('entry_latest').'</h2>', 5);
+                $this->xhtml_entry_latest();
                 break;
         }
     }
@@ -200,7 +200,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      * @author Michael Klier <chi@chimeric.de>
      */
     function xhtml_search_comments($data) {
-        $query = 'SELECT DISTINCT cid, B.pid as pid, source, name, mail, web, avatar, B.created as created, text, status 
+        $query = 'SELECT DISTINCT cid, B.pid as pid, source, name, B.mail as mail, web, avatar, B.created as created, text, status 
                   FROM comments B LEFT JOIN entries A ON B.pid = A.pid ';
         if($data['blog']) {
             $query .= 'WHERE blog = "' . $data['blog'] . '" ';
@@ -232,7 +232,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      * @author Michael Klier <chi@chimeric.de>
      */
     function xhtml_search_tags($data) {
-        $query = 'SELECT DISTINCT A.pid as pid, page, title, blog, image, created, lastmod, author, login, email
+        $query = 'SELECT DISTINCT A.pid as pid, page, title, blog, image, created, lastmod, author, login, mail
                   FROM entries A LEFT JOIN tags B ON A.pid = B.pid ';
         if($data['blog']) {
             $query .= 'WHERE blog = "' . $data['blog'] . '" ';
@@ -484,6 +484,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         ptln('<th>' . $this->getLang('comment_name') . '</th>');
         ptln('<th>' . $this->getLang('comment_status') . '</th>');
         ptln('<th>' . $this->getLang('comment_source') . '</th>');
+        ptln('<th>' . $this->getLang('entry') . '</th>');
         ptln('<th>' . $this->getLang('comment_text') . '</th>');
         ptln('<th></th>');
 
@@ -523,6 +524,10 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         ptln('<td>' . $comment['name'] . '</td>');
         ptln('<td>' . $comment['status'] . '</td>');
         ptln('<td>' . $comment['source'] . '</td>');
+
+        $this->entryhelper->load_by_pid($comment['pid']);
+        ptln('<td>' . html_wikilink($this->entryhelper->entry['page'], $this->entryhelper->entry['title']) . '</td>');
+
         ptln('<td>' . $comment['text'] . '</td>');
 
         ptln('<td><a href="' . wl(DOKU_SCRIPT, array('do'=>'admin', 

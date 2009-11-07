@@ -85,7 +85,8 @@ blogtng = {
         var objs = getElementsByClass('blogtng_num', null, 'a');
         for (var i = 0; i < objs.length; i++) {
             addEvent(objs[i], 'click', function(e) {
-                commentInsertAtCarret('wiki__text', '@#'+this.href.substring(this.href.lastIndexOf('#')+'#comment_'.length)+': ');
+                insertAtCarret('wiki__text','@#'+this.href.substring(this.href.lastIndexOf('#')+'#comment_'.length)+': ');
+
                 e.preventDefault();
                 e.stopPropagation();
                 return false;
@@ -102,45 +103,6 @@ blogtng = {
 
 
 };
-
-/**
- * Insert the given value at the current cursor position
- *
- * @see http://www.alexking.org/index.php?content=software/javascript/content.php
- *
- * FIXME: Is there a way to include this function from edit.js instead?
- */
-function commentInsertAtCarret(edid, value) {
-    var field = document.getElementById(edid);
-
-    if (document.selection) {
-        // IE support
-        field.focus();
-        sel = document.selection.createRange();
-        sel.text = value;
-
-    } else if (field.selectionStart || field.selectionStart == '0') {
-        // MOZILLA/NETSCAPE support
-        var startPos = field.selectionStart;
-        var endPos = field.selectionEnd;
-        var scrollTop = field.scrollTop;
-        field.value = field.value.substring(0, startPos) + value
-                + field.value.substring(endPos, field.value.length);
-
-        field.focus();
-        var cPos = startPos + (value.length);
-        field.selectionStart = cPos;
-        field.selectionEnd = cPos;
-        field.scrollTop = scrollTop;
-    } else {
-        field.value += "\n" + value;
-    }
-
-    // reposition cursor if possible
-    if (field.createTextRange) {
-        field.caretPos = document.selection.createRange().duplicate();
-    }
-}
 
 /**
  * Display an insitu comment popup. Heavily copied from the footnote insitu

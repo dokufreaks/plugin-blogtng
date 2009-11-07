@@ -2,7 +2,7 @@
 
 $lang['menu'] = 'Manage Blogs (BlogTNG)';
 
-$lang['entry_latest']   = 'Latest %d Entrys';
+$lang['entry_latest']   = 'Latest %d Entries';
 $lang['comment_latest'] = 'Latest %d Comments';
 $lang['numhits'] = 'Number of Hits';
 

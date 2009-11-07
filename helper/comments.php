@@ -149,11 +149,14 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
             $comment['cid']
         );
 
-        if($this->getConf('comments_subscription') && $comment['subscribe']){
-            $this->subscribe($comment['pid'],$comment['mail']);
+        // handle subscriptions (except on updates)
+        if(!$comment['cid']){
+            if($this->getConf('comments_subscription') && $comment['subscribe']){
+                $this->subscribe($comment['pid'],$comment['mail']);
+            }
+            // send subscriber and notify mails
+            $this->send_subscriber_mails($comment);
         }
-        // send subscriber and notify mails
-        $this->send_subscriber_mails($comment);
     }
 
     /**
@@ -190,7 +193,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         global $conf;
 
         // get general article info
-        $sql = "SELECT title, page, email
+        $sql = "SELECT title, page, mail
                   FROM entries
                  WHERE pid = ?";
         $res = $this->sqlitehelper->query($sql,$comment['pid']);
@@ -219,7 +222,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         $stext = str_replace(array_keys($repl),array_values($repl),$stext);
 
         // notify author
-        mail_send('', $title, $atext, $conf['mailfrom'], '', $entry['email']);
+        mail_send('', $title, $atext, $conf['mailfrom'], '', $entry['mail']);
         // FIXME add $conf['notify']
 
         // finish here when subscriptions disabled
@@ -556,11 +559,14 @@ class blogtng_comment{
     }
 
     function output($name){
+        global $INFO;
         $name = preg_replace('/[^a-zA-Z_\-]+/','',$name);
         $tpl = DOKU_PLUGIN . 'blogtng/tpl/' . $name . '_comments.php';
         if(file_exists($tpl)) {
             $comment = $this;
-            include($tpl);
+            if($comment->data['status'] == 'visible' || ($comment->data['status'] == 'hidden' && $INFO['isadmin'])) {
+                include($tpl);
+        }
         } else {
             msg('blogtng plugin: template ' . $tpl . ' does not exist!', -1);
         }
@@ -616,6 +622,10 @@ class blogtng_comment{
 
     function tpl_created($fmt=''){
         echo hsc(dformat($this->data['created'],$fmt));
+    }
+
+    function tpl_status() {
+        echo $this->data['status'];
     }
 
     function tpl_avatar($w=0,$h=0,$return=false){
