@@ -199,7 +199,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         if($optin){
             $sql = "INSERT OR REPLACE INTO optin
                           (mail,optin) VALUES (?,?,?)";
-            $this->sqlitehelper->query($sql,strtolower($mail),$optin,md5(time());
+            $this->sqlitehelper->query($sql,strtolower($mail),$optin,md5(time()));
         }else{
             $sql = "INSERT OR IGNORE INTO optin
                           (mail,optin,key) VALUES (?,?,?)";
