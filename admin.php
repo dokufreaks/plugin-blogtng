@@ -502,10 +502,10 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
 
         ptln('<table class="inline">');
         ptln('<th></th>');
-        ptln('<th>' . $this->getLang('comment_avatar') . '</th>');
         ptln('<th>' . $this->getLang('created') . '</th>');
         ptln('<th>' . $this->getLang('comment_ip') . '</th>');
         ptln('<th>' . $this->getLang('comment_name') . '</th>');
+        ptln('<th>' . $this->getLang('comment_web') . '</th>');
         ptln('<th>' . $this->getLang('comment_status') . '</th>');
         ptln('<th>' . $this->getLang('comment_source') . '</th>');
         ptln('<th>' . $this->getLang('entry') . '</th>');
@@ -542,11 +542,18 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         $cmt = new blogtng_comment();
         $cmt->init($comment);
         ptln('<td><input type="checkbox" name="btng[comments][cids][]" value="' . $comment['cid'] . '" /></td>');
-        ptln('<td><img src="' . $cmt->tpl_avatar(1,0,true) . '" /></td>');
 
         ptln('<td>' . strftime($conf['dformat'], $comment['created']) . '</td>');
         ptln('<td>' . $comment['ip'] . '</td>');
-        ptln('<td>' . $comment['name'] . '</td>');
+
+        ptln('<td><img src="' . $cmt->tpl_avatar(16,16,true) . '" alt="' . $comment['name'] . '" class="avatar" /> <a href="mailto:' . $comment['mail'] . '" class="mail" title="' . $comment['mail'] . '">' . $comment['name'] . '</a></td>');
+
+        if($comment['web']) {
+            ptln('<td><a href="' . $comment['web'] . '" title="' . $comemnt['web'] . '">' . $comment['web'] . '</a></td>');
+        } else {
+            ptln('<td></td>');
+        }
+
         ptln('<td>' . $comment['status'] . '</td>');
         ptln('<td>' . $comment['source'] . '</td>');
 
