@@ -151,11 +151,14 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
 
         // handle subscriptions (except on updates)
         if(!$comment['cid']){
-            if($this->getConf('comments_subscription') && $comment['subscribe']){
-                $this->subscribe($comment['pid'],$comment['mail']);
+            if($this->getConf('comments_subscription')) {
+                if($comment['subscribe']) {
+                    $this->subscribe($comment['pid'],$comment['mail']);
+                } else {
+                    // send subscriber and notify mails
+                    $this->send_subscriber_mails($comment);
+                }
             }
-            // send subscriber and notify mails
-            $this->send_subscriber_mails($comment);
         }
     }
 
