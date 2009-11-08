@@ -47,6 +47,11 @@ $lang['optin_subject']  = 'Please confirm your subscription';
 
 $lang['optin_ok']  = 'Thank you. You\'ll now receive comment updates via mail';
 $lang['optin_err'] = 'Ooops. Couldn\'t find that key. Maybe a copy\'n\'paste error?';
+
+$lang['unsubscribe_ok'] = 'Unsubscription successful. You will no longer be notified about new comments to this post.';
+$lang['unsubscribe_err_key'] = 'Ooops. Couldn\'t find that key. Maybe a copy\'n\'paste error?';
+$lang['unsubscribe_err_other'] = 'Oooops. Couldn\'t find your subscription. Maybe a copy\'n\'paste error?';
+
 $lang['btn_comment_edit']  = 'Edit';
 $lang['act_comment_edit']  = 'Edit Comment';
 

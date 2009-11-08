@@ -589,7 +589,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * Wrapper around commenthelper->tpl_form()
      */
     function tpl_commentform() {
-        if ($this->entry['commentstatus'] == 'closed') return;
+        if ($this->entry['commentstatus'] == 'closed' || $this->entry['commentstatus'] == 'disabled') return;
         if(!$this->commenthelper) {
             $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
         }

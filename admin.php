@@ -153,6 +153,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
                         $this->xhtml_search_titles($query);
                         break;
                     case 'comments':
+                    case 'comments_ip':
                         $this->xhtml_search_comments($query);
                         break;
                     case 'tags':
@@ -214,7 +215,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      * @author Michael Klier <chi@chimeric.de>
      */
     function xhtml_search_comments($data) {
-        $query = 'SELECT DISTINCT cid, B.pid as pid, source, name, B.mail as mail, web, avatar, B.created as created, text, status 
+        $query = 'SELECT DISTINCT cid, B.pid as pid, ip, source, name, B.mail as mail, web, avatar, B.created as created, text, status 
                   FROM comments B LEFT JOIN entries A ON B.pid = A.pid ';
         if($data['blog']) {
             $query .= 'WHERE blog = "' . $data['blog'] . '" ';
@@ -223,8 +224,12 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         } 
 
         // check for search query
-        if(isset($data['string'])) {
+        if(isset($data['string']) && $data['filter'] == 'comments') {
             $query .= 'AND ( B.text LIKE "%'.$data['string'].'%" ) ';
+        }
+
+        if(isset($data['string']) && $data['filter'] == 'comments_ip') {
+            $query .= 'AND ( B.ip LIKE "%'.$data['string'].'%" ) ';
         }
 
         // if pid is given limit to give page
@@ -412,6 +417,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
 
         // FIXME language strings
         ptln('<th>' . $this->getLang('entry') . '</th>');
+        ptln('<th>' . $this->getLang('created') . '</th>');
         ptln('<th>' . $this->getLang('blog') . '</th>');
         ptln('<th>' . $this->getLang('commentstatus') . '</th>');
         ptln('<th>' . $this->getLang('comments') . '</th>');
@@ -431,10 +437,12 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      */
     function xhtml_entry_item($entry) {
         global $lang;
+        global $conf;
 
         ptln('<tr>');
 
         ptln('<td>' . html_wikilink($entry['page'], $entry['title']) . '</td>');
+        ptln('<td>' . strftime($conf['dformat'], $entry['created']) . '</td>');
 
         ptln('<td>' . $this->xhtml_entry_set_blog_form($entry) . '</th>');
 
@@ -499,10 +507,10 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
 
         ptln('<table class="inline">');
         ptln('<th></th>');
-        ptln('<th>' . $this->getLang('comment_avatar') . '</th>');
         ptln('<th>' . $this->getLang('created') . '</th>');
         ptln('<th>' . $this->getLang('comment_ip') . '</th>');
         ptln('<th>' . $this->getLang('comment_name') . '</th>');
+        ptln('<th>' . $this->getLang('comment_web') . '</th>');
         ptln('<th>' . $this->getLang('comment_status') . '</th>');
         ptln('<th>' . $this->getLang('comment_source') . '</th>');
         ptln('<th>' . $this->getLang('entry') . '</th>');
@@ -539,11 +547,18 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         $cmt = new blogtng_comment();
         $cmt->init($comment);
         ptln('<td><input type="checkbox" name="btng[comments][cids][]" value="' . $comment['cid'] . '" /></td>');
-        ptln('<td><img src="' . $cmt->tpl_avatar(1,0,true) . '" /></td>');
 
         ptln('<td>' . strftime($conf['dformat'], $comment['created']) . '</td>');
         ptln('<td>' . $comment['ip'] . '</td>');
-        ptln('<td>' . $comment['name'] . '</td>');
+
+        ptln('<td><img src="' . $cmt->tpl_avatar(16,16,true) . '" alt="' . $comment['name'] . '" class="avatar" /> <a href="mailto:' . $comment['mail'] . '" class="mail" title="' . $comment['mail'] . '">' . $comment['name'] . '</a></td>');
+
+        if($comment['web']) {
+            ptln('<td><a href="' . $comment['web'] . '" title="' . $comemnt['web'] . '">' . $comment['web'] . '</a></td>');
+        } else {
+            ptln('<td></td>');
+        }
+
         ptln('<td>' . $comment['status'] . '</td>');
         ptln('<td>' . $comment['source'] . '</td>');
 
@@ -674,7 +689,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         $form->addElement(formSecurityToken());
 
         $form->addElement(form_makeListBoxField('btng[query][blog]', $blogs, $_REQUEST['btng']['query']['blog'], $this->getLang('blog')));
-        $form->addElement(form_makeListBoxField('btng[query][filter]', array('titles', 'comments', 'tags'), $_REQUEST['btng']['query']['filter'], $this->getLang('filter')));
+        $form->addElement(form_makeListBoxField('btng[query][filter]', array('titles', 'comments', 'comments_ip', 'tags'), $_REQUEST['btng']['query']['filter'], $this->getLang('filter')));
         $form->addElement(form_makeTextField('btng[query][string]', $_REQUEST['btng']['query']['string'],''));
 
         $form->addElement(form_makeButton('submit', 'admin', $lang['btn_search']));
