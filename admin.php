@@ -151,11 +151,12 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
                 $query = $_REQUEST['btng']['query'];
 
                 switch($query['filter']) {
-                    case 'titles':
-                        $this->xhtml_search_titles($query);
+                    case 'entry_title':
+                    case 'entry_author':
+                        $this->xhtml_search_entries($query);
                         break;
-                    case 'comments':
-                    case 'comments_ip':
+                    case 'comment':
+                    case 'comment_ip':
                         $this->xhtml_search_comments($query);
                         break;
                     case 'tags':
@@ -197,14 +198,19 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      *
      * @author Michael Klier <chi@chimeric.de>
      */
-    function xhtml_search_titles($data) {
+    function xhtml_search_entries($data) {
         $query = 'SELECT * FROM entries ';
         if($data['blog']) {
             $query .= 'WHERE blog = "' . $data['blog'] . '" ';
         } else {
             $query .= 'WHERE blog != ""';
         } 
-        $query .= 'AND ( title LIKE "%'.$data['string'].'%" ) ';
+        if($data['filter'] == 'entry_title') {
+            $query .= 'AND ( title LIKE "%'.$data['string'].'%" ) ';
+        }
+        if($data['filter'] == 'entry_author') {
+            $query .= 'AND ( author LIKE "%'.$data['string'].'%" ) ';
+        }
         $query .= 'ORDER BY created DESC ';
 
         $resid = $this->sqlitehelper->query($query);
@@ -228,11 +234,11 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         } 
 
         // check for search query
-        if(isset($data['string']) && $data['filter'] == 'comments') {
+        if(isset($data['string']) && $data['filter'] == 'comment') {
             $query .= 'AND ( B.text LIKE "%'.$data['string'].'%" ) ';
         }
 
-        if(isset($data['string']) && $data['filter'] == 'comments_ip') {
+        if(isset($data['string']) && $data['filter'] == 'comment_ip') {
             $query .= 'AND ( B.ip LIKE "%'.$data['string'].'%" ) ';
         }
 
@@ -702,7 +708,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         $form->addElement(formSecurityToken());
 
         $form->addElement(form_makeListBoxField('btng[query][blog]', $blogs, $_REQUEST['btng']['query']['blog'], $this->getLang('blog')));
-        $form->addElement(form_makeListBoxField('btng[query][filter]', array('titles', 'comments', 'comments_ip', 'tags'), $_REQUEST['btng']['query']['filter'], $this->getLang('filter')));
+        $form->addElement(form_makeListBoxField('btng[query][filter]', array('entry_title', 'entry_author', 'comment', 'comment_ip', 'tags'), $_REQUEST['btng']['query']['filter'], $this->getLang('filter')));
         $form->addElement(form_makeTextField('btng[query][string]', $_REQUEST['btng']['query']['string'],''));
 
         $form->addElement(form_makeButton('submit', 'admin', $lang['btn_search']));
