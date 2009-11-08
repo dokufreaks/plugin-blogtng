@@ -273,6 +273,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
     }
 
     function xhtml_search_result($resid, $query, $callback) {
+        global $lang;
         if(!$resid) return;
 
         // FIXME selectable?
@@ -308,6 +309,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      * @author Michael Klier <chi@chimeric.de>
      */
     function xhtml_pagination($query, $cur, $start, $count, $limit) {
+        global $ID;
         $max = ceil($count / $limit);
 
         $pages[] = 1;     // first always
@@ -566,7 +568,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         ptln('<td class="comment_name"><img src="' . $cmt->tpl_avatar(16,16,true) . '" alt="' . $comment['name'] . '" class="avatar" /> <a href="mailto:' . $comment['mail'] . '" class="mail" title="' . $comment['mail'] . '">' . $comment['name'] . '</a></td>');
 
         if($comment['web']) {
-            ptln('<td class="comment_web"><a href="' . $comment['web'] . '" title="' . $comemnt['web'] . '">' . $comment['web'] . '</a></td>');
+            ptln('<td class="comment_web"><a href="' . $comment['web'] . '" title="' . $comment['web'] . '">' . $comment['web'] . '</a></td>');
         } else {
             ptln('<td class="comment_web"></td>');
         }
