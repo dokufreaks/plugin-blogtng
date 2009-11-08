@@ -44,6 +44,10 @@ div.dokuwiki div#blogtng__admin table {
   width: 100%;
 }
 
+div.dokuwiki div#blogtng__admin table td {
+    vertical-align: top;
+}
+
 div.dokuwiki div#blogtng__admin table tr.odd {
   background: #f5f5f5;
 }
@@ -67,6 +71,10 @@ div.dokuwiki div#blogtng__admin table td.comment_name,
 div.dokuwiki div#blogtng__admin table td.comment_web,
 div.dokuwiki div#blogtng__admin table td.entry_created {
   width: 12%;
+}
+
+div.dokuwiki div#blogtng__admin table td.comment_text {
+  padding: 0.5em;
 }
 
 div.dokuwiki div#blogtng__admin table td.entry_comments {

@@ -512,7 +512,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         ptln('<input type="hidden" name="page" value="blogtng" />');
 
         ptln('<table class="inline">');
-        ptln('<th></th>');
+        ptln('<th id="blogtng__admin_checkall_th"></th>');
         ptln('<th>' . $this->getLang('created') . '</th>');
         ptln('<th>' . $this->getLang('comment_ip') . '</th>');
         ptln('<th>' . $this->getLang('comment_name') . '</th>');
@@ -554,7 +554,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
 
         $cmt = new blogtng_comment();
         $cmt->init($comment);
-        ptln('<td class="admin_checkbox"><input type="checkbox" name="btng[comments][cids][]" value="' . $comment['cid'] . '" /></td>');
+        ptln('<td class="admin_checkbox"><input type="checkbox" class="comment_cid" name="btng[comments][cids][]" value="' . $comment['cid'] . '" /></td>');
 
         ptln('<td class="comment_created">' . strftime($conf['dformat'], $comment['created']) . '</td>');
         ptln('<td class="comment_ip">' . $comment['ip'] . '</td>');
