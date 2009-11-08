@@ -56,7 +56,6 @@ class helper_plugin_blogtng_tools extends DokuWiki_Plugin {
 
         $elem = $_REQUEST['btng'];
         foreach ($path as $p) {
-            dbglog('PATH: ' . $p . ', elem: ' . print_r($elem, true));
             if (is_array($elem) && isset($elem[$p])) {
                 $elem = $elem[$p];
             } else {
