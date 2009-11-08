@@ -222,8 +222,10 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         $stext = str_replace(array_keys($repl),array_values($repl),$stext);
 
         // notify author
-        mail_send('', $title, $atext, $conf['mailfrom'], '', $entry['mail']);
-        // FIXME add $conf['notify']
+        $mails = array_map('trim', split(',', $conf['notify']));
+        $mails[] = $entry['mail'];
+        $mails = array_unique(array_filter($mails));
+        mail_send('', $title, $atext, $conf['mailfrom'], '', $mails);
 
         // finish here when subscriptions disabled
         if(!$this->getConf('comments_subscription')) return;
@@ -239,8 +241,8 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         foreach($rows as $row){
             // ignore commenter herself:
             if($row['mail'] == $comment['mail']) continue;
-            // ignore author herself:
-            if($row['mail'] == $entry['mail']) continue;
+            // ignore email addresses already notified:
+            if(in_array($row['mail'], $mails)) continue;
             mail_send($row['mail'], $title, str_replace('@UNSUBSCRIBE@', wl($entry['page'],array('btngu'=>$row['key']),true), $stext), $conf['mailfrom']);
         }
     }
