@@ -131,8 +131,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
 
         $admin = (is_array($_REQUEST['btng']['admin'])) ? key($_REQUEST['btng']['admin']) : $_REQUEST['btng']['admin'];
 
-        // display search form
-        $this->xhtml_searchform();
+        ptln('<div id="blogtng__admin">');
 
         // display link back to dashboard
         if($admin) {
@@ -141,6 +140,9 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
             ptln('</div>');
 
         }
+
+        // display search form
+        $this->xhtml_search_form();
 
         switch($admin) {
             case 'search':
@@ -186,6 +188,8 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
                 $this->xhtml_entry_latest();
                 break;
         }
+
+        ptln('</div>');
     }
 
     /**
@@ -416,8 +420,8 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         ptln('<table class="inline">');
 
         // FIXME language strings
-        ptln('<th>' . $this->getLang('entry') . '</th>');
         ptln('<th>' . $this->getLang('created') . '</th>');
+        ptln('<th>' . $this->getLang('entry') . '</th>');
         ptln('<th>' . $this->getLang('blog') . '</th>');
         ptln('<th>' . $this->getLang('commentstatus') . '</th>');
         ptln('<th>' . $this->getLang('comments') . '</th>');
@@ -439,19 +443,21 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         global $lang;
         global $conf;
 
-        ptln('<tr>');
+        static $class = 'odd';
+        ptln('<tr class="' . $class . '">');
+        $class = ($class == 'odd') ? 'even' : 'odd';
 
-        ptln('<td>' . html_wikilink($entry['page'], $entry['title']) . '</td>');
-        ptln('<td>' . strftime($conf['dformat'], $entry['created']) . '</td>');
+        ptln('<td class="entry_created">' . strftime($conf['dformat'], $entry['created']) . '</td>');
+        ptln('<td class="entry_title">' . html_wikilink($entry['page'], $entry['title']) . '</td>');
 
-        ptln('<td>' . $this->xhtml_entry_set_blog_form($entry) . '</th>');
+        ptln('<td class="entry_set_blog">' . $this->xhtml_entry_set_blog_form($entry) . '</th>');
 
-        ptln('<td>' . $this->xhtml_entry_set_commentstatus_form($entry) . '</th>');
+        ptln('<td class="entry_set_commentstatus">' . $this->xhtml_entry_set_commentstatus_form($entry) . '</th>');
 
         $this->commenthelper->load($entry['pid']);
 
         // comments edit link
-        ptln('<td>');
+        ptln('<td class="entry_comments">');
         $count = $this->commenthelper->get_count();
         if($count > 0) {
             ptln('<a href="' . wl(DOKU_SCRIPT, array('do'=>'admin', 
@@ -466,7 +472,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         ptln('</td>');
 
         // tags filter links
-        ptln('<td>'); 
+        ptln('<td class="entry_tags">'); 
         $this->taghelper->load($entry['pid']);
         $tags = $this->taghelper->tags;
         $count = count($tags);
@@ -483,7 +489,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         ptln('</td>');
 
         // edit links
-        ptln('<td>');
+        ptln('<td class="entry_edit">');
         ptln('<a href="' . wl(DOKU_SCRIPT, array('id'=>$entry['page'],
                                                  'do'=>'edit')) 
                          . '" class="blogtng_btn_edit" title="' . $lang['btn_secedit'] . '">' . $lang['btn_secedit'] . '</a>');
@@ -542,36 +548,38 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         global $conf;
         global $lang;
 
-        ptln('<tr>');
+        static $class = 'odd';
+        ptln('<tr class="' . $class . '">');
+        $class = ($class == 'odd') ? 'even' : 'odd';
 
         $cmt = new blogtng_comment();
         $cmt->init($comment);
-        ptln('<td><input type="checkbox" name="btng[comments][cids][]" value="' . $comment['cid'] . '" /></td>');
+        ptln('<td class="admin_checkbox"><input type="checkbox" name="btng[comments][cids][]" value="' . $comment['cid'] . '" /></td>');
 
-        ptln('<td>' . strftime($conf['dformat'], $comment['created']) . '</td>');
-        ptln('<td>' . $comment['ip'] . '</td>');
+        ptln('<td class="comment_created">' . strftime($conf['dformat'], $comment['created']) . '</td>');
+        ptln('<td class="comment_ip">' . $comment['ip'] . '</td>');
 
-        ptln('<td><img src="' . $cmt->tpl_avatar(16,16,true) . '" alt="' . $comment['name'] . '" class="avatar" /> <a href="mailto:' . $comment['mail'] . '" class="mail" title="' . $comment['mail'] . '">' . $comment['name'] . '</a></td>');
+        ptln('<td class="comment_name"><img src="' . $cmt->tpl_avatar(16,16,true) . '" alt="' . $comment['name'] . '" class="avatar" /> <a href="mailto:' . $comment['mail'] . '" class="mail" title="' . $comment['mail'] . '">' . $comment['name'] . '</a></td>');
 
         if($comment['web']) {
-            ptln('<td><a href="' . $comment['web'] . '" title="' . $comemnt['web'] . '">' . $comment['web'] . '</a></td>');
+            ptln('<td class="comment_web"><a href="' . $comment['web'] . '" title="' . $comemnt['web'] . '">' . $comment['web'] . '</a></td>');
         } else {
-            ptln('<td></td>');
+            ptln('<td class="comment_web"></td>');
         }
 
-        ptln('<td>' . $comment['status'] . '</td>');
-        ptln('<td>' . $comment['source'] . '</td>');
+        ptln('<td class="comment_status">' . $comment['status'] . '</td>');
+        ptln('<td class="comment_source">' . $comment['source'] . '</td>');
 
         $this->entryhelper->load_by_pid($comment['pid']);
-        ptln('<td>' . html_wikilink($this->entryhelper->entry['page'], $this->entryhelper->entry['title']) . '</td>');
+        ptln('<td class="comment_entry">' . html_wikilink($this->entryhelper->entry['page'], $this->entryhelper->entry['title']) . '</td>');
 
-        ptln('<td>' . $comment['text'] . '</td>');
+        ptln('<td class="comment_text">' . $comment['text'] . '</td>');
 
-        ptln('<td><a href="' . wl(DOKU_SCRIPT, array('do'=>'admin', 
-                                                     'page'=>'blogtng', 
-                                                     'btng[comment][cid]'=>$comment['cid'],
-                                                     'btng[admin]'=>'comment_edit')) 
-                             . '" class="blogtng_btn_edit" title="' . $lang['btn_edit'] . '">' . $lang['btn_secedit'] . '</a></td>');
+        ptln('<td class="comment_edit"><a href="' . wl(DOKU_SCRIPT, array('do'=>'admin', 
+                                                                          'page'=>'blogtng', 
+                                                                          'btng[comment][cid]'=>$comment['cid'],
+                                                                          'btng[admin]'=>'comment_edit')) 
+                                                  . '" class="blogtng_btn_edit" title="' . $lang['btn_edit'] . '">' . $lang['btn_secedit'] . '</a></td>');
 
         ptln('</tr>');
     }
@@ -579,8 +587,9 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
     function xhtml_comment_preview($data) {
         global $lang;
         // FIXME
-        ptln('<h2>' . $lang['btn_preview'] . '</h2>'); 
-        ptln('<div class="level2">');
+        ptln('<div id="blogtng__comment_preview">');
+        ptln(p_locale_xhtml('preview'));
+        ptln('<br />');
         $comment = new blogtng_comment();
         $comment->init($data);
         $comment->output('default');
@@ -641,9 +650,9 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
     function xhtml_comment_edit_form($comment) {
         global $lang;
 
-        ptln('<h2>' . $this->getLang('act_comment_edit') . '</h2>');
-        ptln('<div class="level2">');
+        ptln('<div class="level1">');
         $form = new Doku_Form(array('id'=>'blogtng__comment_edit_form'));
+        $form->startFieldset($this->getLang('act_comment_edit'));
         $form->addHidden('page', 'blogtng');
         $form->addHidden('btng[admin]', $action);
         $form->addHidden('do', 'admin');
@@ -663,10 +672,11 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         $form->addElement('<br />');
         $form->addElement(form_makeTextField('btng[comment][avatar]', $comment['avatar'], $this->getLang('comment_avatar')));
         $form->addElement('<br />');
-        $form->addElement('<textarea class="edit" name="btng[comment][text]" rows="14" cols="80">' . $comment['text'] . '</textarea>');
+        $form->addElement('<textarea class="edit" name="btng[comment][text]" rows="10" cols="80">' . $comment['text'] . '</textarea>');
         $form->addElement('<input type="submit" name="btng[admin][comment_save]" class="edit button" value="' . $lang['btn_save'] . '" />');
         $form->addElement('<input type="submit" name="btng[admin][comment_preview]" class="edit button" value="' . $lang['btn_preview'] . '" />');
         $form->addElement('<input type="submit" name="btng[admin][comment_delete]" class="edit button" value="' . $lang['btn_delete'] . '" />');
+        $form->endFieldset();
         html_form('blogtng__edit_comment', $form);
         ptln('</div>');
     }
@@ -676,7 +686,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      *
      * @author Michael Klier <chi@chimeric.de>
      */
-    function xhtml_searchform() {
+    function xhtml_search_form() {
         global $lang;
 
         ptln('<div class="level1">');
@@ -684,6 +694,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         $blogs = $this->entryhelper->get_blogs();
 
         $form = new Doku_Form(array('id'=>'blogtng__search_form'));
+        $form->startFieldset($lang['btn_search']);
         $form->addHidden('page', 'blogtng');
         $form->addHidden('btng[admin]', 'search');
         $form->addElement(formSecurityToken());
@@ -693,6 +704,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         $form->addElement(form_makeTextField('btng[query][string]', $_REQUEST['btng']['query']['string'],''));
 
         $form->addElement(form_makeButton('submit', 'admin', $lang['btn_search']));
+        $form->endFieldset();
         html_form('blogtng__search_form', $form);
 
         ptln('</div>');
