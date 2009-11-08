@@ -5,13 +5,11 @@
 
 // must be run within Dokuwiki
 if (!defined('DOKU_INC')) die();
-
 if (!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN', DOKU_INC.'lib/plugins/');
-
 require_once(DOKU_PLUGIN.'syntax.php');
 
 /**
- * Makes all the blog entries available via syntax commands
+ * Covers all <blog *> syntax commands
  */
 class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
 
@@ -41,6 +39,9 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
      */
     var $type_whitelist = array('list', 'pagination', 'related', 'recentcomments', 'newform');
 
+    /**
+     * Values accepted in syntax
+     */
     var $data_whitelist = array(
         'sortyorder' => array('asc', 'desc'),
         'sortby' => array('created', 'lastmod', 'title', 'page', 'random'),
