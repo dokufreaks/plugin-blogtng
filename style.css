@@ -1,140 +1,164 @@
 /**
+ * Some basic CSS formatting to be used with the default template.
  *
- * vim:ts=2:sw=2:et:enc=utf-8:
+ * Specialized CSS overriding the directives found here should be
+ * placed into your template's CSS
  */
+
+
+/* blog options in edit mode */
 div.dokuwiki fieldset#blogtng__edit {
-  margin: 0 0 0.5em 0;
-  text-align: left;
-  width: 99%;
+    margin: 0 0 0.5em 0;
+    text-align: left;
+    width: 99%;
 }
 
 div.dokuwiki fieldset#blogtng__edit label {
-  float: left;
-  margin-right: 0.2em;
+    float: left;
+    margin-right: 0.2em;
 }
 
 div.dokuwiki fieldset#blogtng__edit label span {
-  font-weight: bold;
+    font-weight: bold;
 }
 
 div.dokuwiki fieldset#blogtng__edit input#blogtng__tags {
-  width: 300px;
-  margin-right: 0.5em;
+    width: 300px;
+    margin-right: 0.5em;
 }
 
 div.dokuwiki fieldset#blogtng__edit input#blogtng__date_YY {
-  width: 38px;
-  float: left;
+    width: 38px;
+    float: left;
 }
 
 div.dokuwiki fieldset#blogtng__edit input#blogtng__date_MM,
 div.dokuwiki fieldset#blogtng__edit input#blogtng__date_DD,
 div.dokuwiki fieldset#blogtng__edit input#blogtng__date_hh,
 div.dokuwiki fieldset#blogtng__edit input#blogtng__date_mm {
-  width: 24px;
-  float: left;
+    width: 24px;
+    float: left;
 }
 
+/* lists and entry display */
 div.dokuwiki div.blogtng_list div.blogtng_footer {
-  border-top: 1px solid __border__;
+    border-top: 1px solid __border__;
 }
 
 div.dokuwiki div.blogtng_entry div.blogtng_footer {
-  border: 1px solid __border__;
-  background: __background_alt__;
-  padding: 1em;
+    border: 1px solid __border__;
+    background: __background_alt__;
+    padding: 1em;
+    overflow: auto;
 }
 
+/* admin area */
+div.dokuwiki form#blogtng__search_form label {
+    font-weight: bold;
+}
+
+/* comment display */
+
+div.dokuwiki div.blogtng_comment {
+    margin-bottom: 2em;
+}
+
+div.dokuwiki div.blogtng_comment img.avatar {
+    padding: 0 0.5em 0.5em 0;
+}
+
+div.dokuwiki div.blogtng_comment_status_hidden {
+    opacity: 0.5;
+    filter: alpha(opacity = 50);
+}
+
+/* tag list */
+
+div.dokuwiki ul.blogtng_tags {
+    list-style: none;
+    margin: 0;
+    display: inline;
+}
+
+div.dokuwiki ul.blogtng_tags li {
+    display: inline;
+    float: left;
+}
+
+div.dokuwiki ul.blogtng_tags div.li:after {
+    content: ", ";
+    display: inline;
+    float: left;
+}
+
+div.dokuwiki ul.blogtng_tags li:last-child div.li:after {
+    content: "" !important;
+}
+
+/* comment form */
 div.dokuwiki form#blogtng__comment_form,
 div.dokuwiki form#blogtng__comment_edit_form {
-  padding: 2em;
-  width: 500px;
-  display: block;
+    padding: 2em;
+    width: 500px;
+    display: block;
 }
 
 div.dokuwiki form#blogtng__comment_edit_form {
-  text-align: right;
+    text-align: right;
 }
 
 div.dokuwiki form#blogtng__comment_edit_form input,
 div.dokuwiki form#blogtng__comment_edit_form select,
 div.dokuwiki form#blogtng__comment_form textarea,
 div.dokuwiki form#blogtng__comment_edit_form textarea {
-  margin-bottom: 0.5em;
-}
-
-div.dokuwiki form#blogtng__search_form label {
-  font-weight: bold;
+    margin-bottom: 0.5em;
 }
 
 div.dokuwiki form#blogtng__comment_form div#plugin__captcha_wrapper label{
-  display: block;
+    display: block;
 }
 
 div.dokuwiki form#blogtng__comment_form div#plugin__captcha_wrapper {
-  padding-bottom: 1em;
-}
-
-div.dokuwiki div.blogtng_comment {
-  margin-bottom: 2em;
-}
-
-div.dokuwiki div.blogtng_comment img.avatar {
-  padding: 0 0.5em 0.5em 0;
-}
-
-div.dokuwiki div.blogtng_comment_status_hidden {
-  opacity: 0.5;
-  filter: alpha(opacity = 50);
-}
-
-div.dokuwiki input.error,
-div.dokuwiki textarea.error {
-  background: #fcc !important;
-}
-
-div.dokuwiki ul.blogtng_tags {
-  list-style: none;
-  margin: 0;
-  display: inline;
-}
-
-div.dokuwiki ul.blogtng_tags li {
-  display: inline;
-  float: left;
-}
-
-div.dokuwiki ul.blogtng_tags div.li:after {
-  content: ", ";
-  display: inline;
-  float: left;
-}
-
-div.dokuwiki ul.blogtng_tags li:last-child div.li:after {
-  content: "" !important;
+    padding-bottom: 1em;
 }
 
 div.dokuwiki div#blogtng__comment_preview,
 div.dokuwiki div#blogtng__ajax_preview {
-  padding: 1em;
-  margin: 1em;
-  border: 1px dashed __border__;
+    padding: 1em;
+    margin: 1em;
+    border: 1px dashed __border__;
 }
 
 div.dokuwiki div#blogtng__ajax_preview {
-  visibility: hidden;
+    visibility: hidden;
 }
 
+div.dokuwiki input.error,
+div.dokuwiki textarea.error {
+    background: #fcc !important;
+}
+
+
+/* next/prev post navigation */
 div.dokuwiki .blogtng_postnavigation {
-  text-align: center;
-  clear: both;
-  height: 1.5em;
+    text-align: center;
+    clear: both;
+    height: 1.5em;
 }
-
 div.dokuwiki .blogtng_prevlink {
-  float: left;
+    float: left;
 }
 
 div.dokuwiki .blogtng_nextlink {
-  float:right;
+    float:right;
+}
+
+/* Create new post form */
+div.dokuwiki div.blogtng_newform {
+    clear: both;
+    margin: 1em;
+}
+div.dokuwiki div.blogtng_newform h3 {
+    font-size: 110%;
+    margin: 0.2em;
 }

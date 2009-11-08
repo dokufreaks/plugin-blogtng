@@ -28,6 +28,8 @@ $lang['title']   = 'Title:';
 $lang['create']  = 'Create';
 $lang['created'] = 'Creation Date';
 
+$lang['js']['reply'] = 'Reply to this comment';
+
 $lang['comment_mail']      = 'E-Mail';
 $lang['comment_avatar']    = 'Avatar';
 $lang['comment_name']      = 'Name';
