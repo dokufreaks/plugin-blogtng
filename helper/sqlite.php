@@ -195,7 +195,7 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
      * Return the wanted row from a given result set as
      * associative array
      */
-    function res2row($res,$rownum){
+    function res2row($res,$rownum=0){
         if(!@sqlite_seek($res,$rownum)){
             return false;
         }

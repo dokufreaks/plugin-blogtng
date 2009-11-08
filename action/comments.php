@@ -32,11 +32,15 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
     }
 
     function handle_act_preprocess(&$event, $param) {
-        global $INFO;
+        global $INFO, $ID;
 
-        // optin and optout
+        // optin
         if($_REQUEST['btngo'])
             $this->commenthelper->optin($_REQUEST['btngo']);
+
+        // unsubscribe
+        if ($_REQUEST['btngu'])
+            $this->commenthelper->unsubscribe_by_key(md5($ID), $_REQUEST['btngu']);
 
         global $BLOGTNG;
         $BLOGTNG = array();

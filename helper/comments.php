@@ -229,24 +229,20 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         if(!$this->getConf('comments_subscription')) return;
 
         // get subscribers
-        $sql = "SELECT A.mail as mail
+        $sql = "SELECT A.mail as mail, B.key as key
                   FROM subscriptions A, optin B
                  WHERE A.mail = B.mail
                    AND B.optin = 1
                    AND A.pid = ?";
         $res = $this->sqlitehelper->query($sql,$comment['pid']);
         $rows = $this->sqlitehelper->res2arr($res);
-        $mails = array();
         foreach($rows as $row){
             // ignore commenter herself:
             if($row['mail'] == $comment['mail']) continue;
             // ignore author herself:
-            if($row['mail'] == $entry['email']) continue;
-            $mails[] = $row['mail'];
+            if($row['mail'] == $entry['mail']) continue;
+            mail_send($row['mail'], $title, str_replace('@UNSUBSCRIBE@', wl($entry['page'],array('btngu'=>$row['key']),true), $stext), $conf['mailfrom']);
         }
-        if(!count($mails)) return;
-
-        mail_send('', $title, $stext, $conf['mailfrom'], '', join(',',$mails));
     }
 
     /**
@@ -260,9 +256,6 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
 
         $repl = array(
             '@TITLE@'       => $conf['title'],
-            '@NAME@'        => $comment['name'],
-            '@COMMENT@'     => $comment['text'],
-            '@USER@'        => $comment['name'],
             '@URL@'         => wl('',array('btngo'=>$key),true),
             '@DOKUWIKIURL@' => DOKU_URL,
         );
@@ -308,17 +301,37 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
 
     }
 
+    function unsubscribe_by_key($pid, $key) {
+        $sql = 'SELECT mail FROM optin WHERE key = ?';
+        $res = $this->sqlitehelper->query($sql, $key);
+        $row = $this->sqlitehelper->res2row($res);
+        if (!$row) {
+            msg($this->getLang('unsubscribe_err_key'), -1);
+            return;
+        }
+
+        $this->unsubscribe($pid, $row['mail']);
+    }
+
     /**
      * Unsubscribe entry
      */
     function unsubscribe($pid, $mail) {
+        $sql = 'DELETE FROM subscriptions WHERE pid = ? AND mail = ?';
+        $this->sqlitehelper->query($sql, $pid, $mail);
+        $upd = sqlite_changes($this->sqlitehelper->db);
+        if ($upd) {
+            msg($this->getLang('unsubscribe_ok'), 1);
+        } else {
+            msg($this->getlang('unsubscribe_err_other'), -1);
+        }
     }
 
     /**
      * Opt in
      */
     function optin($key) {
-        $sql = "UPDATE optin SET optin = 1 WHERE key = ?";
+        $sql = 'UPDATE optin SET optin = 1 WHERE key = ?';
         $this->sqlitehelper->query($sql,$key);
         $upd = sqlite_changes($this->sqlitehelper->db);
 
