@@ -49,6 +49,7 @@ div.dokuwiki div.blogtng_entry div.blogtng_footer {
     border: 1px solid __border__;
     background: __background_alt__;
     padding: 1em;
+    overflow: auto;
 }
 
 /* admin area */
