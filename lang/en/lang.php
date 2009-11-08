@@ -7,6 +7,7 @@ $lang['comment_latest'] = 'Latest %d Comments';
 $lang['numhits'] = 'Number of Hits';
 
 $lang['blog']    = 'Blog';
+$lang['author']  = 'Author';
 $lang['dashboard'] = 'Dashboard';
 $lang['entry']   = 'Entry';
 $lang['filter']  = 'Filter';

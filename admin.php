@@ -421,6 +421,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
 
         // FIXME language strings
         ptln('<th>' . $this->getLang('created') . '</th>');
+        ptln('<th>' . $this->getLang('author') . '</th>');
         ptln('<th>' . $this->getLang('entry') . '</th>');
         ptln('<th>' . $this->getLang('blog') . '</th>');
         ptln('<th>' . $this->getLang('commentstatus') . '</th>');
@@ -448,6 +449,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         $class = ($class == 'odd') ? 'even' : 'odd';
 
         ptln('<td class="entry_created">' . strftime($conf['dformat'], $entry['created']) . '</td>');
+        ptln('<td class="entry_author">' . $entry['author'] . '</td>');
         ptln('<td class="entry_title">' . html_wikilink($entry['page'], $entry['title']) . '</td>');
 
         ptln('<td class="entry_set_blog">' . $this->xhtml_entry_set_blog_form($entry) . '</th>');
