@@ -500,7 +500,8 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         ptln('<table class="inline">');
         ptln('<th></th>');
         ptln('<th>' . $this->getLang('comment_avatar') . '</th>');
-        ptln('<th>' . $this->getLang('comment_date') . '</th>');
+        ptln('<th>' . $this->getLang('created') . '</th>');
+        ptln('<th>' . $this->getLang('comment_ip') . '</th>');
         ptln('<th>' . $this->getLang('comment_name') . '</th>');
         ptln('<th>' . $this->getLang('comment_status') . '</th>');
         ptln('<th>' . $this->getLang('comment_source') . '</th>');
@@ -541,6 +542,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         ptln('<td><img src="' . $cmt->tpl_avatar(1,0,true) . '" /></td>');
 
         ptln('<td>' . strftime($conf['dformat'], $comment['created']) . '</td>');
+        ptln('<td>' . $comment['ip'] . '</td>');
         ptln('<td>' . $comment['name'] . '</td>');
         ptln('<td>' . $comment['status'] . '</td>');
         ptln('<td>' . $comment['source'] . '</td>');
