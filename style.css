@@ -106,6 +106,12 @@ div.dokuwiki form#blogtng__search_form label {
     font-weight: bold;
 }
 
+div.dokuwiki form#blogtng__comment_batch_edit_form {
+    clear: both;
+    display: block;
+    margin-bottom: 0.8em;
+}
+
 /* comment display */
 div.dokuwiki div.blogtng_comment {
     margin-bottom: 2em;

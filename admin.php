@@ -295,6 +295,10 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
 
         if($items) {
             ptln('<div class="level2"><p><strong>' . $this->getLang('numhits') . ':</strong> ' . $count .'</p></div>');
+            // show pagination only when enough items
+            if($count > $limit) {
+                $this->xhtml_pagination($query, $cur, $start, $count, $limit);
+            }
             call_user_func(array($this, $callback), $items);
         } else {
             ptln('<div class="level2">');
@@ -303,8 +307,9 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         }
 
         // show pagination only when enough items
-        if($count < $limit) return;
-        $this->xhtml_pagination($query, $cur, $start, $count, $limit);
+        if($count > $limit) {
+            $this->xhtml_pagination($query, $cur, $start, $count, $limit);
+        }
     }
 
     /**
@@ -335,7 +340,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         $pages = array_unique($pages);
         sort($pages);
 
-        ptln('<div class="level2">');
+        ptln('<div class="level2"><p>');
 
         if($cur > 1) {
             ptln('<a href="' . wl($ID, array('do'=>'admin', 
@@ -376,7 +381,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
                                              'btng[query][start]'=>($cur*$limit))) . '" title="' . ($cur+1) . '">&raquo;</a>');
         }
 
-        ptln('</div>');
+        ptln('</p></div>');
     }
 
     /**
@@ -516,7 +521,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
 
         ptln('<div class="level2">');
 
-        ptln('<form action="' . DOKU_SCRIPT . '" method="post" id="blogtng__comment_batch_edit">');
+        ptln('<form action="' . DOKU_SCRIPT . '" method="post" id="blogtng__comment_batch_edit_form">');
         ptln('<input type="hidden" name="page" value="blogtng" />');
 
         ptln('<table class="inline">');
