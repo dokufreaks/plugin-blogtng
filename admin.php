@@ -153,6 +153,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
                         $this->xhtml_search_titles($query);
                         break;
                     case 'comments':
+                    case 'comments_ip':
                         $this->xhtml_search_comments($query);
                         break;
                     case 'tags':
@@ -214,7 +215,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      * @author Michael Klier <chi@chimeric.de>
      */
     function xhtml_search_comments($data) {
-        $query = 'SELECT DISTINCT cid, B.pid as pid, source, name, B.mail as mail, web, avatar, B.created as created, text, status 
+        $query = 'SELECT DISTINCT cid, B.pid as pid, ip, source, name, B.mail as mail, web, avatar, B.created as created, text, status 
                   FROM comments B LEFT JOIN entries A ON B.pid = A.pid ';
         if($data['blog']) {
             $query .= 'WHERE blog = "' . $data['blog'] . '" ';
@@ -223,8 +224,12 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         } 
 
         // check for search query
-        if(isset($data['string'])) {
+        if(isset($data['string']) && $data['filter'] == 'comments') {
             $query .= 'AND ( B.text LIKE "%'.$data['string'].'%" ) ';
+        }
+
+        if(isset($data['string']) && $data['filter'] == 'comments_ip') {
+            $query .= 'AND ( B.ip LIKE "%'.$data['string'].'%" ) ';
         }
 
         // if pid is given limit to give page
@@ -684,7 +689,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         $form->addElement(formSecurityToken());
 
         $form->addElement(form_makeListBoxField('btng[query][blog]', $blogs, $_REQUEST['btng']['query']['blog'], $this->getLang('blog')));
-        $form->addElement(form_makeListBoxField('btng[query][filter]', array('titles', 'comments', 'tags'), $_REQUEST['btng']['query']['filter'], $this->getLang('filter')));
+        $form->addElement(form_makeListBoxField('btng[query][filter]', array('titles', 'comments', 'comments_ip', 'tags'), $_REQUEST['btng']['query']['filter'], $this->getLang('filter')));
         $form->addElement(form_makeTextField('btng[query][string]', $_REQUEST['btng']['query']['string'],''));
 
         $form->addElement(form_makeButton('submit', 'admin', $lang['btn_search']));
