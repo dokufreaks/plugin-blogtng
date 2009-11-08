@@ -31,6 +31,13 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
         $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handle_act_preprocess', array());
     }
 
+    /**
+     * Handle the preprocess event
+     *
+     * Takes care of handling all the post input from creating
+     * comments and saves them. Also handles optin and unsubscribe
+     * actions.
+     */
     function handle_act_preprocess(&$event, $param) {
         global $INFO, $ID;
 

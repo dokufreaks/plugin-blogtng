@@ -32,6 +32,10 @@ class action_plugin_blogtng_entry extends DokuWiki_Action_Plugin{
         $controller->register_hook('TPL_METAHEADER_OUTPUT', 'BEFORE', $this, 'handle_metaheader_output', array ());
     }
 
+    /**
+     * Intercept the usual page display and replace it with a
+     * blog template controlled one.
+     */
     function handle_tpl_act_render(&$event, $param) {
         global $ID;
         if($event->data != 'show') return;
@@ -47,6 +51,10 @@ class action_plugin_blogtng_entry extends DokuWiki_Action_Plugin{
         $this->entryhelper->tpl_content($this->entryhelper->entry['blog'], 'entry');
     }
 
+    /**
+     * Add next and prev meta headers for navigating through
+     * blog posts
+     */
     function handle_metaheader_output(&$event, $param) {
         global $ACT, $ID;
 

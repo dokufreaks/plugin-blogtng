@@ -29,6 +29,12 @@ class action_plugin_blogtng_new extends DokuWiki_Action_Plugin{
         $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handle_act_preprocess', array());
     }
 
+    /**
+     * Handles input from the newform and redirects to the edit mode
+     *
+     * @author Andreas Gohr <gohr@cosmocode.de>
+     * @author Gina Haeussge <osd@foosel.net>
+     */
     function handle_act_preprocess(&$event, $param) {
         global $TEXT;
         global $ID;
@@ -53,6 +59,11 @@ class action_plugin_blogtng_new extends DokuWiki_Action_Plugin{
         }
     }
 
+    /**
+     * Loads the template for a new blog post and does some text replacements
+     *
+     * @author Gina Haeussge <osd@foosel.net>
+     */
     function _prepare_template($id, $title) {
         $tpl = io_readFile(DOKU_PLUGIN . 'blogtng/tpl/newentry.txt');
         $replace = array(
