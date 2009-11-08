@@ -51,6 +51,7 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
         $comment['pid']    = $_REQUEST['pid'];
         $comment['page']   = $_REQUEST['id'];
         $comment['subscribe'] = $_REQUEST['blogtng']['subscribe'];
+        $comment['ip'] = clientIP(true);
 
         $BLOGTNG['comment'] = $comment;
 

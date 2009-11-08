@@ -95,7 +95,21 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
                         $this->entryhelper->save();
                     }
                 }
-                msg('set blog for entry', 1);
+                msg($this->getLang('msg_entry_blog_change'), 1);
+                break;
+
+            case 'entry_set_commentstatus':
+                $pid = $_REQUEST['btng']['entry']['pid'];
+                $status = $_REQUEST['btng']['entry']['commentstatus'];
+                if($pid) {
+                    $blogs = $this->entryhelper->get_blogs();
+                    if(in_array($status, array('disabled', 'enabled', 'closed'))) {
+                        $this->entryhelper->load_by_pid($pid);
+                        $this->entryhelper->entry['commentstatus'] = $status;
+                        $this->entryhelper->save();
+                    }
+                }
+                msg($this->getLang('msg_comment_status_change'), 1);
                 break;
 
             default:
@@ -278,9 +292,12 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         $this->xhtml_pagination($query, $cur, $start, $count, $limit);
     }
 
+    /**
+     * Diplays that pagination links of a query
+     *
+     * @author Michael Klier <chi@chimeric.de>
+     */
     function xhtml_pagination($query, $cur, $start, $count, $limit) {
-        // FIXME
-
         $max = ceil($count / $limit);
 
         $pages[] = 1;     // first always
@@ -396,6 +413,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         // FIXME language strings
         ptln('<th>' . $this->getLang('entry') . '</th>');
         ptln('<th>' . $this->getLang('blog') . '</th>');
+        ptln('<th>' . $this->getLang('commentstatus') . '</th>');
         ptln('<th>' . $this->getLang('comments') . '</th>');
         ptln('<th>' . $this->getLang('tags') . '</th>');
         ptln('<th></th>');
@@ -419,6 +437,8 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         ptln('<td>' . html_wikilink($entry['page'], $entry['title']) . '</td>');
 
         ptln('<td>' . $this->xhtml_entry_set_blog_form($entry) . '</th>');
+
+        ptln('<td>' . $this->xhtml_entry_set_commentstatus_form($entry) . '</th>');
 
         $this->commenthelper->load($entry['pid']);
 
@@ -480,7 +500,8 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         ptln('<table class="inline">');
         ptln('<th></th>');
         ptln('<th>' . $this->getLang('comment_avatar') . '</th>');
-        ptln('<th>' . $this->getLang('comment_date') . '</th>');
+        ptln('<th>' . $this->getLang('created') . '</th>');
+        ptln('<th>' . $this->getLang('comment_ip') . '</th>');
         ptln('<th>' . $this->getLang('comment_name') . '</th>');
         ptln('<th>' . $this->getLang('comment_status') . '</th>');
         ptln('<th>' . $this->getLang('comment_source') . '</th>');
@@ -521,6 +542,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         ptln('<td><img src="' . $cmt->tpl_avatar(1,0,true) . '" /></td>');
 
         ptln('<td>' . strftime($conf['dformat'], $comment['created']) . '</td>');
+        ptln('<td>' . $comment['ip'] . '</td>');
         ptln('<td>' . $comment['name'] . '</td>');
         ptln('<td>' . $comment['status'] . '</td>');
         ptln('<td>' . $comment['source'] . '</td>');
@@ -569,6 +591,29 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
 
         ob_start();
         html_form('blotng__btn_entry_set_blog', $form);
+        $form = ob_get_clean();
+        return $form;
+    }
+
+    /**
+     * Displays the form to set the comment status of a blog entry
+     *
+     * @author Michael Klier <chi@chimeric.de>
+     */
+    function xhtml_entry_set_commentstatus_form($entry) {
+        global $lang;
+        $blogs = $this->entryhelper->get_blogs();
+
+        $form = new Doku_FOrm(array('id'=>'blogtng__entry_set_commentstatus_form'));
+        $form->addHidden('do', 'admin');
+        $form->addHidden('page', 'blogtng');
+        $form->addHidden('btng[entry][pid]', $entry['pid']);
+        $form->addElement(formSecurityToken());
+        $form->addElement(form_makeListBoxField('btng[entry][commentstatus]', array('enabled', 'disabled', 'closed'), $entry['commentstatus'], ''));
+        $form->addElement('<input type="submit" name="btng[admin][entry_set_commentstatus]" class="edit button" value="' . $lang['btn_update'] . '" />');
+
+        ob_start();
+        html_form('blotng__btn_entry_set_commentstatus', $form);
         $form = ob_get_clean();
         return $form;
     }

@@ -83,6 +83,11 @@ div.dokuwiki div.blogtng_comment img.avatar {
   padding: 0 0.5em 0.5em 0;
 }
 
+div.dokuwiki div.blogtng_comment_status_hidden {
+  opacity: 0.5;
+  filter: alpha(opacity = 50);
+}
+
 div.dokuwiki input.error,
 div.dokuwiki textarea.error {
   background: #fcc !important;

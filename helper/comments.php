@@ -96,10 +96,10 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         $query = 'INSERT OR IGNORE INTO comments (';
         if($comment['cid']) $query .= 'cid, ';
 
-        $query .= 'pid, source, name, mail, web, avatar, created, text, status) VALUES (';
+        $query .= 'pid, source, name, mail, web, avatar, created, text, status, ip) VALUES (';
         if($comment['cid']) $query .= '?, ';
 
-        $query .= '?, ?, ?, ?, ?, ?, ?, ?, ?)';
+        $query .= '?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
         $comment['status']  = ($this->getconf('moderate_comments')) ? 'hidden' : 'visible';
 
         if(!$comment['created']) $comment['created'] = time();
@@ -117,7 +117,8 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
                 $comment['avatar'],
                 $comment['created'],
                 $comment['text'],
-                $comment['status']
+                $comment['status'],
+                $comment['ip']
             );
         } else {
             $this->sqlitehelper->query($query,
@@ -129,7 +130,8 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
                 $comment['avatar'],
                 $comment['created'],
                 $comment['text'],
-                $comment['status']
+                $comment['status'],
+                $comment['ip']
             );
         }
 

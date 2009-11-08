@@ -11,6 +11,7 @@ $lang['dashboard'] = 'Dashboard';
 $lang['entry']   = 'Entry';
 $lang['filter']  = 'Filter';
 $lang['tags']    = 'Tags';
+$lang['commentstatus'] = 'Comments are';
 
 $lang['searchresults']  = 'Search Results';
 
@@ -23,8 +24,9 @@ $lang['readmore']    = 'Read more...';
 $lang['prev'] = '&lt; Newer Posts';
 $lang['next'] = 'Older Posts &gt;';
 
-$lang['title']  = 'Title:';
-$lang['create'] = 'Create';
+$lang['title']   = 'Title:';
+$lang['create']  = 'Create';
+$lang['created'] = 'Creation Date';
 
 $lang['comment_mail']      = 'E-Mail';
 $lang['comment_avatar']    = 'Avatar';
@@ -35,6 +37,7 @@ $lang['comment_submit']    = 'Comment';
 $lang['comment_source']    = 'Source';
 $lang['comment_status']    = 'Status';
 $lang['comment_text']      = 'Text';
+$lang['comment_ip']        = 'IP Address';
 $lang['comment_subscribe'] = 'Subscribe to new comments';
 
 $lang['subscr_subject'] = 'New comment on %s';
@@ -48,5 +51,6 @@ $lang['act_comment_edit']  = 'Edit Comment';
 $lang['msg_comment_save']           = 'Comment changes have been saved';
 $lang['msg_comment_status_change']  = 'Comment status changed';
 $lang['msg_comment_delete']         = 'The comment was deleted';
+$lang['msg_entry_blog_change']      = 'Blog of the entry was changed';
 
 $lang['err_notitle'] = 'No post title given!';

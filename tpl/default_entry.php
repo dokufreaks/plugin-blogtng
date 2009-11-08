@@ -19,9 +19,11 @@
             It is tagged with <?php $entry->tpl_tags('')?>.
         <?php } ?>
     </div>
-    <h2 id="the__comments">Comments</h2>
-    <div class="level2">
-        <?php $entry->tpl_comments('default') ?>
-        <?php $entry->tpl_commentform() ?>
-    </div>
+    <?php if ($entry->entry['commentstatus'] != 'disabled') {?>
+        <h2 id="the__comments">Comments</h2>
+        <div class="level2">
+            <?php $entry->tpl_comments('default') ?>
+            <?php $entry->tpl_commentform() ?>
+        </div>
+    <?php } ?>
 </div>
