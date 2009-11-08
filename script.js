@@ -1,14 +1,24 @@
 /**
  * Javascript for DokuWiki Plugin BlogTNG
  */
+var blogtng = {
 
-blogtng = {
-
+    /**
+     * Attach the validation checking to the comment form
+     *
+     * @author Michael Klier <chi@chimeric.de>
+     */
     validate_attach: function(obj) {
         if(!obj) return;
         addEvent(obj, 'click', function() { return blogtng.validate(); });
     },
 
+    /**
+     * Validates the comment form inputs and highlights
+     * missing fields on client side
+     *
+     * @author Michael Klier <chi@chimeric.de>
+     */
     validate: function() {
         var inputs = new Array(
                         'blogtng__comment_name',
@@ -30,6 +40,11 @@ blogtng = {
         return true;
     },
 
+    /**
+     * Attach the AJAX preview action to the comment form
+     *
+     * @author Michael Klier <chi@chimeric.de>
+     */
     preview_attach: function(obj, wrap, previewid) {
         if(!obj) return;
         if(!wrap) return;
@@ -42,6 +57,11 @@ blogtng = {
         });
     },
 
+    /**
+     * Uses AJAX to render and preview the comment before submitting
+     *
+     * @author Michael Klier <chi@chimeric.de>
+     */
     preview: function(wrap,previewid) {
         if(!blogtng.validate()) return false;
 
@@ -56,7 +76,6 @@ blogtng = {
 
         preview.innerHTML = '<img src="'+DOKU_BASE+'/lib/images/throbber.gif" />';
 
-        //var ajax = new sack(DOKU_BASE+'lib/plugins/blogtng/ajax/preview.php');
         var ajax = new sack(DOKU_BASE + 'lib/exe/ajax.php');
         ajax.AjaxFailedAlert = '';
         ajax.encodeURIString = false;
@@ -81,9 +100,17 @@ blogtng = {
         return false;
     },
 
+    /**
+     * Attach the reply action to the comment numbers and add tooltip
+     * previews to reply syntax markers.
+     *
+     * @author Gina Haeussge <osd@foosel.net>
+     */
     reply_attach: function() {
+        // attach reply action
         var objs = getElementsByClass('blogtng_num', null, 'a');
         for (var i = 0; i < objs.length; i++) {
+            objs[i].title = LANG['plugins']['blogtng']['reply'];
             addEvent(objs[i], 'click', function(e) {
                 insertAtCarret('wiki__text','@#'+this.href.substring(this.href.lastIndexOf('#')+'#comment_'.length)+': ');
 
@@ -93,6 +120,7 @@ blogtng = {
             });
         }
 
+        // make "footnotes" from comment references
         objs = getElementsByClass('blogtng_reply', null, 'a');
         for (var i = 0; i < objs.length; i++) {
             addEvent(objs[i], 'mouseover', function(e) {
@@ -100,8 +128,6 @@ blogtng = {
             });
         }
     }
-
-
 };
 
 /**
@@ -185,6 +211,9 @@ function commentPopup(e, id){
     comment_div.style.display = '';
 }
 
+/**
+ * Attach events
+ */
 addInitEvent(function() {
     blogtng.validate_attach($('blogtng__comment_submit'));
     blogtng.preview_attach($('blogtng__preview_submit'),$('blogtng__comment_form_wrap'),'blogtng__comment_preview');
