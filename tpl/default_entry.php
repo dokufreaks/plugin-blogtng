@@ -1,3 +1,13 @@
+<?php
+/**
+ * default entry template
+ *
+ * This template is used to display a single entry when the 'default'
+ * blog was chosen from the dropdown on editing a page.
+ *
+ * It displays the entry and adds comments and navigational elements.
+ */
+?>
 <div class="blogtng_entry">
     <div class="blogtng_postnavigation level1">
     <?php if ($link = $entry->tpl_previouslink('« @TITLE@', $entry->entry['page'], true)) { ?>

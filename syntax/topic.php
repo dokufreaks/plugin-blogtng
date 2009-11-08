@@ -1,13 +1,13 @@
 <?php
 /**
  * Syntax Component Blog
+ *
+ * @todo this seems to be obsoleted by <blog list>?
  */
 
 // must be run within Dokuwiki
 if (!defined('DOKU_INC')) die();
-
 if (!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN', DOKU_INC.'lib/plugins/');
-
 require_once(DOKU_PLUGIN.'syntax.php');
 
 class syntax_plugin_blogtng_topic extends DokuWiki_Syntax_Plugin {
@@ -49,7 +49,6 @@ class syntax_plugin_blogtng_topic extends DokuWiki_Syntax_Plugin {
     }
 
     function handle($match, $state, $pos, &$handler) {
-        dbglog('In topic');
         $match = substr(trim($match), 8, -2);
         $conf['tagquery'] = $match;
 

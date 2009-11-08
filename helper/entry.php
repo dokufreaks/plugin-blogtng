@@ -703,7 +703,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
                         FROM entries A, entries B
                        WHERE B.pid = ?
                          AND A.pid != B.pid
-                         AND A.created ' . (($type == 'prev') ? '<=' : '>=') . ' B.created
+                         AND A.created ' . (($type == 'prev') ? '<' : '>') . ' B.created
                          AND A.blog = B.blog
                     ORDER BY A.created ' . (($type == 'prev') ? 'DESC' : 'ASC') . '
                        LIMIT 1';
