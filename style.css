@@ -140,18 +140,20 @@ div.dokuwiki div.blogtng_comment_status_hidden {
 div.dokuwiki ul.blogtng_tags {
   list-style: none;
   margin: 0;
+  padding: 0;
   display: inline;
 }
 
 div.dokuwiki ul.blogtng_tags li {
   display: inline;
-  float: left;
+}
+
+div.dokuwiki ul.blogtng_tags li div.li {
+  display: inline;
 }
 
 div.dokuwiki ul.blogtng_tags div.li:after {
   content: ", ";
-  display: inline;
-  float: left;
 }
 
 div.dokuwiki ul.blogtng_tags li:last-child div.li:after {
