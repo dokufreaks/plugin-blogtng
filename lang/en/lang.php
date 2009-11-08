@@ -49,5 +49,6 @@ $lang['act_comment_edit']  = 'Edit Comment';
 $lang['msg_comment_save']           = 'Comment changes have been saved';
 $lang['msg_comment_status_change']  = 'Comment status changed';
 $lang['msg_comment_delete']         = 'The comment was deleted';
+$lang['msg_entry_blog_change']      = 'Blog of the entry was changed';
 
 $lang['err_notitle'] = 'No post title given!';
