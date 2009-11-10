@@ -137,7 +137,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         // display link back to dashboard
         if($admin) {
             ptln('<div class="level1">');
-            ptln('<p><a hreF="' . wl($ID, array('do'=>'admin', 'page'=>'blogtng')) . '" title="' . $this->getLang('dashboard') . '">&larr; ' . $this->getLang('dashboard') . '</a></p>');
+            ptln('<p><a href="' . wl($ID, array('do'=>'admin', 'page'=>'blogtng')) . '" title="' . $this->getLang('dashboard') . '">&larr; ' . $this->getLang('dashboard') . '</a></p>');
             ptln('</div>');
 
         }
@@ -463,8 +463,8 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         ptln('<tr class="' . $class . '">');
         $class = ($class == 'odd') ? 'even' : 'odd';
 
-        ptln('<td class="entry_created">' . strftime($conf['dformat'], $entry['created']) . '</td>');
-        ptln('<td class="entry_author">' . $entry['author'] . '</td>');
+        ptln('<td class="entry_created">' . dformat($entry['created']) . '</td>');
+        ptln('<td class="entry_author">' . hsc($entry['author']) . '</td>');
         ptln('<td class="entry_title">' . html_wikilink($entry['page'], $entry['title']) . '</td>');
 
         ptln('<td class="entry_set_blog">' . $this->xhtml_entry_set_blog_form($entry) . '</th>');
@@ -575,32 +575,32 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         $cmt->init($comment);
         ptln('<td class="admin_checkbox"><input type="checkbox" class="comment_cid" name="btng[comments][cids][]" value="' . $comment['cid'] . '" /></td>');
 
-        ptln('<td class="comment_created">' . strftime($conf['dformat'], $comment['created']) . '</td>');
-        ptln('<td class="comment_ip">' . $comment['ip'] . '</td>');
+        ptln('<td class="comment_created">' . dformat($comment['created']) . '</td>');
+        ptln('<td class="comment_ip">' . hsc($comment['ip']) . '</td>');
 
         ptln('<td class="comment_name">');
         $avatar = $cmt->tpl_avatar(16,16,true);
-        if($avatar) ptln('<img src="' . $avatar . '" alt="' . $comment['name'] . '" class="avatar" /> ');
+        if($avatar) ptln('<img src="' . $avatar . '" alt="' . hsc($comment['name']) . '" class="avatar" /> ');
         if($comment['mail']){
-            ptln('<a href="mailto:' . $comment['mail'] . '" class="mail" title="' . $comment['mail'] . '">' . $comment['name'] . '</a>');
+            ptln('<a href="mailto:' . hsc($comment['mail']) . '" class="mail" title="' . hsc($comment['mail']) . '">' . hsc($comment['name']) . '</a>');
         }else{
-            ptln($comment['name']);
+            ptln(hsc($comment['name']));
         }
         ptln('</td>');
 
         if($comment['web']) {
-            ptln('<td class="comment_web"><a href="' . $comment['web'] . '" title="' . $comment['web'] . '">' . $comment['web'] . '</a></td>');
+            ptln('<td class="comment_web"><a href="' . hsc($comment['web']) . '" title="' . hsc($comment['web']) . '">' . hsc($comment['web']) . '</a></td>');
         } else {
             ptln('<td class="comment_web"></td>');
         }
 
-        ptln('<td class="comment_status">' . $comment['status'] . '</td>');
-        ptln('<td class="comment_source">' . $comment['source'] . '</td>');
+        ptln('<td class="comment_status">' . hsc($comment['status']) . '</td>');
+        ptln('<td class="comment_source">' . hsc($comment['source']) . '</td>');
 
         $this->entryhelper->load_by_pid($comment['pid']);
         ptln('<td class="comment_entry">' . html_wikilink($this->entryhelper->entry['page'], $this->entryhelper->entry['title']) . '</td>');
 
-        ptln('<td class="comment_text">' . $comment['text'] . '</td>');
+        ptln('<td class="comment_text">' . hsc($comment['text']) . '</td>');
 
         ptln('<td class="comment_edit"><a href="' . wl($ID, array('do'=>'admin',
                                                                           'page'=>'blogtng',
