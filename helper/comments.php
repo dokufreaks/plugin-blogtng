@@ -662,6 +662,8 @@ class blogtng_comment{
                  . '&rating=' . $conf['plugin']['blogtng']['comments_gravatar_rating']
                  . '&default='.rawurlencode($dfl)
                  . '&.png';
+        } elseif ($this->data['web']){
+            $img = 'http://getfavicon.appspot.com/'.rawurlencode($this->data['web']).'?.png';
         }
 
 
