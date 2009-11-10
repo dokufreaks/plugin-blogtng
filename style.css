@@ -174,6 +174,14 @@ div.dokuwiki ul.blogtng_tags li:last-child div.li:after {
   content: "" !important;
 }
 
+/* tag cloud */
+div.dokuwiki a.cloud_weight0 { font-size: 100% !important; }
+div.dokuwiki a.cloud_weight1 { font-size: 110% !important; }
+div.dokuwiki a.cloud_weight2 { font-size: 120% !important; }
+div.dokuwiki a.cloud_weight3 { font-size: 130% !important; }
+div.dokuwiki a.cloud_weight4 { font-size: 140% !important; }
+div.dokuwiki a.cloud_weight5 { font-size: 150% !important; }
+
 /* comment form */
 div.dokuwiki form#blogtng__comment_form,
 div.dokuwiki form#blogtng__comment_edit_form {
