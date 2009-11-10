@@ -205,7 +205,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
             $query .= 'WHERE blog = "' . $data['blog'] . '" ';
         } else {
             $query .= 'WHERE blog != ""';
-        } 
+        }
         if($data['filter'] == 'entry_title') {
             $query .= 'AND ( title LIKE "%'.$data['string'].'%" ) ';
         }
@@ -578,7 +578,15 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         ptln('<td class="comment_created">' . strftime($conf['dformat'], $comment['created']) . '</td>');
         ptln('<td class="comment_ip">' . $comment['ip'] . '</td>');
 
-        ptln('<td class="comment_name"><img src="' . $cmt->tpl_avatar(16,16,true) . '" alt="' . $comment['name'] . '" class="avatar" /> <a href="mailto:' . $comment['mail'] . '" class="mail" title="' . $comment['mail'] . '">' . $comment['name'] . '</a></td>');
+        ptln('<td class="comment_name">');
+        $avatar = $cmt->tpl_avatar(16,16,true);
+        if($avatar) ptln('<img src="' . $avatar . '" alt="' . $comment['name'] . '" class="avatar" /> ');
+        if($comment['mail']){
+            ptln('<a href="mailto:' . $comment['mail'] . '" class="mail" title="' . $comment['mail'] . '">' . $comment['name'] . '</a>');
+        }else{
+            ptln($comment['name']);
+        }
+        ptln('</td>');
 
         if($comment['web']) {
             ptln('<td class="comment_web"><a href="' . $comment['web'] . '" title="' . $comment['web'] . '">' . $comment['web'] . '</a></td>');
