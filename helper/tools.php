@@ -12,6 +12,13 @@ if(!defined('BLOGTNG_DIR')) define('BLOGTNG_DIR',DOKU_PLUGIN.'blogtng/');
 
 class helper_plugin_blogtng_tools extends DokuWiki_Plugin {
 
+    /**
+     * Values accepted in syntax
+     */
+    static $data_whitelist = array(
+        'sortorder' => array('asc', 'desc'),
+        'sortby' => array('created', 'lastmod', 'title', 'page', 'random'),
+    );
 
     /**
      * return some info
@@ -66,5 +73,19 @@ class helper_plugin_blogtng_tools extends DokuWiki_Plugin {
         return $elem;
     }
 
+    static public function cleanConf(&$conf) {
+        if (!in_array($conf['sortorder'], self::$data_whitelist['sortorder'])) {
+            unset($conf['sortorder']);
+        }
+        if (!in_array($conf['sortby'], self::$data_whitelist['sortby'])) {
+            unset($conf['sortby']);
+        }
+        if (!is_int($conf['limit'])) {
+            unset($conf['limit']);
+        }
+        if (!is_int($conf['offset'])) {
+            unset($conf['offset']);
+        }
+    }
 
 }

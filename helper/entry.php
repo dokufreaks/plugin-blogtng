@@ -80,6 +80,13 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
     }
 
+    /**
+     * FIXME: Is this deprecated?
+     *
+     * @param $resid
+     * @param $index
+     * @return unknown_type
+     */
     function load_by_res($resid, $index) {
         $this->entry = $this->prototype();
         $this->taghelper = null;
@@ -93,7 +100,11 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
 
         $result = $this->sqlitehelper->res2row($resid, $index);
-        $this->entry = $result;
+        $this->load_by_row($result);
+    }
+
+    function load_by_row($row) {
+        $this->entry = $row;
         if($this->poke()){
             return self::RET_OK;
         }else{
@@ -216,33 +227,12 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * @fixme move SQL creation to its own function?
      */
     function xhtml_list($conf){
-
-        $sortkey = ($conf['sortby'] == 'random') ? 'Random()' : $conf['sortby'];
-        $blog_query = '(blog = '.
-                      $this->sqlitehelper->quote_and_join($conf['blog'],
-                                                          ' OR blog = ').')';
-        if(count($conf['tags'])){
-            $tag_query  = ' AND (tag = '.
-                          $this->sqlitehelper->quote_and_join($conf['tags'],
-                                                              ' OR tag = ').') AND A.pid = B.pid';
-        }
-
-        $query = 'SELECT A.pid as pid, page, title, blog, image, created,
-                         lastmod, login, author, mail
-                    FROM entries A, tags B
-                   WHERE '.$blog_query.$tag_query.'
-                GROUP BY A.pid
-                ORDER BY '.$sortkey.' '.$conf['sortorder'].
-                 ' LIMIT '.$conf['limit'].
-                ' OFFSET '.$conf['offset'];
-
-        $resid = $this->sqlitehelper->query($query);
-        if (!$resid) return '';
+        $posts = $this->get_posts($conf);
+        if (!$posts) return '';
 
         ob_start();
-        $count = sqlite_num_rows($resid);
-        for ($i = 0; $i < $count; $i++) {
-            $this->load_by_res($resid, $i);
+        foreach ($posts as $row) {
+            $this->load_by_row($row);
             $this->tpl_content($conf['tpl'], 'list');
         }
         $output = ob_get_contents();
@@ -671,6 +661,30 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         } else {
             return '';
         }
+    }
+
+    function get_posts($conf) {
+        $sortkey = ($conf['sortby'] == 'random') ? 'Random()' : $conf['sortby'];
+        $blog_query = '(blog = '.
+                      $this->sqlitehelper->quote_and_join($conf['blog'],
+                                                          ' OR blog = ').')';
+        if(count($conf['tags'])){
+            $tag_query  = ' AND (tag = '.
+                          $this->sqlitehelper->quote_and_join($conf['tags'],
+                                                              ' OR tag = ').') AND A.pid = B.pid';
+        }
+
+        $query = 'SELECT A.pid as pid, page, title, blog, image, created,
+                         lastmod, login, author, mail
+                    FROM entries A, tags B
+                   WHERE '.$blog_query.$tag_query.'
+                GROUP BY A.pid
+                ORDER BY '.$sortkey.' '.$conf['sortorder'].
+                 ' LIMIT '.$conf['limit'].
+                ' OFFSET '.$conf['offset'];
+
+        $resid = $this->sqlitehelper->query($query);
+        return $this->sqlitehelper->res2arr($resid);
     }
 
     function is_valid_pid($pid) {
