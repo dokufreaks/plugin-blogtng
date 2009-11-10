@@ -37,7 +37,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
     /**
      * Types we accept in our syntax
      */
-    var $type_whitelist = array('list', 'pagination', 'related', 'recentcomments', 'newform');
+    var $type_whitelist = array('list', 'pagination', 'related', 'recentcomments', 'newform', 'tagcloud');
 
     /**
      * Values accepted in syntax
@@ -138,6 +138,11 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
                 // FIXME to cache or not to cache?
                 $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
                 $renderer->doc .= $this->commenthelper->xhtml_recentcomments($data['conf']);
+                break;
+            case 'tagcloud':
+                $renderer->inf['cache'] = false; // never cache this
+                $this->taghelper =& plugin_load('helper', 'blogtng_tags');
+                $renderer->doc .= $this->taghelper->xhtml_tagcloud($data['conf']);
                 break;
             default:
                 $renderer->doc .= $this->entryhelper->xhtml_list($data['conf']);

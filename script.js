@@ -127,6 +127,33 @@ var blogtng = {
                 commentPopup(e, this.href.substring(this.href.lastIndexOf('#')+'#comment_'.length));
             });
         }
+    },
+
+    insert_checkall_checkbox: function() {
+        if(!$('blogtng__admin')) return;
+        var th = $('blogtng__admin_checkall_th');
+        if(th) {
+            var html_checkbox = '<input type="checkbox" id="blogtng__admin_checkall" />';
+            th.innerHTML = html_checkbox;
+            var checkbox = $('blogtng__admin_checkall');
+            addEvent(checkbox, 'click', function(e) {
+                blogtng.checkall();
+            });
+        }
+    },
+
+    checkall: function() {
+        objs = getElementsByClass('comment_cid', null, 'input');
+        if(objs) {
+            var num = objs.length;
+            for(var i=0;i<num;i++) {
+                if(objs[i].checked) {
+                    objs[i].checked = false;
+                } else {
+                    objs[i].checked = true;
+                }
+            }
+        }
     }
 };
 
@@ -218,5 +245,6 @@ addInitEvent(function() {
     blogtng.validate_attach($('blogtng__comment_submit'));
     blogtng.preview_attach($('blogtng__preview_submit'),$('blogtng__comment_form_wrap'),'blogtng__comment_preview');
     blogtng.reply_attach();
+    blogtng.insert_checkall_checkbox();
 });
 // vim:ts=4:sw=4:et:enc=utf-8:

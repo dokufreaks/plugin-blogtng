@@ -72,7 +72,18 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
     }
 
     /**
-     * Save comment
+     * Load tags for a specified blog
+     */
+    function load_by_blog($blogs) {
+        $query = 'SELECT DISTINCT tag, A.pid as pid FROM tags A LEFT JOIN entries B ON B.blog IN ("' . implode('","', $blogs) . '")';
+        $resid = $this->sqlitehelper->query($query); 
+        if($resid) {
+            return $this->sqlitehelper->res2arr($resid);
+        }
+    }
+
+    /**
+     * Save tags
      */
     function save() {
         $query = 'BEGIN TRANSACTION';
@@ -134,6 +145,59 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
         }
         $html = '<ul class="blogtng_tags">'.DOKU_LF.join(DOKU_LF, $prepared).'</ul>'.DOKU_LF;
         echo $html;
+    }
+
+    /**
+     * Displays a tag cloud
+     *
+     * @author Michael Klier <chi@chimeric.de>
+     */
+    function xhtml_tagcloud($conf) {
+        $tags = $this->load_by_blog($conf['blog']);
+        if(!$tags) return;
+        $cloud = array();
+        foreach($tags as $tag) {
+            if(!$cloud[$tag['tag']]) {
+                $cloud[$tag['tag']] = 1;
+            } else {
+                $cloud[$tag['tag']]++;
+            }
+            //$cloud[$tag['tag']][] = $tag['pid'];
+        }
+        asort($cloud);
+        $cloud = array_slice(array_reverse($cloud), 0, $conf['limit']);
+        $this->_cloud_weight($cloud, 5, 25, 5);
+        ksort($cloud);
+        foreach($cloud as $tag => $weight) {
+            ptln('<a href="' . wl($conf['target'], array('btng[post][tags]'=>$tag))
+                             . '" class="tag cloud_weight' . $weight 
+                             . '" title="' . $tag . '">' . $tag . '<a/>');
+        } 
+    }
+
+    /**
+     * Happily stolen (and slightly modified) from
+     *
+     * http://www.splitbrain.org/blog/2007-01/03-tagging_splitbrain
+     */
+    function _cloud_weight(&$tags,$min,$max,$levels){
+        // calculate tresholds
+        $tresholds = array();
+        $tresholds[0]= $min; // lowest treshold should always be min
+        for($i=1; $i<=$levels; $i++){
+            $tresholds[$i] = pow($max - $min + 1, $i/$levels) + $min;
+        }
+     
+        // assign weights
+        foreach($tags as $tag => $cnt){
+            foreach($tresholds as $tresh => $val){
+                if($cnt <= $val){
+                    $tags[$tag] = $tresh;
+                    break;
+                }
+                $tags[$tag] = $levels;
+            }
+        }
     }
 }
 // vim:ts=4:sw=4:et:enc=utf-8:

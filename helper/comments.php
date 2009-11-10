@@ -151,11 +151,14 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
 
         // handle subscriptions (except on updates)
         if(!$comment['cid']){
-            if($this->getConf('comments_subscription') && $comment['subscribe']){
-                $this->subscribe($comment['pid'],$comment['mail']);
+            if($this->getConf('comments_subscription')) {
+                if($comment['subscribe']) {
+                    $this->subscribe($comment['pid'],$comment['mail']);
+                } else {
+                    // send subscriber and notify mails
+                    $this->send_subscriber_mails($comment);
+                }
             }
-            // send subscriber and notify mails
-            $this->send_subscriber_mails($comment);
         }
     }
 
@@ -659,6 +662,8 @@ class blogtng_comment{
                  . '&rating=' . $conf['plugin']['blogtng']['comments_gravatar_rating']
                  . '&default='.rawurlencode($dfl)
                  . '&.png';
+        } elseif ($this->data['web']){
+            $img = 'http://getfavicon.appspot.com/'.rawurlencode($this->data['web']).'?.png';
         }
 
 

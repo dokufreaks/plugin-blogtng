@@ -44,6 +44,10 @@ div.dokuwiki div#blogtng__admin table {
   width: 100%;
 }
 
+div.dokuwiki div#blogtng__admin table td {
+    vertical-align: top;
+}
+
 div.dokuwiki div#blogtng__admin table tr.odd {
   background: #f5f5f5;
 }
@@ -67,6 +71,10 @@ div.dokuwiki div#blogtng__admin table td.comment_name,
 div.dokuwiki div#blogtng__admin table td.comment_web,
 div.dokuwiki div#blogtng__admin table td.entry_created {
   width: 12%;
+}
+
+div.dokuwiki div#blogtng__admin table td.comment_text {
+  padding: 0.5em;
 }
 
 div.dokuwiki div#blogtng__admin table td.entry_comments {
@@ -96,6 +104,12 @@ div.dokuwiki div.blogtng_entry div.blogtng_footer {
 /* admin area */
 div.dokuwiki form#blogtng__search_form label {
     font-weight: bold;
+}
+
+div.dokuwiki form#blogtng__comment_batch_edit_form {
+    clear: both;
+    display: block;
+    margin-bottom: 0.8em;
 }
 
 /* comment display */
@@ -159,6 +173,14 @@ div.dokuwiki ul.blogtng_tags div.li:after {
 div.dokuwiki ul.blogtng_tags li:last-child div.li:after {
   content: "" !important;
 }
+
+/* tag cloud */
+div.dokuwiki a.cloud_weight0 { font-size: 100% !important; }
+div.dokuwiki a.cloud_weight1 { font-size: 110% !important; }
+div.dokuwiki a.cloud_weight2 { font-size: 120% !important; }
+div.dokuwiki a.cloud_weight3 { font-size: 130% !important; }
+div.dokuwiki a.cloud_weight4 { font-size: 140% !important; }
+div.dokuwiki a.cloud_weight5 { font-size: 150% !important; }
 
 /* comment form */
 div.dokuwiki form#blogtng__comment_form,
