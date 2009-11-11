@@ -88,6 +88,11 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
 
         if(!count($conf['blog'])) $conf['blog'] = array('default');
 
+        // higher default limit for tag cloud
+        if($type == 'tagcloud' && !$conf['limit']) {
+            $conf['limit'] = 25;
+        }
+
         // merge with default config
         $conf = array_merge($this->config, $conf);
 
@@ -141,7 +146,6 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
                 break;
             case 'tagcloud':
                 $renderer->inf['cache'] = false; // never cache this
-                $data['conf']['limit'] = 25;     // higher default limit for tag cloud
                 $this->taghelper =& plugin_load('helper', 'blogtng_tags');
                 $renderer->doc .= $this->taghelper->xhtml_tagcloud($data['conf']);
                 break;
