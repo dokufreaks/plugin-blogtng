@@ -42,7 +42,7 @@ class action_plugin_blogtng_feed extends DokuWiki_Action_Plugin{
         $opt =& $event->data['opt'];
         if ($opt['feed_mode'] != 'blogtng') return;
 
-        $opt['blog'] = $_REQUEST['blog'];
+        $opt['blog'] = implode(',', $_REQUEST['blog']);
         $opt['sortby'] = $_REQUEST['sortby'];
         $opt['sortorder'] = $_REQUEST['sortorder'];
     }
@@ -54,7 +54,7 @@ class action_plugin_blogtng_feed extends DokuWiki_Action_Plugin{
         $event->preventDefault();
         $event->data['data'] = array();
         $conf = array(
-            'blog' => array($opt['blog']),
+            'blog' => $opt['blog'],
             'sortby' => $opt['sortby'],
             'sortorder' => $opt['sortorder'],
             'limit' => $opt['items'],
