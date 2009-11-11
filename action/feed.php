@@ -42,7 +42,7 @@ class action_plugin_blogtng_feed extends DokuWiki_Action_Plugin{
         $opt =& $event->data['opt'];
         if ($opt['feed_mode'] != 'blogtng') return;
 
-        $opt['blog'] = implode(',', $_REQUEST['blog']);
+        $opt['blog'] = explode(',', $_REQUEST['blog']);
         $opt['sortby'] = $_REQUEST['sortby'];
         $opt['sortorder'] = $_REQUEST['sortorder'];
     }
