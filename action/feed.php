@@ -38,15 +38,32 @@ class action_plugin_blogtng_feed extends DokuWiki_Action_Plugin{
         $controller->register_hook('FEED_ITEM_ADD', 'BEFORE', $this, 'handle_item_add', array());
     }
 
+    /**
+     * Parses blogtng specific feed parameters if the feed mode is 'blogtng'.
+     *
+     * @param $event
+     * @param $param
+     * @return void
+     */
     function handle_opts_postprocess(&$event, $param) {
         $opt =& $event->data['opt'];
         if ($opt['feed_mode'] != 'blogtng') return;
 
         $opt['blog'] = $_REQUEST['blog'];
+        $opt['tags'] = $_REQUEST['tags'];
         $opt['sortby'] = $_REQUEST['sortby'];
         $opt['sortorder'] = $_REQUEST['sortorder'];
     }
 
+    /**
+     * Handles the 'blogtng' feed mode and prevents the default action (recents).
+     * Retrieves all blog posts as defined by blog and tags parameters, orders
+     * and limits them as requested and returns them inside the event.
+     *
+     * @param $event the event as triggered in feed.php
+     * @param $param empty
+     * @return void
+     */
     function handle_mode_unknown(&$event, $param) {
         $opt = $event->data['opt'];
         if ($opt['feed_mode'] != 'blogtng') return;
@@ -55,26 +72,34 @@ class action_plugin_blogtng_feed extends DokuWiki_Action_Plugin{
         $event->data['data'] = array();
         $conf = array(
             'blog' => explode(',', $opt['blog']),
+            'tags' => ($opt['tags'] ? explode(',', $opt['tags']) : null),
             'sortby' => $opt['sortby'],
             'sortorder' => $opt['sortorder'],
             'limit' => $opt['items'],
             'offset' => 0,
         );
-        dbglog("CONF preclean: " . print_r($conf, true));
         $this->tools->cleanConf($conf);
-        dbglog("CONF postclean: " . print_r($conf, true));
         $conf = array_merge($conf, $this->defaultConf);
         $posts = $this->entryhelper->get_posts($conf);
         foreach ($posts as $row) {
-            $this->entryhelper->load_by_row($row);
             $event->data['data'][] = array(
                 'id' => $row['page'],
-                'title' => $row['title'],
-                'pid' => $row['pid'],
+                'date' => $row['created'],
+                'user' => $row['author'],
+                'entry' => $row,
             );
         }
     }
 
+    /**
+     * Preprocesses a blog post as its added to the feed. Makes sure to
+     * remove the first header from the text (otherwise it would be doubled)
+     * and takes care of presentation as configured via template.
+     *
+     * @param $event the event as triggered in feed.php
+     * @param $param empty
+     * @return void
+     */
     function handle_item_add(&$event, $param) {
         $opt = $event->data['opt'];
         $ditem = $event->data['ditem'];
@@ -94,10 +119,22 @@ class action_plugin_blogtng_feed extends DokuWiki_Action_Plugin{
         $headingIns = array_shift($headers);
         $firstheading = $headingIns[1][0];
 
-        // strip first heading and replace item title
-        $event->data['item']->description = preg_replace('#[^\n]*?>\s*?' . preg_quote(hsc($firstheading), '#') . '\s*?<.*\n#', '', $event->data['item']->description, 1);
-        $event->data['item']->title = $ditem['title'];
+        $this->entryhelper->load_by_row($ditem['entry']);
 
+        $output = '';
+        ob_start();
+        $this->entryhelper->tpl_content($ditem['entry']['blog'], 'feed');
+        $output = ob_get_contents();
+        ob_end_clean();
+        // make URLs work when canonical is not set, regexp instead of rerendering!
+        if(!$conf['canonical']){
+            $base = preg_quote(DOKU_REL,'/');
+            $output = preg_replace('/(<a href|<img src)="('.$base.')/s','$1="'.DOKU_URL,$output);
+        }
+
+        // strip first heading and replace item title
+        $event->data['item']->description = preg_replace('#[^\n]*?>\s*?' . preg_quote(hsc($firstheading), '#') . '\s*?<.*\n#', '', $output, 1);
+        $event->data['item']->title = $ditem['entry']['title'];
     }
 
     /**

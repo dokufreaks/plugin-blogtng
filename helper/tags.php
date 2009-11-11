@@ -76,7 +76,7 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
      */
     function load_by_blog($blogs) {
         $query = 'SELECT DISTINCT tag, A.pid as pid FROM tags A LEFT JOIN entries B ON B.blog IN ("' . implode('","', $blogs) . '")';
-        $resid = $this->sqlitehelper->query($query); 
+        $resid = $this->sqlitehelper->query($query);
         if($resid) {
             return $this->sqlitehelper->res2arr($resid);
         }
@@ -147,6 +147,10 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
         echo $html;
     }
 
+    function tpl_tagstring($target, $separator) {
+        echo join($separator, array_map(array($this, _format_tag_link), $this->tags, array($target)));
+    }
+
     /**
      * Displays a tag cloud
      *
@@ -170,9 +174,9 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
         ksort($cloud);
         foreach($cloud as $tag => $weight) {
             ptln('<a href="' . wl($conf['target'], array('btng[post][tags]'=>$tag))
-                             . '" class="tag cloud_weight' . $weight 
+                             . '" class="tag cloud_weight' . $weight
                              . '" title="' . $tag . '">' . $tag . '<a/>');
-        } 
+        }
     }
 
     /**
@@ -187,7 +191,7 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
         for($i=1; $i<=$levels; $i++){
             $tresholds[$i] = pow($max - $min + 1, $i/$levels) + $min;
         }
-     
+
         // assign weights
         foreach($tags as $tag => $cnt){
             foreach($tresholds as $tresh => $val){
@@ -198,6 +202,10 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
                 $tags[$tag] = $levels;
             }
         }
+    }
+
+    function _format_tag_link($tag, $target) {
+        return '<a href="'.wl($target,array('btng[post][tags]'=>$tag)).'" class="tag">'.hsc($tag).'</a>';
     }
 }
 // vim:ts=4:sw=4:et:enc=utf-8:

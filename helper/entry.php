@@ -379,7 +379,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     //~~ template methods
 
     function tpl_content($name, $type) {
-        $whitelist = array('list', 'entry');
+        $whitelist = array('list', 'entry', 'feed');
         if(!in_array($type, $whitelist)) return;
         $tpl = DOKU_PLUGIN . 'blogtng/tpl/' . $name . '_' . $type . '.php';
         if(file_exists($tpl)) {
@@ -401,27 +401,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      */
     function tpl_entry($included=true, $readmore='syntax',
                        $inc_level=true, $skipheader=false) {
-        static $recursion = false;
-        if($recursion){
-            msg('blogtng: preventing infinite loop',-1);
-            return false; // avoid infinite loops
-        }
-        $recursion = true;
-
-        $id = $this->entry['page'];
-
-        // FIXME do some caching here!
-        global $ID;
-        $info = array();
-
-        $ins = p_cached_instructions(wikiFN($id));
-        $backupID = $ID;
-        $ID = $id;
-        $this->_convert_instructions($ins, $inc_level, $readmore, $skipheader);
-        $content = p_render('xhtml', $ins, $info);
-        $ID = $backupID;
-
-        $recursion = false;
+        $content = $this->get_entrycontent($readmore, $inc_level, $skipheader);
 
         if ($included) {
             $content = $this->_convert_footnotes($content);
@@ -458,10 +438,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     }
 
     function tpl_lastmodified($format='') {
-        global $conf;
-        if(!$format) $format = $conf['dformat'];
         if(!$this->entry['lastmod']) return; // uh oh, something went wrong
-        print strftime($format, $this->entry['lastmod']);
+        print dformat($this->entry['lastmod'], $format);
     }
 
     function tpl_author() {
@@ -601,6 +579,14 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $this->taghelper->tpl_tags($target);
     }
 
+    function tpl_tagstring($target, $separator=', ') {
+        if (!$this->taghelper) {
+            $this->taghelper =& plugin_load('helper', 'blogtng_tags');
+        }
+        $this->taghelper->load($this->entry['pid']);
+        $this->taghelper->tpl_tagstring($target, $separator);
+    }
+
     /**
      * Renders the link to the previous blog post using the given template.
      *
@@ -685,6 +671,38 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
         $resid = $this->sqlitehelper->query($query);
         return $this->sqlitehelper->res2arr($resid);
+    }
+
+    /**
+     * FIXME
+     * @param $readmore
+     * @param $inc_level
+     * @param $skipheader
+     * @return unknown_type
+     */
+    function get_entrycontent($readmore='syntax', $inc_level=true, $skipheader=false) {
+        static $recursion = false;
+        if($recursion){
+            msg('blogtng: preventing infinite loop',-1);
+            return false; // avoid infinite loops
+        }
+        $recursion = true;
+
+        $id = $this->entry['page'];
+
+        // FIXME do some caching here!
+        global $ID;
+        $info = array();
+
+        $ins = p_cached_instructions(wikiFN($id));
+        $backupID = $ID;
+        $ID = $id;
+        $this->_convert_instructions($ins, $inc_level, $readmore, $skipheader);
+        $content = p_render('xhtml', $ins, $info);
+        $ID = $backupID;
+
+        $recursion = false;
+        return $content;
     }
 
     function is_valid_pid($pid) {
