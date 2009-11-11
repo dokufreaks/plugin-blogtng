@@ -141,6 +141,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
                 break;
             case 'tagcloud':
                 $renderer->inf['cache'] = false; // never cache this
+                $data['conf']['limit'] = 25;     // higher default limit for tag cloud
                 $this->taghelper =& plugin_load('helper', 'blogtng_tags');
                 $renderer->doc .= $this->taghelper->xhtml_tagcloud($data['conf']);
                 break;
