@@ -12,7 +12,7 @@
 <h1>
 <?php $entry->tpl_title()?>
 &nbsp;&middot;
-<?php $entry->tpl_commentcount('(%d Comment)','(%d Comments)',false)?>
+<?php $entry->tpl_commentcount('(%d Comments)','(%d Comment)', '(%d Comments)', false)?>
 </h1>
 
 <p>
