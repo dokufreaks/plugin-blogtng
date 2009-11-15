@@ -418,6 +418,10 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         echo wl($this->entry['page']).(!empty($anchor) ? '#'.$anchor : '');
     }
 
+    function tpl_permalink($str) {
+        echo '<a href="' . wl ($this->entry['page']) . '" title="' . $this->entry['title'] . '" />' . $str . '</a>';
+    }
+
     function tpl_abstract($len=0) {
         $this->_load_abstract();
         if($len){
