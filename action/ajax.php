@@ -38,13 +38,14 @@ class action_plugin_blogtng_ajax extends DokuWiki_Action_Plugin{
 
         @require_once(DOKU_PLUGIN . 'blogtng/helper/comments.php');
         $comment = new blogtng_comment();
-
+ 
         $comment->data['text']    = $_REQUEST['text'];
         $comment->data['name']    = $_REQUEST['name'];
         $comment->data['mail']    = $_REQUEST['mail'];
         $comment->data['web']     = ($_REQUEST['web']) ? $_REQUEST['web'] : '';
         $comment->data['cid']     = 'preview';
         $comment->data['created'] = time();
+        $comment->data['status']  = 'visible';
 
         if(!$comment->data['name'] && $_SERVER['REMOTE_USER']){
             if($auth) {
