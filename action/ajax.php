@@ -21,10 +21,6 @@ class action_plugin_blogtng_ajax extends DokuWiki_Action_Plugin{
         $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
     }
 
-    function getInfo() {
-        return confToHash(dirname(__FILE__).'/../INFO');
-    }
-
     function register(&$controller) {
         $controller->register_hook('AJAX_CALL_UNKNOWN', 'BEFORE', $this, 'handle_ajax_call', array());
     }
@@ -38,7 +34,7 @@ class action_plugin_blogtng_ajax extends DokuWiki_Action_Plugin{
 
         @require_once(DOKU_PLUGIN . 'blogtng/helper/comments.php');
         $comment = new blogtng_comment();
- 
+
         $comment->data['text']    = $_REQUEST['text'];
         $comment->data['name']    = $_REQUEST['name'];
         $comment->data['mail']    = $_REQUEST['mail'];

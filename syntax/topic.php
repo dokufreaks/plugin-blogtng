@@ -33,12 +33,6 @@ class syntax_plugin_blogtng_topic extends DokuWiki_Syntax_Plugin {
         $this->sqlitehelper =& plugin_load('helper', 'blogtng_sqlite');
         $this->taghelper =& plugin_load('helper', 'blogtng_tags');
     }
-    /**
-     * return some info
-     */
-    function getInfo() {
-        return confToHash(dirname(__FILE__).'/../INFO');
-    }
 
     function getType() { return 'substition'; }
     function getPType() { return 'block'; }

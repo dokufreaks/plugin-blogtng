@@ -18,10 +18,6 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
     var $sqlitehelper  = null;
     var $taghelper     = null;
 
-    function getInfo() {
-        return confToHash(dirname(__FILE__).'/../INFO');
-    }
-
     function getMenuSort() { return 200; }
     function forAdminOnly() { return false; }
 

@@ -16,10 +16,6 @@ require_once (DOKU_PLUGIN . 'syntax.php');
 
 class syntax_plugin_blogtng_readmore extends DokuWiki_Syntax_Plugin {
 
-    function getInfo() {
-        return confToHash(dirname(__FILE__).'/../INFO');
-    }
-
     function getType() { return 'substition'; }
     function getPType() { return 'normal'; }
     function getSort() { return 300; }

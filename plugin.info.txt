@@ -1,8 +1,8 @@
 # General Plugin Info do not edit
-
+base   blogtng
 author Michael Klier, Gina Haeussge, Andreas Gohr
 email  freaks@dokuwiki.org
-date   2009-11-08
+date   2009-12-16
 name   Next Generation Blog Plugin
 desc   The complete solution to blogging with DokuWiki
 url    http://www.dokuwiki.org/plugin:blogtng

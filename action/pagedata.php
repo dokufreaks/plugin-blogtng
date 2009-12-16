@@ -21,10 +21,6 @@ class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
         $this->entryhelper =& plugin_load('helper', 'blogtng_entry');
     }
 
-    function getInfo() {
-        return confToHash(dirname(__FILE__).'/../INFO');
-    }
-
     function register(&$controller) {
         $controller->register_hook('PARSER_METADATA_RENDER', 'AFTER', $this, 'update_data', array());
     }

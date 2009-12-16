@@ -24,13 +24,6 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     }
 
     /**
-     * Return some info
-     */
-    function getInfo() {
-        return confToHash(dirname(__FILE__).'/../INFO');
-    }
-
-    /**
      * Load comments for specified pid
      */
     function load($pid) {

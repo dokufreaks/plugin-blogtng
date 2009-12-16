@@ -19,13 +19,6 @@ class renderer_plugin_blogtng_comment extends Doku_Renderer_xhtml {
     var $tpl='';
 
     /**
-     * return some info
-     */
-    function getInfo(){
-        return confToHash(dirname(__FILE__).'/../INFO');
-    }
-
-    /**
      * the format we produce
      */
     function getFormat(){

@@ -36,12 +36,6 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $this->entry = $this->prototype();
     }
 
-    /**
-     * Return some info
-     */
-    function getInfo(){
-        return confToHash(dirname(__FILE__).'/../INFO');
-    }
 
     //~~ data access methods
 

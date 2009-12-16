@@ -48,11 +48,6 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
     );
 
     // default plugin functions...
-    function syntax_plugin_blogtng_blog() {
-    }
-    function getInfo() {
-        return confToHash(dirname(__FILE__).'/../INFO');
-    }
     function getType() { return 'substition'; }
     function getPType() { return 'block'; }
     function getSort() { return 300; }

@@ -21,14 +21,6 @@ class helper_plugin_blogtng_tools extends DokuWiki_Plugin {
     );
 
     /**
-     * return some info
-     */
-    function getInfo(){
-        return confToHash(BLOGTNG_DIR.'INFO');
-    }
-
-
-    /**
      * Return a page id based on the given format and title.
      *
      * @param $format string the format of the id to generate

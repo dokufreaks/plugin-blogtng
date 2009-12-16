@@ -25,10 +25,6 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
         $this->tools =& plugin_load('helper', 'blogtng_tools');
     }
 
-    function getInfo() {
-        return confToHash(dirname(__FILE__).'/../INFO');
-    }
-
     function register(&$controller) {
         $controller->register_hook('HTML_EDITFORM_OUTPUT', 'BEFORE', $this, 'handle_editform_output', array());
         $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handle_action_act_preprocess', array('before'));

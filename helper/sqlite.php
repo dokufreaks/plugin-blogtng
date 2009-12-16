@@ -30,14 +30,6 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
     }
 
     /**
-     * return some info
-     */
-    function getInfo(){
-        return confToHash(BLOGTNG_DIR.'INFO');
-    }
-
-
-    /**
      * Open the database
      */
     function _dbconnect(){

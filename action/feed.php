@@ -28,10 +28,6 @@ class action_plugin_blogtng_feed extends DokuWiki_Action_Plugin{
         $this->tools =& plugin_load('helper', 'blogtng_tools');
     }
 
-    function getInfo() {
-        return confToHash(dirname(__FILE__).'/../INFO');
-    }
-
     function register(&$controller) {
         $controller->register_hook('FEED_OPTS_POSTPROCESS', 'AFTER', $this, 'handle_opts_postprocess', array());
         $controller->register_hook('FEED_MODE_UNKNOWN', 'BEFORE', $this, 'handle_mode_unknown', array ());

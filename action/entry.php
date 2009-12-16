@@ -23,10 +23,6 @@ class action_plugin_blogtng_entry extends DokuWiki_Action_Plugin{
         $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
     }
 
-    function getInfo() {
-        return confToHash(dirname(__FILE__).'/../INFO');
-    }
-
     function register(&$controller) {
         $controller->register_hook('TPL_ACT_RENDER', 'BEFORE', $this, 'handle_tpl_act_render', array());
         $controller->register_hook('TPL_METAHEADER_OUTPUT', 'BEFORE', $this, 'handle_metaheader_output', array ());

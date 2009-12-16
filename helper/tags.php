@@ -25,13 +25,6 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
     }
 
     /**
-     * Return some info
-     */
-    function getInfo() {
-        return confToHash(dirname(__FILE__).'/../INFO');
-    }
-
-    /**
      * Count tags for specified pid
      */
     function count($pid) {
