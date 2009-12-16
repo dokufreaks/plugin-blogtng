@@ -28,6 +28,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         'cache'     => false,
         'title'     => '',
         'format'    => ':blog:%Y:%m:%{title}', #FIXME
+        'listwrap'  => 0, //default depends on syntax type
     );
 
     var $entryhelper  = null;
@@ -86,6 +87,17 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         // higher default limit for tag cloud
         if($type == 'tagcloud' && !$conf['limit']) {
             $conf['limit'] = 25;
+        }
+
+        // default to listwrap for recent comments
+        if($type == 'recentcomments'){
+            $this->config['listwrap'] = 1;
+        }
+
+        // reversed listwrap syntax
+        if($conf['nolistwrap']) {
+            $conf['listwrap'] = 0;
+            unset($conf['nolistwrap']);
         }
 
         // merge with default config

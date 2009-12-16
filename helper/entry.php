@@ -215,20 +215,19 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     /**
      * List matching blog entries
      *
-     * Creates the needed SQL query from the given config data, executes
-     * it and calles the *_list template for each entry in the result set
-     *
-     * @fixme move SQL creation to its own function?
+     * Calls the *_list template for each entry in the result set
      */
     function xhtml_list($conf){
         $posts = $this->get_posts($conf);
         if (!$posts) return '';
 
         ob_start();
+        if($conf['listwrap']) echo '<ul class="blogtng_list">';
         foreach ($posts as $row) {
             $this->load_by_row($row);
             $this->tpl_content($conf['tpl'], 'list');
         }
+        if($conf['listwrap']) echo '</ul>';
         $output = ob_get_contents();
         ob_end_clean();
         return $output;

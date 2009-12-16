@@ -498,9 +498,9 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      */
     function xhtml_recentcomments($conf){
         ob_start();
-        if(!$conf['nolistwrap']) echo '<ul>';
+        if($conf['listwrap']) echo '<ul class="blogtng_recentcomments">';
         $this->tpl_recentcomments($conf['tpl'],$conf['limit'],$conf['blog'],$conf['type']);
-        if(!$conf['nolistwrap']) echo '</ul>';
+        if($conf['listwrap']) echo '</ul>';
         $output = ob_get_contents();
         ob_end_clean();
         return $output;
