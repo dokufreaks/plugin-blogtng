@@ -1,5 +1,5 @@
 <?php
-$lang['comments_allow_web']       = 'Allow users to link to thier website whith comments?';
+$lang['comments_allow_web']       = 'Allow users to link to their website with comments?';
 $lang['comments_subscription']    = 'Allow users to subscribe to new comments via email?';
 $lang['comments_gravatar_rating'] = 'Minimum rating for gravatars.';
 $lang['comments_gravatar_default'] = 'Avatar image to use for users without a gravatar image.';
