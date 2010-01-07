@@ -6,11 +6,12 @@ $meta['comments_subscription']    = array('onoff');
 $meta['comments_gravatar_rating'] = array('multichoice', '_choices' => array('X', 'R', 'PG', 'G'));
 $meta['comments_gravatar_default'] = array('multichoice', '_choices' => array('blank', 'default', 'identicon', 'monsterid', 'wavatar'));
 $meta['comments_forbid_syntax']   = array(
-                                       'multicheckbox', 
+                                       'multicheckbox',
                                        '_choices' => array_diff(plugin_list('syntax'), $blogtng_meta__excluded_syntax),
                                    );
 $meta['comments_xhtml_renderer']  = array(
-                                       'multicheckbox', 
+                                       'multicheckbox',
                                        '_choices' => array_diff(plugin_list('syntax'), $blogtng_meta__excluded_syntax),
                                    );
 $meta['editform_set_date']        = array('onoff');
+$meta['tags']                     = array('string');

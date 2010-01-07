@@ -54,10 +54,21 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
         $pos += 1;
 
         $this->taghelper->load($pid);
-        $tags = $this->tools->getParam('post/tags');
-        if (!$tags) $tags = join(', ', $this->taghelper->tags);
-        $event->data->insertElement($pos, form_makeTextField('btng[post][tags]', $tags, 'Tags', 'blogtng__tags', 'edit'));
-        $pos += 1;
+        $allowed_tags = $this->_get_allowed_tags();
+        $tags = $this->_get_post_tags();
+        if (!$tags) $tags = $this->taghelper->tags;
+        if (count($allowed_tags) > 0) {
+            $event->data->insertElement($pos++, form_makeOpenTag('div'));
+            foreach($this->_get_allowed_tags() as $val) {
+                $data = array('style' => 'margin-top: 0.3em;');
+                if (in_array($val, $tags)) $data['checked'] = 'checked';
+                $event->data->insertElement($pos++, form_makeCheckboxField('btng[post][tags][]', $val, $val, '', '', $data));
+            }
+            $event->data->insertElement($pos++, form_makeCloseTag('div'));
+        } else {
+            $event->data->insertElement($pos, form_makeTextField('btng[post][tags]', join(', ', $tags), 'Tags', 'blogtng__tags', 'edit'));
+            $pos += 1;
+        }
 
         if($this->getConf('editform_set_date')) {
             $postdate = $this->tools->getParam('post/date');
@@ -154,13 +165,37 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
 
                 $this->entryhelper->save();
 
-                $tags = $this->tools->getParam('post/tags');
+                $tags = $this->_get_post_tags();
+                $allowed_tags = $this->_get_allowed_tags();
+                if (count($allowed_tags) > 0) {
+                    foreach($tags as $n => $tag) {
+                        if (!in_array($tag, $allowed_tags)) {
+                            unset($tags[$n]);
+                        }
+                    }
+                }
                 $this->taghelper->load($pid);
-                $this->taghelper->set(explode(',', $tags));
+                $this->taghelper->set($tags);
                 $this->taghelper->save();
 
                 break;
         }
+    }
+
+    function _split_tags($tags) {
+        return array_filter(preg_split('/\s*,\s*/', $tags));
+    }
+
+    function _get_allowed_tags() {
+        return $this->_split_tags($this->getConf('tags'));
+    }
+
+    function _get_post_tags() {
+        $tags = $this->tools->getParam('post/tags');
+        if (!is_array($tags)) {
+            $tags = $this->_split_tags($tags);
+        }
+        return $tags;
     }
 }
 
