@@ -354,7 +354,11 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             $form->addElement(hsc($conf['title']));
             $form->addElement(form_makeCloseTag('h3'));
         }
-        $form->addElement(form_makeTextField('btng[new][title]', '', $this->getLang('title'), 'btng__nt', 'edit'));
+        if (isset($conf['select'])) {
+            $form->addElement(form_makeMenuField('btng[new][title]', array_filter(preg_split('/\s*,\s*/', $conf['select'])), '', $this->getLang('title'), 'btng__nt', 'edit'));
+        } else {
+            $form->addElement(form_makeTextField('btng[new][title]', '', $this->getLang('title'), 'btng__nt', 'edit'));
+        }
         $form->addElement(form_makeButton('submit', null, $this->getLang('create')));
         $form->addHidden('btng[new][format]', hsc($conf['format']));
         $form->addHidden('btng[post][blog]', hsc($conf['blog'][0]));
