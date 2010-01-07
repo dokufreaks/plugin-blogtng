@@ -134,7 +134,7 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
             return false;
         }
 
-        if(is_array($args[0])) $args = $args[0];
+        if(count($args) > 0 && is_array($args[0])) $args = $args[0];
         $argc = count($args);
 
         // check number of arguments
