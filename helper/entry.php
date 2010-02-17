@@ -363,14 +363,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $form->addHidden('btng[new][format]', hsc($conf['format']));
         $form->addHidden('btng[post][blog]', hsc($conf['blog'][0]));
 
-        $out = '<div class="blogtng_newform">';
-        ob_start();
-        $form->printForm();
-        $out .= ob_get_contents();
-        ob_end_clean();
-        $out .= '</div>';
-
-        return $out;
+        return '<div class="blogtng_newform">' . $form->getForm() . '</div>';
     }
 
     //~~ template methods
