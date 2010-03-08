@@ -168,7 +168,7 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
         foreach($cloud as $tag => $weight) {
             ptln('<a href="' . wl($conf['target'], array('btng[post][tags]'=>$tag))
                              . '" class="tag cloud_weight' . $weight
-                             . '" title="' . $tag . '">' . $tag . '<a/>');
+                             . '" title="' . $tag . '">' . $tag . '</a>');
         }
     }
 
