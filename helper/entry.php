@@ -243,6 +243,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $blog_query = '(blog = '.
                       $this->sqlitehelper->quote_and_join($conf['blog'],
                                                           ' OR blog = ').')';
+        $tag_query = $tag_table = "";
         if(count($conf['tags'])){
             $tag_query  = ' AND (tag = '.
                           $this->sqlitehelper->quote_and_join($conf['tags'],
@@ -648,6 +649,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $blog_query = '(blog = '.
                       $this->sqlitehelper->quote_and_join($conf['blog'],
                                                           ' OR blog = ').')';
+        $tag_query = "";
         if(count($conf['tags'])){
             $tag_query  = ' AND (tag = '.
                           $this->sqlitehelper->quote_and_join($conf['tags'],
@@ -771,7 +773,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     //~~ private methods
 
     function _load_abstract(){
-        if($this->entry['abstract']) return;
+        if(isset($this->entry['abstract'])) return;
         $id = $this->entry['page'];
 
         $this->entry['abstract'] = p_get_metadata($id,'description abstract',true);

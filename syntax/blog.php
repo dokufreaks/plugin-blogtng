@@ -117,7 +117,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
 
         // set target if not set yet
         global $ID;
-        if(!$data['conf']['target']) $data['conf']['target'] = $ID;
+        if(!isset($data['conf']['target'])) $data['conf']['target'] = $ID;
 
         // add additional data from request parameters
         if($start = $this->tools->getParam('pagination/start')){  // start offset
