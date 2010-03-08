@@ -409,7 +409,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     }
 
     function tpl_permalink($str) {
-        echo '<a href="' . wl ($this->entry['page']) . '" title="' . $this->entry['title'] . '">' . $str . '</a>';
+        echo '<a href="' . wl ($this->entry['page']) . '" title="' . hsc($this->entry['title']) . '">' . $str . '</a>';
     }
 
     function tpl_abstract($len=0) {
