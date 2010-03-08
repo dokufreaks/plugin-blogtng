@@ -87,19 +87,19 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      */
     function save($comment) {
         $query = 'INSERT OR IGNORE INTO comments (';
-        if($comment['cid']) $query .= 'cid, ';
+        if(isset($comment['cid'])) $query .= 'cid, ';
 
         $query .= 'pid, source, name, mail, web, avatar, created, text, status, ip) VALUES (';
-        if($comment['cid']) $query .= '?, ';
+        if(isset($comment['cid'])) $query .= '?, ';
 
         $query .= '?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
         $comment['status']  = ($this->getconf('moderate_comments')) ? 'hidden' : 'visible';
 
-        if(!$comment['created']) $comment['created'] = time();
+        if(!isset($comment['created'])) $comment['created'] = time();
 
         $comment['avatar']  = ''; // FIXME create avatar using a helper function
 
-        if($comment['cid']) {
+        if(isset($comment['cid'])) {
             $this->sqlitehelper->query($query,
                 $comment['cid'],
                 $comment['pid'],
@@ -128,6 +128,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
             );
         }
 
+        //FIXME sometimes $comment['cid'] is undefined... so we end up with a broken query here
         $query = 'UPDATE comments SET pid=?, source=?, name=?, mail=?, web=?, avatar=?, created=?, text=?, status=? WHERE cid=?';
         $this->sqlitehelper->query($query,
             $comment['pid'],
@@ -418,7 +419,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
 
         print '<div id="blogtng__comment_form_wrap">'.DOKU_LF;
         $form->printForm();
-        if($BLOGTNG['comment_action'] == 'preview' && empty($BLOGTNG['comment_submit_errors'])) {
+        if(isset($BLOGTNG['comment_action']) && ($BLOGTNG['comment_action'] == 'preview') && empty($BLOGTNG['comment_submit_errors'])) {
             print '<div id="blogtng__comment_preview">' . DOKU_LF;
             $comment = new blogtng_comment();
             $comment->data = $BLOGTNG['comment'];

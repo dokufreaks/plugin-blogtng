@@ -36,7 +36,8 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
     function handle() {
         global $lang;
 
-        $admin = (is_array($_REQUEST['btng']['admin'])) ? key($_REQUEST['btng']['admin']) : $_REQUEST['btng']['admin'];
+        if (!isset($_REQUEST['btng']['admin'])) { $admin = null; }
+        else { $admin = (is_array($_REQUEST['btng']['admin'])) ? key($_REQUEST['btng']['admin']) : $_REQUEST['btng']['admin']; }
 
         // handle actions
         switch($admin) {
@@ -677,7 +678,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         $form = new Doku_Form(array('id'=>'blogtng__comment_edit_form'));
         $form->startFieldset($this->getLang('act_comment_edit'));
         $form->addHidden('page', 'blogtng');
-        $form->addHidden('btng[admin]', $action);
+        $form->addHidden('btng[admin]', $action); //FIXME this var doesn't exist
         $form->addHidden('do', 'admin');
         $form->addHidden('btng[comment][cid]', $comment['cid']);
         $form->addHidden('btng[comment][pid]', $comment['pid']);

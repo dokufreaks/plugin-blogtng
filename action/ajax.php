@@ -38,7 +38,7 @@ class action_plugin_blogtng_ajax extends DokuWiki_Action_Plugin{
         $comment->data['text']    = $_REQUEST['text'];
         $comment->data['name']    = $_REQUEST['name'];
         $comment->data['mail']    = $_REQUEST['mail'];
-        $comment->data['web']     = ($_REQUEST['web']) ? $_REQUEST['web'] : '';
+        $comment->data['web']     = isset($_REQUEST['web']) ? $_REQUEST['web'] : '';
         $comment->data['cid']     = 'preview';
         $comment->data['created'] = time();
         $comment->data['status']  = 'visible';
