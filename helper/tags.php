@@ -154,7 +154,7 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
         if(!$tags) return;
         $cloud = array();
         foreach($tags as $tag) {
-            if(!$cloud[$tag['tag']]) {
+            if(!isset($cloud[$tag['tag']])) {
                 $cloud[$tag['tag']] = 1;
             } else {
                 $cloud[$tag['tag']]++;
