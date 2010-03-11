@@ -141,7 +141,7 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
     }
 
     function tpl_tagstring($target, $separator) {
-        echo join($separator, array_map(array($this, _format_tag_link), $this->tags, array($target)));
+        echo join($separator, array_map(array($this, _format_tag_link), $this->tags, array_fill(0, count($this->tags), $target)));
     }
 
     /**
