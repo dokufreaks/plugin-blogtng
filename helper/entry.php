@@ -56,12 +56,12 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         if ($resid === false) {
             msg('blogtng plugin: failed to load entry!', -1);
             $this->entry = $this->prototype();
-            return self::RET_ERR_NOENTRY;
+            return self::RET_ERR_DB;
         }
         if (sqlite_num_rows($resid) == 0) {
             $this->entry = $this->prototype();
             $this->entry['pid'] = $pid;
-            return self::RET_ERR_DB;
+            return self::RET_ERR_NOENTRY;
         }
 
         $result = $this->sqlitehelper->res2arr($resid);
