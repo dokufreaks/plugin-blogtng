@@ -95,7 +95,7 @@ class syntax_plugin_blogtng_topic extends DokuWiki_Syntax_Plugin {
         $tag_query = $this->taghelper->join_tag_query($data['tagquery']);
 
         $query = 'SELECT pid, page, title, blog, image, created,
-                         lastmod, login, author, email
+                         lastmod, login, author, mail
                     FROM entries
                    WHERE pid IN (SELECT pid FROM tags WHERE '.$tag_query.')
                 ORDER BY '.$sortkey.' '.$data['sortorder'].

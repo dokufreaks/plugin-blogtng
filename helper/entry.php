@@ -125,7 +125,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             'lastmod' => null,
             'author' => null,
             'login' => null,
-            'email' => null,
+            'mail' => null,
         );
     }
 

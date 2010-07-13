@@ -62,7 +62,7 @@ class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
             'lastmod' => (!$date_modified) ? $date_created : $date_modified,
             'login' => $login,
             'author' => ($userdata) ? $userdata['name'] : $login,
-            'email' => ($userdata) ? $userdata['mail'] : '',
+            'mail' => ($userdata) ? $userdata['mail'] : '',
         );
         $this->entryhelper->set($entry);
 
