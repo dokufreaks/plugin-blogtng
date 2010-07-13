@@ -222,7 +222,9 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         $mails = array_map('trim', split(',', $conf['notify']));
         $mails[] = $entry['mail'];
         $mails = array_unique(array_filter($mails));
-        mail_send('', $title, $atext, $conf['mailfrom'], '', $mails);
+        if (count($mails) > 0) {
+            mail_send('', $title, $atext, $conf['mailfrom'], '', implode(',', $mails));
+        }
 
         // finish here when subscriptions disabled
         if(!$this->getConf('comments_subscription')) return;
