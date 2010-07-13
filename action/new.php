@@ -17,7 +17,7 @@ class action_plugin_blogtng_new extends DokuWiki_Action_Plugin{
 
     var $commenthelper = null;
 
-    function action_plugin_blogtng_comments() {
+    function __construct() {
         $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
     }
 
