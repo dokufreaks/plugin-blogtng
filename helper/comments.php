@@ -516,9 +516,8 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         global $INFO;
 
         // check template
-        $tpl = DOKU_PLUGIN.'blogtng/tpl/'.$tpl.'_recentcomments.php';
-        if(!file_exists($tpl)){
-            msg('blogtng plugin: template ' . $tpl . ' does not exist!', -1);
+        $tpl = helper_plugin_blogtng_tools::getTplFile($tpl, 'recentcomments');
+        if($tpl === false){
             return false;
         }
 
@@ -575,16 +574,15 @@ class blogtng_comment{
     function output($name){
         global $INFO;
         $name = preg_replace('/[^a-zA-Z_\-]+/','',$name);
-        $tpl = DOKU_PLUGIN . 'blogtng/tpl/' . $name . '_comments.php';
-        if(file_exists($tpl)) {
-            $comment = $this;
-            if($comment->data['status'] == 'visible' || ($comment->data['status'] == 'hidden' && $INFO['isadmin'])) {
-                include($tpl);
-        }
-        } else {
-            msg('blogtng plugin: template ' . $tpl . ' does not exist!', -1);
+        $tpl = helper_plugin_blogtng_tools::getTplFile($name, 'comments');
+        if($tpl === false){
+            return false;
         }
 
+        $comment = $this;
+        if($comment->data['status'] == 'visible' || ($comment->data['status'] == 'hidden' && $INFO['isadmin'])) {
+            include($tpl);
+        }
     }
 
     function tpl_comment(){

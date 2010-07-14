@@ -370,14 +370,10 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     //~~ template methods
 
     function tpl_content($name, $type) {
-        $whitelist = array('list', 'entry', 'feed');
-        if(!in_array($type, $whitelist)) return;
-        $tpl = DOKU_PLUGIN . 'blogtng/tpl/' . $name . '_' . $type . '.php';
-        if(file_exists($tpl)) {
+        $tpl = helper_plugin_blogtng_tools::getTplFile($name, $type);
+        if($tpl !== false) {
             $entry = $this;
             include($tpl);
-        } else {
-            msg('blogtng plugin: template ' . $tpl . ' does not exist!', -1);
         }
     }
 
@@ -627,8 +623,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     //~~ utility methods
 
     function get_blogs() {
-        $pattern = DOKU_PLUGIN . 'blogtng/tpl/*_entry.php';
-        $files = glob($pattern);
+        $pattern = DOKU_PLUGIN . 'blogtng/tpl/*{_,/}entry.php';
+        $files = glob($pattern, GLOB_BRACE);
         $blogs = array('');
         foreach ($files as $file) {
             array_push($blogs, substr($file, strlen(DOKU_PLUGIN . 'blogtng/tpl/'), -10));
