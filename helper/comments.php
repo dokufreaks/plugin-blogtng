@@ -148,10 +148,9 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
             if($this->getConf('comments_subscription')) {
                 if($comment['subscribe']) {
                     $this->subscribe($comment['pid'],$comment['mail']);
-                } else {
-                    // send subscriber and notify mails
-                    $this->send_subscriber_mails($comment);
                 }
+                // send subscriber and notify mails
+                $this->send_subscriber_mails($comment);
             }
         }
     }
