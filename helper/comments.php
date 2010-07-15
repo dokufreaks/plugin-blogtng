@@ -86,12 +86,28 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      * Save comment
      */
     function save($comment) {
+        if (isset($comment['cid'])) {
+            // Doing an update
+            $query = 'UPDATE comments SET pid=?, source=?, name=?, mail=?, ' .
+                     'web=?, avatar=?, created=?, text=?, status=? WHERE cid=?';
+            $this->sqlitehelper->query($query,
+                $comment['pid'],
+                $comment['source'],
+                $comment['name'],
+                $comment['mail'],
+                $comment['web'],
+                $comment['avatar'],
+                $comment['created'],
+                $comment['text'],
+                $comment['status'],
+                $comment['cid']
+            );
+            return;
+        }
+
+        // Doing an insert
         $query = 'INSERT OR IGNORE INTO comments (';
-        if(isset($comment['cid'])) $query .= 'cid, ';
-
         $query .= 'pid, source, name, mail, web, avatar, created, text, status, ip) VALUES (';
-        if(isset($comment['cid'])) $query .= '?, ';
-
         $query .= '?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
         $comment['status']  = ($this->getconf('moderate_comments')) ? 'hidden' : 'visible';
 
@@ -99,37 +115,6 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
 
         $comment['avatar']  = ''; // FIXME create avatar using a helper function
 
-        if(isset($comment['cid'])) {
-            $this->sqlitehelper->query($query,
-                $comment['cid'],
-                $comment['pid'],
-                $comment['source'],
-                $comment['name'],
-                $comment['mail'],
-                $comment['web'],
-                $comment['avatar'],
-                $comment['created'],
-                $comment['text'],
-                $comment['status'],
-                $comment['ip']
-            );
-        } else {
-            $this->sqlitehelper->query($query,
-                $comment['pid'],
-                $comment['source'],
-                $comment['name'],
-                $comment['mail'],
-                $comment['web'],
-                $comment['avatar'],
-                $comment['created'],
-                $comment['text'],
-                $comment['status'],
-                $comment['ip']
-            );
-        }
-
-        //FIXME sometimes $comment['cid'] is undefined... so we end up with a broken query here
-        $query = 'UPDATE comments SET pid=?, source=?, name=?, mail=?, web=?, avatar=?, created=?, text=?, status=? WHERE cid=?';
         $this->sqlitehelper->query($query,
             $comment['pid'],
             $comment['source'],
@@ -140,18 +125,16 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
             $comment['created'],
             $comment['text'],
             $comment['status'],
-            $comment['cid']
+            $comment['ip']
         );
 
-        // handle subscriptions (except on updates)
-        if(!$comment['cid']){
-            if($this->getConf('comments_subscription')) {
-                if($comment['subscribe']) {
-                    $this->subscribe($comment['pid'],$comment['mail']);
-                }
-                // send subscriber and notify mails
-                $this->send_subscriber_mails($comment);
+        // handle subscriptions
+        if($this->getConf('comments_subscription')) {
+            if($comment['subscribe']) {
+                $this->subscribe($comment['pid'],$comment['mail']);
             }
+            // send subscriber and notify mails
+            $this->send_subscriber_mails($comment);
         }
     }
 
