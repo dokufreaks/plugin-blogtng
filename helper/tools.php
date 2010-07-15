@@ -81,9 +81,6 @@ class helper_plugin_blogtng_tools extends DokuWiki_Plugin {
     }
 
     static public function getTplFile($tpl, $type) {
-        $whitelist = array('list', 'entry', 'feed');
-        if(!in_array($type, $whitelist)) return false;
-
         $res = false;
         foreach(array('/', '_') as $sep) {
             $fname = DOKU_PLUGIN . "blogtng/tpl/$tpl$sep$type.php";

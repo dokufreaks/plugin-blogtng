@@ -370,6 +370,9 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     //~~ template methods
 
     function tpl_content($name, $type) {
+        $whitelist = array('list', 'entry', 'feed');
+        if(!in_array($type, $whitelist)) return false;
+
         $tpl = helper_plugin_blogtng_tools::getTplFile($name, $type);
         if($tpl !== false) {
             $entry = $this;
