@@ -80,15 +80,32 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
      */
     function save() {
         $query = 'BEGIN TRANSACTION';
-        $this->sqlitehelper->query($query);
+        if (!$this->sqlitehelper->query($query)) {
+            $sqlite->query('ROLLBACK TRANSACTION');
+            return;
+        }
         $query = 'DELETE FROM tags WHERE pid = ?';
-        $this->sqlitehelper->query($query, $this->pid);
+        if (!$this->sqlitehelper->query($query, $this->pid)) {
+            $sqlite->query('ROLLBACK TRANSACTION');
+            return;
+        }
         foreach ($this->tags as $tag) {
             $query = 'INSERT INTO tags (pid, tag) VALUES (?, ?)';
-            $this->sqlitehelper->query($query, $this->pid, $tag);
+            if (!$this->sqlitehelper->query($query, $this->pid, $tag)) {
+                $sqlite->query('ROLLBACK TRANSACTION');
+                return;
+            }
         }
         $query = 'END TRANSACTION';
-        $this->sqlitehelper->query($query);
+        if (!$this->sqlitehelper->query($query)) {
+            $sqlite->query('ROLLBACK TRANSACTION');
+            return;
+        }
+
+        global $ID;
+        // FIXME This should probably happen in metadata rendering
+        p_set_metadata($ID, array('subject' => $this->tags), false, true);
+
     }
 
     function set($tags) {
