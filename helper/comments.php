@@ -106,6 +106,12 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         }
 
         // Doing an insert
+        $entry = plugin_load('helper', 'blogtng_entry');
+        $entry->load_by_pid($comment['pid']);
+        if ($entry->entry['commentstatus'] !== 'enabled') {
+            return;
+        }
+
         $query = 'INSERT OR IGNORE INTO comments (';
         $query .= 'pid, source, name, mail, web, avatar, created, text, status, ip) VALUES (';
         $query .= '?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';

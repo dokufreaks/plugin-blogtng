@@ -7,3 +7,5 @@ $conf['comments_forbid_syntax']    = '';
 $conf['comments_xhtml_renderer']   = '';
 $conf['editform_set_date']         = 0;
 $conf['tags']                      = '';
+$conf['receive_linkbacks']         = 1;
+$conf['send_linkbacks']            = 0;
