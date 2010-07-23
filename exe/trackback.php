@@ -34,15 +34,12 @@ class TrackbackServer {
      * Process trackback request.
      */
     function _process() {
+        // get ID
+        global $ID;
+        $ID = substr($_SERVER['PATH_INFO'], 1);
+        $sourceUri = $_REQUEST['url'];
 
-        // Plugin not enabled? Quit
-        if (plugin_isdisabled('blogtng')) {
-            $this->_printTrackbackError('Trackbacks disabled.');
-            return;
-        }
-
-        // Trackbacks not enabled? Quit
-        if (!$this->tools->getConf('receive_linkbacks')) {
+        if (is_null($this->tools) || !$this->tools->linkbackAllowed()) {
             $this->_printTrackbackError('Trackbacks disabled.');
             return;
         }
@@ -52,18 +49,6 @@ class TrackbackServer {
             $this->_printTrackbackError('Trackback was not received via HTTP POST.');
             return;
         }
-
-        // get ID
-        $ID = substr($_SERVER['PATH_INFO'], 1);
-
-        // FIXME is blog?
-        // target is not trackback-enabled? Quit
-        if (!$this->tools->isPost()) {
-            $this->_printTrackbackError('Trackbacks not enabled for this resource.');
-            return;
-        }
-
-        $sourceUri = $_REQUEST['url'];
 
         // Given URL is not an url? Quit
         if (!preg_match("#^([a-z0-9\-\.+]+?)://.*#i", $sourceUri)) {

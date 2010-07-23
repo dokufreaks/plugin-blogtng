@@ -42,13 +42,12 @@ class PingbackServer extends IXR_Server {
     }
 
     function ping($sourceUri, $targetUri) {
-        // Plugin not enabled? Quit
-        if (plugin_isdisabled('blogtng'))
-            return new IXR_Error(PINGBACK_ERROR_TARGETURI_CANNOT_BE_USED, '');
+        global $ID;
+        $ID = substr($_SERVER['PATH_INFO'], 1);
 
-        // pingback disabled? Quit
-        if (!$this->tools->getConf('receive_linkbacks'))
+        if (is_null($this->tools) || !$this->tools->linkbackAllowed()) {
             return new IXR_Error(PINGBACK_ERROR_TARGETURI_CANNOT_BE_USED, '');
+        }
 
         // Given URLs are no urls? Quit
         if (!preg_match("#^([a-z0-9\-\.+]+?)://.*#i", $sourceUri))
@@ -63,13 +62,8 @@ class PingbackServer extends IXR_Server {
             return new IXR_Error(PINGBACK_ERROR_SOURCEURI_DOES_NOT_EXIST, '');
 
         // Target URL does not match with request? Quit
-        $ID = substr($_SERVER['PATH_INFO'], 1);
         if ($targetUri != wl($ID, '', true))
             return new IXR_Error(PINGBACK_ERROR_GENERIC, '');
-
-        if (!$this->tools->isPost()) {
-            return new IXR_Error(PINGBACK_ERROR_TARGETURI_CANNOT_BE_USED, '');
-        }
 
         // Retrieve data from source
         $linkback = $this->_getTrackbackData($sourceUri, $targetUri, $page);

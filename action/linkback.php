@@ -36,12 +36,8 @@ class action_plugin_blogtng_linkback extends DokuWiki_Action_Plugin {
     }
 
     function check(&$event, $params) {
-        // Pingbacks disabled? Quit
-        if (!$this->getConf('receive_linkbacks'))
-            return;
-
         $helper = plugin_load('helper', 'blogtng_linkback');
-        if (!$helper->isPost()) {
+        if (!$helper->linkbackAllowed()) {
             return;
         }
         $this->run = true;
