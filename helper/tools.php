@@ -50,16 +50,15 @@ class helper_plugin_blogtng_tools extends DokuWiki_Plugin {
     static public function getParam($path) {
         if (!isset($_REQUEST['btng'])) return false;
         if (!is_array($path)) {
-            $path = array_filter(split('/',$path));
+            $path = array_filter(explode('/',$path));
         }
 
         $elem = $_REQUEST['btng'];
         foreach ($path as $p) {
-            if (is_array($elem) && isset($elem[$p])) {
-                $elem = $elem[$p];
-            } else {
+            if (!is_array($elem) || !isset($elem[$p])) {
                 return false;
             }
+            $elem = $elem[$p];
         }
 
         return $elem;
