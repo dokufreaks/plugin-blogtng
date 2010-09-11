@@ -308,7 +308,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             }else{
                 $out .= '<a href="'.wl($conf['target'],
                                     array('btng[pagination][start]'=>$conf['limit']*($page-1),
-                                          'btng[pagination][tags]'=>join(',',$conf['tags']))).
+                                          'btng[post][tags]'=>join(',',$conf['tags']))).
                                  '">'.$page.'</a> ';
             }
             $last = $page;
@@ -317,7 +317,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         if($cur < $max){
             $out .= '<a href="'.wl($conf['target'],
                                    array('btng[pagination][start]'=>$conf['limit']*($cur),
-                                         'btng[pagination][tags]'=>join(',',$conf['tags']))).
+                                         'btng[post][tags]'=>join(',',$conf['tags']))).
                              '" class="next">'.$this->getLang('next').'</a> ';
         }
         $out .= '</div>';
