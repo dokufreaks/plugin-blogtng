@@ -123,6 +123,7 @@ class action_plugin_blogtng_feed extends DokuWiki_Action_Plugin{
         $output = ob_get_contents();
         ob_end_clean();
         // make URLs work when canonical is not set, regexp instead of rerendering!
+        global $conf;
         if(!$conf['canonical']){
             $base = preg_quote(DOKU_REL,'/');
             $output = preg_replace('/(<a href|<img src)="('.$base.')/s','$1="'.DOKU_URL,$output);

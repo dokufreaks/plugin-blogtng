@@ -125,7 +125,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         }
 
         if($tags = $this->tools->getParam('post/tags')){  // tags
-           $data['conf']['tags'] = array_merge(
+            $data['conf']['tags'] = array_merge(
                                        $data['conf']['tags'],
                                        explode(',',$tags));
         }

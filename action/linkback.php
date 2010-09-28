@@ -53,6 +53,7 @@ class action_plugin_blogtng_linkback extends DokuWiki_Action_Plugin {
         if ($event->data != 'show')
             return;
 
+        global $ID;
         // insert RDF definition of trackback into output
         echo '<!--<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"' . NL .
         'xmlns:dc="http://purl.org/dc/elements/1.1/"' . NL .
