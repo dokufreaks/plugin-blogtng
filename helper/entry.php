@@ -692,9 +692,9 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $info = array();
 
         $ins = p_cached_instructions(wikiFN($id));
+        $this->_convert_instructions($ins, $inc_level, $readmore, $skipheader);
         $backupID = $ID;
         $ID = $id;
-        $this->_convert_instructions($ins, $inc_level, $readmore, $skipheader);
         $content = p_render('xhtml', $ins, $info);
         $ID = $backupID;
 
