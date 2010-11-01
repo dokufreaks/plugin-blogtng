@@ -157,7 +157,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
                 $renderer->doc .= $this->taghelper->xhtml_tagcloud($data['conf']);
                 break;
             default:
-                $renderer->doc .= $this->entryhelper->xhtml_list($data['conf']);
+                $renderer->doc .= $this->entryhelper->xhtml_list($data['conf'], $renderer);
         }
 
         return true;

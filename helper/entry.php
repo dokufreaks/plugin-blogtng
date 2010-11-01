@@ -26,6 +26,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     var $taghelper     = null;
     var $toolshelper   = null;
 
+    var $renderer      = null;
+
     /**
      * Constructor, loads the sqlite helper plugin
      *
@@ -217,9 +219,11 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      *
      * Calls the *_list template for each entry in the result set
      */
-    function xhtml_list($conf){
+    function xhtml_list($conf, &$renderer=null){
         $posts = $this->get_posts($conf);
         if (!$posts) return '';
+        $rendererBackup =& $this->renderer;
+        $this->renderer =& $renderer;
 
         $entryBackup = $this->entry;
         ob_start();
@@ -232,6 +236,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $output = ob_get_contents();
         ob_end_clean();
         $this->entry = $entryBackup; // restore previous entry in order to allow nesting
+        $this->renderer =& $rendererBackup; // clean up again
         return $output;
     }
 
@@ -678,27 +683,51 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * @return unknown_type
      */
     function get_entrycontent($readmore='syntax', $inc_level=true, $skipheader=false) {
-        static $recursion = false;
-        if($recursion){
-            msg('blogtng: preventing infinite loop',-1);
-            return false; // avoid infinite loops
-        }
-        $recursion = true;
+        static $recursion = array();
 
         $id = $this->entry['page'];
 
+        if(in_array($id, $recursion)){
+            msg('blogtng: preventing infinite loop',-1);
+            return false; // avoid infinite loops
+        }
+
+        $recursion[] = $id;
+
         // FIXME do some caching here!
-        global $ID;
+        global $ID, $TOC, $conf;
         $info = array();
 
         $ins = p_cached_instructions(wikiFN($id));
         $this->_convert_instructions($ins, $inc_level, $readmore, $skipheader);
         $backupID = $ID;
         $ID = $id;
+
+        $handleTOC = ($this->renderer !== null); // the call to p_render below might set the renderer
+
+        if ($handleTOC){
+            $renderer =& $this->renderer; // save the renderer before p_render changes it
+            $backupTOC = $TOC; // the renderer overwrites the global $TOC
+            $backupTocminheads = $conf['tocminheads'];
+            $conf['tocminheads'] = 1; // let the renderer always generate a toc
+        }
+
         $content = p_render('xhtml', $ins, $info);
+
+        if ($handleTOC){
+            if ($TOC && $backupTOC !== $TOC && $info['toc']){
+                $renderer->toc = array_merge($renderer->toc, $TOC);
+                $TOC = null; // Reset the global toc as it is included in the renderer now
+                             // and if the renderer decides to not to output it the 
+                             // global one should be empty
+            }
+            $conf['tocminheads'] = $backupTocminheads;
+            $this->renderer =& $renderer;
+        }
+
         $ID = $backupID;
 
-        $recursion = false;
+        array_pop($recursion);
         return $content;
     }
 
