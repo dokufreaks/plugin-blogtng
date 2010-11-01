@@ -221,6 +221,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $posts = $this->get_posts($conf);
         if (!$posts) return '';
 
+        $entryBackup = $this->entry;
         ob_start();
         if($conf['listwrap']) echo '<ul class="blogtng_list">';
         foreach ($posts as $row) {
@@ -230,6 +231,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         if($conf['listwrap']) echo '</ul>';
         $output = ob_get_contents();
         ob_end_clean();
+        $this->entry = $entryBackup; // restore previous entry in order to allow nesting
         return $output;
     }
 
