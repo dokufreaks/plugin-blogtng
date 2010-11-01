@@ -477,7 +477,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
             ptln('<a href="' . wl($ID, array('do'=>'admin',
                                                      'page'=>'blogtng',
                                                      'btng[admin]'=>'search',
-                                                     'btng[query][filter]'=>'comments',
+                                                     'btng[query][filter]'=>'comment',
                                                      'btng[query][pid]'=>$entry['pid']))
                              . '" title="' . $this->getLang('comments') . '">' . $count . '</a>');
         } else {
