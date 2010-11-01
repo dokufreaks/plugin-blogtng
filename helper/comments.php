@@ -61,12 +61,15 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     /**
      * Get comment count
      */
-    function get_count($types=null) {
+    function get_count($types=null, $includehidden=false) {
         $pid = $this->pid;
 
         $sql = 'SELECT COUNT(pid) as val
                   FROM comments
                  WHERE pid = ?';
+        if ($includehidden === false){
+            $sql .= ' AND status = \'visible\'';
+        }
         $args = array();
         $args[] = $pid;
         if(is_array($types)){

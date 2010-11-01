@@ -472,7 +472,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
 
         // comments edit link
         ptln('<td class="entry_comments">');
-        $count = $this->commenthelper->get_count();
+        $count = $this->commenthelper->get_count(null, true);
         if($count > 0) {
             ptln('<a href="' . wl($ID, array('do'=>'admin',
                                                      'page'=>'blogtng',
