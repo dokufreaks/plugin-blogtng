@@ -557,7 +557,6 @@ class blogtng_comment{
      * Resets the internal data with a given row
      */
     function init($row){
-        $this->num++;
         $this->data = $row;
 
     }
@@ -572,6 +571,7 @@ class blogtng_comment{
 
         $comment = $this;
         if($comment->data['status'] == 'visible' || ($comment->data['status'] == 'hidden' && $INFO['isadmin'])) {
+            $comment->num++;
             include($tpl);
         }
     }
