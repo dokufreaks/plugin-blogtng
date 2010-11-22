@@ -37,7 +37,7 @@ class helper_plugin_blogtng_tools extends DokuWiki_Plugin {
 
         $out = $format;
         $out = str_replace(array_keys($replace), array_values($replace), $out);
-        $out = dformat($out);
+        $out = dformat(null, $out);
         return cleanID($out);
     }
 
