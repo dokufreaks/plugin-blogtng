@@ -64,4 +64,4 @@ class renderer_plugin_blogtng_comment extends Doku_Renderer_xhtml {
     }
 }
 
-//Setup VIM: ex: et ts=4 enc=utf-8 :
+//Setup VIM: ex: et ts=4 :

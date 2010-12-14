@@ -109,4 +109,4 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
         }
     }
 }
-// vim:ts=4:sw=4:et:enc=utf-8:
+// vim:ts=4:sw=4:et:
