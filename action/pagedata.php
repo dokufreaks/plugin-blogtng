@@ -39,7 +39,7 @@ class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
 
         // fetch author info
         $login = $this->entryhelper->entry['login'];
-        if(!$login) $login = $data['current']['creator'];
+        if(!$login) $login = $data['current']['user'];
         if(!$login) $login = $_SERVER['REMOTE_USER'];
 
         $userdata = false;
