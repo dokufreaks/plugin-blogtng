@@ -655,16 +655,17 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $blog_query = '(blog = '.
                       $this->sqlitehelper->quote_and_join($conf['blog'],
                                                           ' OR blog = ').')';
-        $tag_query = "";
+        $tag_query = $tag_table = "";
         if(count($conf['tags'])){
             $tag_query  = ' AND (tag = '.
                           $this->sqlitehelper->quote_and_join($conf['tags'],
                                                               ' OR tag = ').') AND A.pid = B.pid';
+            $tag_table  = ', tags B';
         }
 
         $query = 'SELECT A.pid as pid, page, title, blog, image, created,
                          lastmod, login, author, mail
-                    FROM entries A, tags B
+                    FROM entries A'.$tag_table.'
                    WHERE '.$blog_query.$tag_query.'
                 GROUP BY A.pid
                 ORDER BY '.$sortkey.' '.$conf['sortorder'].
