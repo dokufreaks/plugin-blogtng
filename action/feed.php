@@ -99,9 +99,9 @@ class action_plugin_blogtng_feed extends DokuWiki_Action_Plugin{
     function handle_item_add(&$event, $param) {
         $opt = $event->data['opt'];
         $ditem = $event->data['ditem'];
-        if (!$opt['feed_mode'] == 'blogtng') return;
-        if (!$opt['item_content'] == 'html') return;
-        if (!$opt['link_to'] == 'current') return;
+        if ($opt['feed_mode'] !== 'blogtng') return;
+        if ($opt['item_content'] !== 'html') return;
+        if ($opt['link_to'] !== 'current') return;
 
         // don't add drafts to the feed
         if(p_get_metadata($ditem['id'], 'type') == 'draft') {
