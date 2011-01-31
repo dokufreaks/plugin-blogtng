@@ -180,7 +180,7 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
         }
         asort($cloud);
         $cloud = array_slice(array_reverse($cloud), 0, $conf['limit']);
-        $this->_cloud_weight($cloud, 5, 25, 5);
+        $this->_cloud_weight($cloud, min($cloud), max($cloud), 5);
         ksort($cloud);
         $output = "";
         foreach($cloud as $tag => $weight) {
