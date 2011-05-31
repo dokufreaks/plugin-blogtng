@@ -92,6 +92,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         if($resid === false) {
             msg('blogtng plugin: failed to load entry, did not get a valid resource id!', -1);
             $this->entry = $this->prototype();
+            // FIXME undefined constant
             return self::RET_ERR_BADRES;
         }
 

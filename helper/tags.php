@@ -79,6 +79,7 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
      * Save tags
      */
     function save() {
+        //FIXME $sqlite undefined
         $query = 'BEGIN TRANSACTION';
         if (!$this->sqlitehelper->query($query)) {
             $sqlite->query('ROLLBACK TRANSACTION');
