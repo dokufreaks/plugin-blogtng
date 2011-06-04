@@ -82,7 +82,11 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         $conf['tags'] = array_filter(array_map('trim', explode(',', $conf['tags'])));
         $conf['type'] = array_filter(array_map('trim', explode(',', $conf['type'])));
 
-        if(!count($conf['blog'])) $conf['blog'] = array('default');
+        if (($type != 'list') && (!count($conf['blog']))) {
+
+            $conf['blog'] = array('default');
+            
+        }
 
         // higher default limit for tag cloud
         if($type == 'tagcloud' && !$conf['limit']) {
