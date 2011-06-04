@@ -88,9 +88,9 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
             
         }
         
-        if ($type == 'tagsearch') {
+        if (array_key_exists('nolist', $conf)) {
             
-            $type = 'list';
+            $conf['nolist'] = false;
             
         }
 
@@ -165,6 +165,9 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
                 $renderer->inf['cache'] = false; // never cache this
                 $this->taghelper =& plugin_load('helper', 'blogtng_tags');
                 $renderer->doc .= $this->taghelper->xhtml_tagcloud($data['conf']);
+                break;
+            case 'tagsearch':
+                $renderer->doc .= $this->entryhelper->xhtml_tagsearch($data['conf'], $renderer);
                 break;
             default:
                 $renderer->doc .= $this->entryhelper->xhtml_list($data['conf'], $renderer);

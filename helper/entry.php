@@ -242,6 +242,32 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     }
 
     /**
+     * List matching pages for one or more tags
+     *
+     * Calls the *_tagsearch template for each entry in the result set
+     */
+    function xhtml_tagsearch($conf, &$renderer=null){
+        $posts = $this->get_posts($conf);
+        if (!$posts) return '';
+        $rendererBackup =& $this->renderer;
+        $this->renderer =& $renderer;
+
+        $entryBackup = $this->entry;
+        ob_start();
+        if(!$conf['nolist']) echo '<ul class="blogtng_tagsearch">';
+        foreach ($posts as $row) {
+            $this->load_by_row($row);
+            $this->tpl_content($conf['tpl'], 'tagsearch');
+        }
+        if(!$conf['nolist']) echo '</ul>';
+        $output = ob_get_contents();
+        ob_end_clean();
+        $this->entry = $entryBackup; // restore previous entry in order to allow nesting
+        $this->renderer =& $rendererBackup; // clean up again
+        return $output;
+    }
+
+    /**
      * Display pagination links for the configured list of entries
      *
      * @author Andreas Gohr <gohr@cosmocode.de>
@@ -378,7 +404,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     //~~ template methods
 
     function tpl_content($name, $type) {
-        $whitelist = array('list', 'entry', 'feed');
+        $whitelist = array('list', 'entry', 'feed', 'tagsearch');
         if(!in_array($type, $whitelist)) return false;
 
         $tpl = helper_plugin_blogtng_tools::getTplFile($name, $type);
