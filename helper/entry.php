@@ -667,13 +667,15 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $tag_query = $tag_table = "";
         if(count($conf['tags'])){
             
+            $tag_query = '';
+            
             if (count($conf['blog']) > 0){
                 
-                $tag_query .= ' AND';
+                $tag_query = ' AND';
                 
             }
             
-            $tag_query  = ' (tag = '.
+            $tag_query  .= ' (tag = '.
                           $this->sqlitehelper->quote_and_join($conf['tags'],
                                                               ' OR tag = ').') AND A.pid = B.pid';
             $tag_table  = ', tags B';

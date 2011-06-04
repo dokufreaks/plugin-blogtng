@@ -38,7 +38,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
     /**
      * Types we accept in our syntax
      */
-    var $type_whitelist = array('list', 'pagination', 'related', 'recentcomments', 'newform', 'tagcloud');
+    var $type_whitelist = array('list', 'pagination', 'related', 'recentcomments', 'newform', 'tagcloud', 'tagsearch');
 
     /**
      * Values accepted in syntax
@@ -82,9 +82,15 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         $conf['tags'] = array_filter(array_map('trim', explode(',', $conf['tags'])));
         $conf['type'] = array_filter(array_map('trim', explode(',', $conf['type'])));
 
-        if (($type != 'list') && (!count($conf['blog']))) {
+        if (($type != 'tagsearch') && (!count($conf['blog']))) {
 
             $conf['blog'] = array('default');
+            
+        }
+        
+        if ($type == 'tagsearch') {
+            
+            $type = 'list';
             
         }
 
