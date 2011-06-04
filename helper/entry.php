@@ -247,6 +247,11 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * Calls the *_tagsearch template for each entry in the result set
      */
     function xhtml_tagsearch($conf, &$renderer=null){
+        if (count($conf['tags']) == 0) {
+            
+            return '';
+            
+        };
         $posts = $this->get_posts($conf);
         if (!$posts) return '';
         $rendererBackup =& $this->renderer;
