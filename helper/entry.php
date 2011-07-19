@@ -700,9 +700,11 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         global $ID, $TOC, $conf;
         $info = array();
 
-        $ins = p_cached_instructions(wikiFN($id));
-        $this->_convert_instructions($ins, $inc_level, $readmore, $skipheader);
         $backupID = $ID;
+        $ID = $id; // p_cached_instructions doesn't change $ID, so we need to do it or plugins like the discussion plugin might store information for the wrong page
+        $ins = p_cached_instructions(wikiFN($id));
+        $ID = $backupID; // restore the original $ID as otherwise _convert_instructions won't do anything
+        $this->_convert_instructions($ins, $inc_level, $readmore, $skipheader);
         $ID = $id;
 
         $handleTOC = ($this->renderer !== null); // the call to p_render below might set the renderer
