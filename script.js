@@ -89,13 +89,13 @@ var blogtng = {
         };
 
         if($('blogtng__comment_name'))
-            ajax.setVar('name',$('blogtng__comment_name').value);
+            ajax.setVar('name',encodeURIComponent($('blogtng__comment_name').value));
         if($('blogtng__comment_mail'))
-            ajax.setVar('mail',$('blogtng__comment_mail').value);
+            ajax.setVar('mail',encodeURIComponent($('blogtng__comment_mail').value));
         if($('blogtng__comment_web'))
-            ajax.setVar('web',$('blogtng__comment_web').value);
+            ajax.setVar('web',encodeURIComponent($('blogtng__comment_web').value));
         if($('wiki__text'))
-            ajax.setVar('text',$('wiki__text').value);
+            ajax.setVar('text',encodeURIComponent($('wiki__text').value));
         ajax.runAJAX();
         return false;
     },
