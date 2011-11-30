@@ -34,6 +34,7 @@ class syntax_plugin_blogtng_commentreply extends DokuWiki_Syntax_Plugin {
             list($cid) = $indata;
             $commenthelper =& plugin_load('helper', 'blogtng_comments');
             $comment = $commenthelper->comment_by_cid($cid);
+            if (!is_object($comment)) return false; // comment does not exist, cid is invalid
 
             ob_start();
             echo '@<a href="#comment_'.$cid.'" class="wikilink1 blogtng_reply">';
