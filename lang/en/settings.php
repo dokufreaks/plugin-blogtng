@@ -19,5 +19,5 @@ $lang['comments_xhtml_renderer']   = 'Syntax plugins to be renderer in comments 
 $lang['comments_forbid_syntax']    = 'Syntax plugins to be completely forbidden in comments (neither in XHTML nor in comment rendition).';
 $lang['editform_set_date']         = 'Allow to set the creation date of a blog entry via the edit form.';
 $lang['tags']                      = 'A comma-separated list of allowed tags. If empty, all tags are allowed.';
-$lang['receive_linkbacks']         = 'Receive notices about incoming links to your blogposts?';
-$lang['send_linkbacks']            = 'Inform pages you linked in your blogposts?';
+$lang['receive_linkbacks']         = 'Receive notices about incoming links to your blogposts (receive linkback)?';
+$lang['send_linkbacks']            = 'Inform pages you linked in your blogposts (send linkback)?';
