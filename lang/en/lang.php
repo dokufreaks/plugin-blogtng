@@ -1,19 +1,27 @@
 <?php
+/**
+ * English language file
+ *
+ * If your language is not/only partially translated or you found an error/typo,
+ * have a look at the files belows "/plugin-blogtng/lang/<your lang>/". If they
+ * are not existing, copy and translate the English ones. And don't forget to
+ * send any new translation or fix to the BlogTNG authors (contact information
+ * can be found at <http://www.dokuwiki.org/plugin:blogtng>). Thanks :-).
+ *
+ * @license GPL 2 (http://www.gnu.org/licenses/gpl.html)
+ */
 
-$lang['menu'] = 'Manage Blogs (BlogTNG)';
-
+$lang['menu']           = 'Manage Blogs (BlogTNG)';
 $lang['entry_latest']   = 'Latest %d Entries';
 $lang['comment_latest'] = 'Latest %d Comments';
-$lang['numhits'] = 'Number of Hits';
-
-$lang['blog']    = 'Blog';
-$lang['author']  = 'Author';
-$lang['dashboard'] = 'Dashboard';
-$lang['entry']   = 'Entry';
-$lang['filter']  = 'Filter';
-$lang['tags']    = 'Tags';
-$lang['commentstatus'] = 'Comments are';
-
+$lang['numhits']        = 'Number of Hits';
+$lang['blog']           = 'Blog';
+$lang['author']         = 'Author';
+$lang['dashboard']      = 'Dashboard';
+$lang['entry']          = 'Entry';
+$lang['filter']         = 'Filter';
+$lang['tags']           = 'Tags';
+$lang['commentstatus']  = 'Comments are';
 $lang['searchresults']  = 'Search Results';
 
 $lang['comments']    = 'Comments';
@@ -49,12 +57,12 @@ $lang['optin_subject']  = 'Please confirm your subscription';
 $lang['optin_ok']  = 'Thank you. You\'ll now receive comment updates via mail';
 $lang['optin_err'] = 'Ooops. Couldn\'t find that key. Maybe a copy\'n\'paste error?';
 
-$lang['unsubscribe_ok'] = 'Unsubscription successful. You will no longer be notified about new comments to this post.';
-$lang['unsubscribe_err_key'] = 'Ooops. Couldn\'t find that key. Maybe a copy\'n\'paste error?';
+$lang['unsubscribe_ok']        = 'Unsubscription successful. You will no longer be notified about new comments to this post.';
+$lang['unsubscribe_err_key']   = 'Ooops. Couldn\'t find that key. Maybe a copy\'n\'paste error?';
 $lang['unsubscribe_err_other'] = 'Oooops. Couldn\'t find your subscription. Maybe a copy\'n\'paste error?';
 
-$lang['btn_comment_edit']  = 'Edit';
-$lang['act_comment_edit']  = 'Edit Comment';
+$lang['btn_comment_edit'] = 'Edit';
+$lang['act_comment_edit'] = 'Edit Comment';
 
 $lang['msg_comment_save']           = 'Comment changes have been saved';
 $lang['msg_comment_status_change']  = 'Comment status changed';
