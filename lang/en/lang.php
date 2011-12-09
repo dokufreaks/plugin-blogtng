@@ -70,3 +70,4 @@ $lang['msg_comment_delete']         = 'The comment was deleted';
 $lang['msg_entry_blog_change']      = 'Blog of the entry was changed';
 
 $lang['err_notitle'] = 'No post title given!';
+
