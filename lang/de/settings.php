@@ -9,6 +9,7 @@
  * can be found at <http://www.dokuwiki.org/plugin:blogtng>). Thanks :-).
  *
  * @license GPL 2 (http://www.gnu.org/licenses/gpl.html)
+ * @author Andreas Haerter <development@andreas-haerter.com>
  */
 
 $lang['comments_allow_web']        = 'Benutzern erlauben, ihre Websites zusammen mit den Kommantaren zu verlinken?';

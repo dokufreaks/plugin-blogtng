@@ -1,4 +1,15 @@
 <?php
+/**
+ * Chinese language file
+ *
+ * If your language is not/only partially translated or you found an error/typo,
+ * have a look at the files belows "/plugin-blogtng/lang/<your lang>/". If they
+ * are not existing, copy and translate the English ones. And don't forget to
+ * send any new translation or fix to the BlogTNG authors (contact information
+ * can be found at <http://www.dokuwiki.org/plugin:blogtng>). Thanks :-).
+ *
+ * @license GPL 2 (http://www.gnu.org/licenses/gpl.html)
+ */
 
 $lang['menu'] = '管理博客(BlogTNG)';
 
