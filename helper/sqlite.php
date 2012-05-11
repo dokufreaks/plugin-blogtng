@@ -196,6 +196,25 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
 
 
     /**
+     * Return count of elements in result set
+     * @param $res
+     * @return int
+     */
+    function resRowCount($res){
+        return sqlite_num_rows($res);
+    }
+
+
+    /**
+     * Return count of changes after last update
+     * @return mixed
+     */
+    function changes(){
+        return sqlite_changes($this->db);
+    }
+
+
+    /**
      * Join the given values and quote them for SQL insertion
      */
     function quote_and_join($vals,$sep=',') {
