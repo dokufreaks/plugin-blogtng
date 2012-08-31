@@ -131,11 +131,11 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
         );
         foreach ($tags as $tag) {
             if ($tag{0} == '+') {
-                array_push($tag_clauses['AND'], 'tag = \'' . $this->sqlitehelper->quote_string(substr($tag, 1)) . '\'');
+                array_push($tag_clauses['AND'], 'tag = ' . $this->sqlitehelper->quote_string(substr($tag, 1)));
             } else if ($tag{0} == '-') {
-                array_push($tag_clauses['NOT'], 'tag != \'' . $this->sqlitehelper->quote_string(substr($tag, 1)) . '\'');
+                array_push($tag_clauses['NOT'], 'tag != ' . $this->sqlitehelper->quote_string(substr($tag, 1)));
             } else {
-                array_push($tag_clauses['OR'], 'tag = \'' . $this->sqlitehelper->quote_string($tag) . '\'');
+                array_push($tag_clauses['OR'], 'tag = ' . $this->sqlitehelper->quote_string($tag));
             }
         }
         $tag_clauses = array_map('array_unique', $tag_clauses);
