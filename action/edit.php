@@ -56,7 +56,7 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
         $this->taghelper->load($pid);
         $allowed_tags = $this->_get_allowed_tags();
         $tags = $this->_get_post_tags();
-        if (!$tags) $tags = $this->taghelper->tags;
+        if ($tags === false) $tags = $this->taghelper->tags;
         if (count($allowed_tags) > 0) {
             $event->data->insertElement($pos++, form_makeOpenTag('div'));
             foreach($this->_get_allowed_tags() as $val) {
@@ -172,6 +172,7 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
                 $this->entryhelper->save();
 
                 $tags = $this->_get_post_tags();
+                if ($tags === false) $tags = array();
                 $allowed_tags = $this->_get_allowed_tags();
                 if (count($allowed_tags) > 0) {
                     foreach($tags as $n => $tag) {
@@ -198,6 +199,7 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
 
     function _get_post_tags() {
         $tags = $this->tools->getParam('post/tags');
+        if ($tags === false) return $tags;
         if (!is_array($tags)) {
             $tags = $this->_split_tags($tags);
         }
