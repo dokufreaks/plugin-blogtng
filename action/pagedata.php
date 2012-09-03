@@ -15,6 +15,8 @@ require_once(DOKU_PLUGIN.'action.php');
 
 class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
 
+    /** @var helper_plugin_blogtng_entry $entryhelper */
+    var $entryhelper;
     var $entry;
 
     function action_plugin_blogtng_pagedata() {
@@ -68,6 +70,23 @@ class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
 
         // ... and save it
         $this->entryhelper->save();
+
+        // unset old persistent tag data
+        if (isset($data['persistent']['subject'])) {
+            // persistent metadata is copied to the current metadata, clean current metadata
+            // if it hasn't been changed in the renderer
+            if ($data['persistent']['subject'] == $data['current']['subject'])
+                $event->result['current']['subject'] = array();
+            unset($event->result['persistent']['subject']);
+        }
+
+        // save blogtng tags to the metadata of the page
+        $taghelper = $this->entryhelper->getTagHelper();
+        if (isset($data['current']['subject'])) {
+            $event->result['current']['subject'] = array_unique(array_merge((array)$data['current']['subject'], $taghelper->tags));
+        } else {
+            $event->result['current']['subject'] = $taghelper->tags;
+        }
     }
 
 }
