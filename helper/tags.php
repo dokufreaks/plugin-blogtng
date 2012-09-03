@@ -102,11 +102,6 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
             $sqlite->query('ROLLBACK TRANSACTION');
             return;
         }
-
-        global $ID;
-        // FIXME This should probably happen in metadata rendering
-        p_set_metadata($ID, array('subject' => $this->tags), false, true);
-
     }
 
     function set($tags) {
