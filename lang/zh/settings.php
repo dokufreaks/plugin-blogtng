@@ -20,4 +20,5 @@ $lang['comments_forbid_syntax']    = '在评论中完全禁止的语法插件(�
 $lang['editform_set_date']         = '允许通过编辑框设置博客文章的创建日期。';
 $lang['tags']                      = '允许的标签，以逗号分隔。如果留空，将允许所有标签。';
 $lang['receive_linkbacks']         = '接收发送给您博客文章的链接通告？';
+$lang['subscribe_noconfirm']       = '当用户订阅评论时不要发送确认邮件';
 $lang['send_linkbacks']            = '向您博客文章中链接的页面发送通告？';

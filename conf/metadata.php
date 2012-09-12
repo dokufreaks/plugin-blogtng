@@ -17,3 +17,4 @@ $meta['editform_set_date']        = array('onoff');
 $meta['tags']                     = array('string');
 $meta['receive_linkbacks']         = array('onoff');
 $meta['send_linkbacks']          = array('onoff');
+$meta['subscribe_noconfirm']     = array('onoff');
