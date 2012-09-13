@@ -20,7 +20,12 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      * Constructor, loads the sqlite helper plugin
      */
     function helper_plugin_blogtng_comments() {
-        $this->sqlitehelper =& plugin_load('helper', 'blogtng_sqlite');
+        //$this->sqlitehelper =& plugin_load('helper', 'blogtng_sqlite');
+        if ($this->getConf('sqlite_version') == 'SQLite2')
+            $this->sqlitehelper  =& plugin_load('helper', 'blogtng_sqlite');
+        else
+            $this->sqlitehelper  =& plugin_load('helper', 'blogtng_sqlite3');
+
     }
 
     /**
@@ -48,7 +53,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         if ($resid === false) {
             return false;
         }
-        if (sqlite_num_rows($resid) == 0) {
+        if ($this->sqlitehelper->resRowCount($resid) == 0) {
             return null;
         }
         $result = $this->sqlitehelper->res2arr($resid);
@@ -311,7 +316,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     function unsubscribe($pid, $mail) {
         $sql = 'DELETE FROM subscriptions WHERE pid = ? AND mail = ?';
         $this->sqlitehelper->query($sql, $pid, $mail);
-        $upd = sqlite_changes($this->sqlitehelper->db);
+        $upd = $this->sqlitehelper->changes();
         if ($upd) {
             msg($this->getLang('unsubscribe_ok'), 1);
         } else {
@@ -325,7 +330,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     function optin($key) {
         $sql = 'UPDATE optin SET optin = 1 WHERE key = ?';
         $this->sqlitehelper->query($sql,$key);
-        $upd = sqlite_changes($this->sqlitehelper->db);
+        $upd = $this->sqlitehelper->changes();
 
         if($upd){
             msg($this->getLang('optin_ok'),1);
@@ -532,7 +537,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
                    LIMIT ".(int) $num;
 
         $res = $this->sqlitehelper->query($query);
-        if(!sqlite_num_rows($res)) return; // no results found
+        if(!$this->sqlitehelper->resRowCount($res)) return; // no results found
         $res = $this->sqlitehelper->res2arr($res);
 
         // print all hits using the template
