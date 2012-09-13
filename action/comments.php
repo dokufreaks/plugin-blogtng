@@ -61,7 +61,11 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
         $comment['page']   = isset($_REQUEST['id'])       ? $_REQUEST['id']       : null;
         $comment['subscribe'] = isset($_REQUEST['blogtng']['subscribe']) ? $_REQUEST['blogtng']['subscribe'] : null;
         $comment['ip'] = clientIP(true);
-
+        
+        //add "http(s)://" to website
+        if (!preg_match('/^http/',$comment['web']) && $comment['web'] != '') {
+            $comment['web'] = 'http://'.$comment['web'];
+        }
         $BLOGTNG['comment'] = $comment;
 
         if(is_array($event->data) && (isset($event->data['comment_submit']) || isset($event->data['comment_preview']))) {

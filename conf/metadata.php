@@ -18,3 +18,4 @@ $meta['tags']                     = array('string');
 $meta['receive_linkbacks']         = array('onoff');
 $meta['send_linkbacks']          = array('onoff');
 $meta['sqlite_version'] = array('multichoice', '_choices' => array('SQLite2', 'SQLite3'));
+$meta['subscribe_noconfirm']     = array('onoff');
