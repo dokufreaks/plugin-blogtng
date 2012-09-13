@@ -8,12 +8,12 @@
 
 您可以通过 @URL@ 阅读评论
 
-用户			: @USER@
-邮件			: @MAIL@
-日期			: @DATE@
-浏览器		: @BROWSER@
-IP地址		: @IPADDRESS@
-Hostname	: @HOSTNAME@
+用户        : @USER@
+邮件        : @MAIL@
+日期        : @DATE@
+浏览器      : @BROWSER@
+IP地址      : @IPADDRESS@
+主机名      : @HOSTNAME@
 
 -- 
 本邮件由 @DOKUWIKIURL@ 上的 Dokuwiki 发出
