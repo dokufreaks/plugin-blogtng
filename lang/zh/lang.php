@@ -11,21 +11,19 @@
  * @license GPL 2 (http://www.gnu.org/licenses/gpl.html)
  */
 
-$lang['menu'] = '管理博客(BlogTNG)';
-
+$lang['menu']           = '管理博客(BlogTNG)';
 $lang['entry_latest']   = '最近 %d 篇文章';
 $lang['comment_latest'] = '最近 %d 条评论';
-$lang['numhits'] = '数量';
-
-$lang['blog']    = '博客';
-$lang['author']  = '作者';
-$lang['dashboard'] = '控制板';
-$lang['entry']   = '文章';
-$lang['filter']  = '过滤器';
-$lang['tags']    = '标签';
-$lang['commentstatus'] = '评论状态';
-
+$lang['numhits']        = '点击量';
+$lang['blog']           = '博客';
+$lang['author']         = '作者';
+$lang['dashboard']      = '控制板';
+$lang['entry']          = '文章';
+$lang['filter']         = '过滤器';
+$lang['tags']           = '标签';
+$lang['commentstatus']  = '评论状态';
 $lang['searchresults']  = '搜索结果';
+$lang['permalink']      = '永久链接';
 
 $lang['comments']    = '评论';
 $lang['0comments']   = '%d 条评论';
@@ -53,6 +51,7 @@ $lang['comment_status']    = '状态';
 $lang['comment_text']      = '文本';
 $lang['comment_ip']        = 'IP地址';
 $lang['comment_subscribe'] = '订阅新评论';
+$lang['comment_reply']     = '回复';
 
 $lang['subscr_subject'] = '%s 上的新评论';
 $lang['optin_subject']  = '请确认您的订阅';

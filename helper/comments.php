@@ -561,15 +561,18 @@ class blogtng_comment{
     /**
      * Resets the internal data with a given row
      */
+    function blogtng_comment(){
+        $this->tools = new helper_plugin_blogtng_tools();
+    }
+
     function init($row){
         $this->data = $row;
-
     }
 
     function output($name){
         global $INFO;
         $name = preg_replace('/[^a-zA-Z_\-]+/','',$name);
-        $tpl = helper_plugin_blogtng_tools::getTplFile($name, 'comments');
+        $tpl = $this->tools->getTplFile($name,'comments');
         if($tpl === false){
             return false;
         }
@@ -579,6 +582,10 @@ class blogtng_comment{
             $comment->num++;
             include($tpl);
         }
+    }
+
+    function getLang($name){
+        return $this->tools->getLang($name);
     }
 
     function tpl_comment(){
