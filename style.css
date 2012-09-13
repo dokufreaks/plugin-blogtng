@@ -114,7 +114,6 @@ div.dokuwiki div#blogtng__admin table td.comment_source {
 /*____________ blog list ____________*/
 /* create new post form */
 div.dokuwiki div.blogtng_newform {
-    clear: both;
     margin: 1em;
 }
 
