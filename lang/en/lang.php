@@ -23,6 +23,7 @@ $lang['filter']         = 'Filter';
 $lang['tags']           = 'Tags';
 $lang['commentstatus']  = 'Comments are';
 $lang['searchresults']  = 'Search Results';
+$lang['permalink']      = 'permalink';
 
 $lang['comments']    = 'Comments';
 $lang['0comments']   = '%d Comments';
@@ -50,6 +51,7 @@ $lang['comment_status']    = 'Status';
 $lang['comment_text']      = 'Text';
 $lang['comment_ip']        = 'IP Address';
 $lang['comment_subscribe'] = 'Subscribe to new comments';
+$lang['comment_reply']     = 'reply';
 
 $lang['subscr_subject'] = 'New comment on %s';
 $lang['optin_subject']  = 'Please confirm your subscription';
