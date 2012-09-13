@@ -26,7 +26,7 @@ var blogtng = {
                         'wiki__text');
 
         for(var i = 0; i < inputs.length; i++) {
-            var input = jQuery("#"+inputs[i])[0];
+            var input = jQuery("#"+inputs[i]).get(0);
             if(input) {
                 if(!input.value) {
                     input.className = 'edit error';
@@ -65,7 +65,7 @@ var blogtng = {
     preview: function(wrap,previewid) {
         if(!blogtng.validate()) return false;
 
-        var preview = jQuery("#"+previewid)[0];
+        var preview = jQuery("#"+previewid).get(0);
         if(!preview){
             if(!wrap) return false;
 
@@ -77,14 +77,14 @@ var blogtng = {
         preview.innerHTML = '<img src="'+DOKU_BASE+'/lib/images/throbber.gif" />';
 
         params={call: 'blogtng__comment_preview'};
-        if(jQuery('#blogtng__comment_name')[0])
-            params.name = encodeURIComponent(jQuery('#blogtng__comment_name')[0].value);
-        if(jQuery('#blogtng__comment_mail')[0])
-            params.mail = encodeURIComponent(jQuery('#blogtng__comment_mail')[0].value);
-        if(jQuery('#blogtng__comment_web')[0])
-            params.web  = encodeURIComponent(jQuery('#blogtng__comment_web')[0].value);
-        if(jQuery('#wiki__text')[0])
-            params.text = encodeURIComponent(jQuery('#wiki__text')[0].value);
+        if(jQuery('#blogtng__comment_name').length > 0)
+            params.name = encodeURIComponent(jQuery('#blogtng__comment_name').val());
+        if(jQuery('#blogtng__comment_mail').length > 0)
+            params.mail = encodeURIComponent(jQuery('#blogtng__comment_mail').val());
+        if(jQuery('#blogtng__comment_web').length > 0)
+            params.web  = encodeURIComponent(jQuery('#blogtng__comment_web').val());
+        if(jQuery('#wiki__text').length > 0)
+            params.text = encodeURIComponent(jQuery('#wiki__text').val());
 
         jQuery.post(DOKU_BASE + 'lib/exe/ajax.php', params,
         function(data){
@@ -125,12 +125,12 @@ var blogtng = {
     },
 
     insert_checkall_checkbox: function() {
-        if(!jQuery('#blogtng__admin')[0]) return;
-        var th = jQuery('#blogtng__admin_checkall_th')[0];
+        if(jQuery('#blogtng__admin').length == 0) return;
+        var th = jQuery('#blogtng__admin_checkall_th').get(0);
         if(th) {
             var html_checkbox = '<input type="checkbox" id="blogtng__admin_checkall" />';
             th.innerHTML = html_checkbox;
-            var checkbox = jQuery('#blogtng__admin_checkall')[0];
+            var checkbox = jQuery('#blogtng__admin_checkall').get(0);
             jQuery(checkbox).click(function(e) {
                 blogtng.checkall();
             });
@@ -166,7 +166,7 @@ function commentPopup(e, id){
     var obj = e.target;
 
     // get or create the comment popup div
-    var comment_div = jQuery('#insitu__comment')[0];
+    var comment_div = jQuery('#insitu__comment').get(0);
     if(!comment_div){
         comment_div = document.createElement('div');
         comment_div.id        = 'insitu__comment';
@@ -206,7 +206,7 @@ function commentPopup(e, id){
     }
 
     // locate the comment anchor element
-    var a = jQuery("#comment_"+id )[0];
+    var a = jQuery("#comment_"+id ).get(0);
     if (!a){ return; }
 
     // anchor parent is the footnote container, get its innerHTML
@@ -237,8 +237,8 @@ function commentPopup(e, id){
  * Attach events
  */
 jQuery(function() {
-    blogtng.validate_attach(jQuery('#blogtng__comment_submit')[0]);
-    blogtng.preview_attach(jQuery('#blogtng__preview_submit')[0],jQuery('#blogtng__comment_form_wrap')[0],'blogtng__comment_preview');
+    blogtng.validate_attach(jQuery('#blogtng__comment_submit').get(0));
+    blogtng.preview_attach(jQuery('#blogtng__preview_submit').get(0),jQuery('#blogtng__comment_form_wrap').get(0),'blogtng__comment_preview');
     blogtng.reply_attach();
     blogtng.insert_checkall_checkbox();
 });
