@@ -283,10 +283,8 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
             $sql = "SELECT optin, key FROM optin WHERE mail = ?";
             $res = $this->sqlitehelper->query($sql,strtolower($mail));
             $row = $this->sqlitehelper->res2row($res,0);
-            if($row['optin'] < 0){
+            if($row['optin'] == 0){
                 $this->send_optin_mail($mail,$row['key']);
-                $sql = "UPDATE optin SET optin = optin+1 WHERE mail = ?";
-                $this->sqlitehelper->query($sql,strtolower($mail));
             }
         }
 
