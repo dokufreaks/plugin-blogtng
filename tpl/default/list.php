@@ -17,7 +17,7 @@
 <div class="blogtng_footer level1">
 <a href="<?php $entry->tpl_link()?>" class="wikilink1 blogtng_permalink"><?php echo $this->getLang('permalink')?></a>
     &middot;
-    <?php $entry->tpl_created('%Y-%m-%d %H:%M')?>
+    <?php global $conf; $entry->tpl_created($conf['dformat'])?>
     &middot;
     <?php $entry->tpl_author()?>
     &middot;
