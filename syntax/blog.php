@@ -38,7 +38,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
     /**
      * Types we accept in our syntax
      */
-    var $type_whitelist = array('list', 'pagination', 'related', 'recentcomments', 'newform', 'tagcloud');
+    var $type_whitelist = array('list', 'pagination', 'related', 'recentcomments', 'newform', 'tagcloud', 'tagsearch');
 
     /**
      * Values accepted in syntax
@@ -82,7 +82,17 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         $conf['tags'] = array_filter(array_map('trim', explode(',', $conf['tags'])));
         $conf['type'] = array_filter(array_map('trim', explode(',', $conf['type'])));
 
-        if(!count($conf['blog'])) $conf['blog'] = array('default');
+        if (($type != 'tagsearch') && (!count($conf['blog']))) {
+
+            $conf['blog'] = array('default');
+            
+        }
+        
+        if (array_key_exists('nolist', $conf)) {
+            
+            $conf['nolist'] = false;
+            
+        }
 
         // higher default limit for tag cloud
         if($type == 'tagcloud' && !$conf['limit']) {
@@ -155,6 +165,9 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
                 $renderer->inf['cache'] = false; // never cache this
                 $this->taghelper =& plugin_load('helper', 'blogtng_tags');
                 $renderer->doc .= $this->taghelper->xhtml_tagcloud($data['conf']);
+                break;
+            case 'tagsearch':
+                $renderer->doc .= $this->entryhelper->xhtml_tagsearch($data['conf'], $renderer);
                 break;
             default:
                 $renderer->doc .= $this->entryhelper->xhtml_list($data['conf'], $renderer);
