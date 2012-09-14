@@ -10,7 +10,7 @@ var blogtng = {
      */
     validate_attach: function(obj) {
         if(!obj) return;
-        addEvent(obj, 'click', function() { return blogtng.validate(); });
+        jQuery(obj).click(function() { return blogtng.validate(); });
     },
 
     /**
@@ -26,7 +26,7 @@ var blogtng = {
                         'wiki__text');
 
         for(var i = 0; i < inputs.length; i++) {
-            var input = $(inputs[i]);
+            var input = jQuery("#"+inputs[i]).get(0);
             if(input) {
                 if(!input.value) {
                     input.className = 'edit error';
@@ -49,7 +49,7 @@ var blogtng = {
         if(!obj) return;
         if(!wrap) return;
 
-        addEvent(obj, 'click', function(e) {
+        jQuery(obj).click(function(e) {
             blogtng.preview(wrap,previewid);
             e.preventDefault();
             e.stopPropagation();
@@ -65,7 +65,7 @@ var blogtng = {
     preview: function(wrap,previewid) {
         if(!blogtng.validate()) return false;
 
-        var preview = $(previewid);
+        var preview = jQuery("#"+previewid).get(0);
         if(!preview){
             if(!wrap) return false;
 
@@ -76,27 +76,22 @@ var blogtng = {
 
         preview.innerHTML = '<img src="'+DOKU_BASE+'/lib/images/throbber.gif" />';
 
-        var ajax = new sack(DOKU_BASE + 'lib/exe/ajax.php');
-        ajax.AjaxFailedAlert = '';
-        ajax.encodeURIString = false;
-        ajax.setVar('call', 'blogtng__comment_preview');
+        params={call: 'blogtng__comment_preview'};
+        if(jQuery('#blogtng__comment_name').length > 0)
+            params.name = encodeURIComponent(jQuery('#blogtng__comment_name').val());
+        if(jQuery('#blogtng__comment_mail').length > 0)
+            params.mail = encodeURIComponent(jQuery('#blogtng__comment_mail').val());
+        if(jQuery('#blogtng__comment_web').length > 0)
+            params.web  = encodeURIComponent(jQuery('#blogtng__comment_web').val());
+        if(jQuery('#wiki__text').length > 0)
+            params.text = encodeURIComponent(jQuery('#wiki__text').val());
 
-        // define callback
-        ajax.onCompletion = function(){
-            var data = this.response;
+        jQuery.post(DOKU_BASE + 'lib/exe/ajax.php', params,
+        function(data){
             if(data === '') return;
             preview.innerHTML = data;
-        };
+        });
 
-        if($('blogtng__comment_name'))
-            ajax.setVar('name',encodeURIComponent($('blogtng__comment_name').value));
-        if($('blogtng__comment_mail'))
-            ajax.setVar('mail',encodeURIComponent($('blogtng__comment_mail').value));
-        if($('blogtng__comment_web'))
-            ajax.setVar('web',encodeURIComponent($('blogtng__comment_web').value));
-        if($('wiki__text'))
-            ajax.setVar('text',encodeURIComponent($('wiki__text').value));
-        ajax.runAJAX();
         return false;
     },
 
@@ -108,10 +103,10 @@ var blogtng = {
      */
     reply_attach: function() {
         // attach reply action
-        var objs = getElementsByClass('blogtng_num', null, 'a');
+        var objs = jQuery('a.blogtng_num');
         for (var i = 0; i < objs.length; i++) {
             objs[i].title = LANG['plugins']['blogtng']['reply'];
-            addEvent(objs[i], 'click', function(e) {
+            jQuery(objs[i]).click(function(e) {
                 insertAtCarret('wiki__text','@#'+this.href.substring(this.href.lastIndexOf('#')+'#comment_'.length)+': ');
 
                 e.preventDefault();
@@ -121,29 +116,29 @@ var blogtng = {
         }
 
         // make "footnotes" from comment references
-        objs = getElementsByClass('blogtng_reply', null, 'a');
+        objs = jQuery('a.blogtng_reply');
         for (var i = 0; i < objs.length; i++) {
-            addEvent(objs[i], 'mouseover', function(e) {
+            jQuery(objs[i]).mouseover(function(e) {
                 commentPopup(e, this.href.substring(this.href.lastIndexOf('#')+'#comment_'.length));
             });
         }
     },
 
     insert_checkall_checkbox: function() {
-        if(!$('blogtng__admin')) return;
-        var th = $('blogtng__admin_checkall_th');
+        if(jQuery('#blogtng__admin').length == 0) return;
+        var th = jQuery('#blogtng__admin_checkall_th').get(0);
         if(th) {
             var html_checkbox = '<input type="checkbox" id="blogtng__admin_checkall" />';
             th.innerHTML = html_checkbox;
-            var checkbox = $('blogtng__admin_checkall');
-            addEvent(checkbox, 'click', function(e) {
+            var checkbox = jQuery('#blogtng__admin_checkall').get(0);
+            jQuery(checkbox).click(function(e) {
                 blogtng.checkall();
             });
         }
     },
 
     checkall: function() {
-        objs = getElementsByClass('comment_cid', null, 'input');
+        objs = jQuery('input.comment_cid');
         if(objs) {
             var num = objs.length;
             for(var i=0;i<num;i++) {
@@ -171,14 +166,14 @@ function commentPopup(e, id){
     var obj = e.target;
 
     // get or create the comment popup div
-    var comment_div = $('insitu__comment');
+    var comment_div = jQuery('#insitu__comment').get(0);
     if(!comment_div){
         comment_div = document.createElement('div');
         comment_div.id        = 'insitu__comment';
         comment_div.className = 'insitu-footnote JSpopup dokuwiki';
 
         // autoclose on mouseout - ignoring bubbled up events
-        addEvent(comment_div,'mouseout',function(e){
+        jQuery(comment_div).mouseout(function(e){
             if(e.target != comment_div){
                 e.stopPropagation();
                 return;
@@ -211,7 +206,7 @@ function commentPopup(e, id){
     }
 
     // locate the comment anchor element
-    var a = $( "comment_"+id );
+    var a = jQuery("#comment_"+id ).get(0);
     if (!a){ return; }
 
     // anchor parent is the footnote container, get its innerHTML
@@ -241,9 +236,9 @@ function commentPopup(e, id){
 /**
  * Attach events
  */
-addInitEvent(function() {
-    blogtng.validate_attach($('blogtng__comment_submit'));
-    blogtng.preview_attach($('blogtng__preview_submit'),$('blogtng__comment_form_wrap'),'blogtng__comment_preview');
+jQuery(function() {
+    blogtng.validate_attach(jQuery('#blogtng__comment_submit').get(0));
+    blogtng.preview_attach(jQuery('#blogtng__preview_submit').get(0),jQuery('#blogtng__comment_form_wrap').get(0),'blogtng__comment_preview');
     blogtng.reply_attach();
     blogtng.insert_checkall_checkbox();
 });
