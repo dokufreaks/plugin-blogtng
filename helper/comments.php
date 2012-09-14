@@ -261,13 +261,13 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      *
      * @param string $pid  - entry to subscribe
      * @param string $mail - email of subscriber
-     * @param int $optin - set to 1 for immediate optin
      */
-    function subscribe($pid, $mail, $optin=-3) {
+    function subscribe($pid, $mail) {
         // add to subscription list
         $sql = "INSERT OR IGNORE INTO subscriptions
                       (pid, mail) VALUES (?,?)";
         $this->sqlitehelper->query($sql,$pid,strtolower($mail));
+        $optin = $this->getConf('subscribe_noconfirm');
 
         // add to optin list
         if($optin == 1){
