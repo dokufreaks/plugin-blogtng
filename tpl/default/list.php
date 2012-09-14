@@ -15,15 +15,15 @@
     if ($entry->tpl_entry(true, 'syntax', false)) {
 ?>
 <div class="blogtng_footer level1">
-    <a href="<?php $entry->tpl_link()?>" class="wikilink1 blogtng_permalink"><?php $entry->tpl_title()?></a>
+<a href="<?php $entry->tpl_link()?>" class="wikilink1 blogtng_permalink"><?php echo $this->getLang('permalink')?></a>
     &middot;
-    <?php $entry->tpl_created('%Y-%m-%d %H:%M')?>
+    <?php global $conf; $entry->tpl_created($conf['dformat'])?>
     &middot;
     <?php $entry->tpl_author()?>
     &middot;
-    <a href="<?php $entry->tpl_link('the__comments')?>" class="wikilink1 blogtng_commentlink"><?php $entry->tpl_commentcount('%d Comments', '%d Comment','%d Comments')?></a>
+    <a href="<?php $entry->tpl_link('the__comments')?>" class="wikilink1 blogtng_commentlink"><?php $entry->tpl_commentcount($this->getLang('0comments'),$this->getLang('1comments'),$this->getLang('Xcomments'))?></a>
     &middot;
-    Tags: <?php $entry->tpl_tags('')?>
+    <?php echo $this->getLang('tags').": ";$entry->tpl_tags('')?>
 </div>
 <?php
     }
