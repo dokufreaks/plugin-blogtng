@@ -13,7 +13,7 @@
 <li class="blogtng_tagsearch">
     <a href="<?php $entry->tpl_link()?>" class="wikilink1 blogtng_permalink"><?php $entry->tpl_title()?></a>
     &middot;
-    <?php $entry->tpl_created('%Y-%m-%d %H:%M')?>
+    <?php global $conf;$entry->tpl_created($conf['dformat'])?>
     &middot;
     <?php $entry->tpl_author()?>
     &middot;

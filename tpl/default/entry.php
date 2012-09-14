@@ -25,9 +25,10 @@
     <div class="blogtng_footer level1">
         <?php 
             global $lang; 
-            echo $lang['created'].": ";$entry->tpl_created('%Y-%m-%d %H:%M');echo ", ";
+            global $conf;
+            echo $lang['created'].": ";$entry->tpl_created($conf['dformat']);echo ", ";
             if ($entry->entry['created'] != $entry->entry['lastmod']) {
-                echo $lang['lastmod'].": ";$entry->tpl_lastmodified('%Y-%m-%d %H:%M');echo ", ";
+                echo $lang['lastmod'].": ";$entry->tpl_lastmodified($conf['dformat']);echo ", ";
             }
             echo $this->getLang('author').": ";$entry->tpl_author();echo ", ";
             if ($entry->has_tags()) {
