@@ -247,6 +247,37 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     }
 
     /**
+     * List matching pages for one or more tags
+     *
+     * Calls the *_tagsearch template for each entry in the result set
+     */
+    function xhtml_tagsearch($conf, &$renderer=null){
+        if (count($conf['tags']) == 0) {
+            
+            return '';
+            
+        };
+        $posts = $this->get_posts($conf);
+        if (!$posts) return '';
+        $rendererBackup =& $this->renderer;
+        $this->renderer =& $renderer;
+
+        $entryBackup = $this->entry;
+        ob_start();
+        if(!$conf['nolist']) echo '<ul class="blogtng_tagsearch">';
+        foreach ($posts as $row) {
+            $this->load_by_row($row);
+            $this->tpl_content($conf['tpl'], 'tagsearch');
+        }
+        if(!$conf['nolist']) echo '</ul>';
+        $output = ob_get_contents();
+        ob_end_clean();
+        $this->entry = $entryBackup; // restore previous entry in order to allow nesting
+        $this->renderer =& $rendererBackup; // clean up again
+        return $output;
+    }
+
+    /**
      * Display pagination links for the configured list of entries
      *
      * @author Andreas Gohr <gohr@cosmocode.de>
@@ -383,7 +414,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     //~~ template methods
 
     function tpl_content($name, $type) {
-        $whitelist = array('list', 'entry', 'feed');
+        $whitelist = array('list', 'entry', 'feed', 'tagsearch');
         if(!in_array($type, $whitelist)) return false;
 
         $tpl = helper_plugin_blogtng_tools::getTplFile($name, $type);
@@ -658,12 +689,29 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
     function get_posts($conf) {
         $sortkey = ($conf['sortby'] == 'random') ? 'Random()' : $conf['sortby'];
-        $blog_query = '(blog = '.
-                      $this->sqlitehelper->quote_and_join($conf['blog'],
-                                                          ' OR blog = ').')';
+        
+        $blog_query = '';
+        
+        if (count($conf['blog']) > 0) {
+        
+            $blog_query = '(blog = '.
+                          $this->sqlitehelper->quote_and_join($conf['blog'],
+                                                              ' OR blog = ').')';
+                                                              
+        }                                                             
+                                                              
         $tag_query = $tag_table = "";
         if(count($conf['tags'])){
-            $tag_query  = ' AND (tag = '.
+            
+            $tag_query = '';
+            
+            if (count($conf['blog']) > 0){
+                
+                $tag_query = ' AND';
+                
+            }
+            
+            $tag_query  .= ' (tag = '.
                           $this->sqlitehelper->quote_and_join($conf['tags'],
                                                               ' OR tag = ').') AND A.pid = B.pid';
             $tag_table  = ', tags B';
