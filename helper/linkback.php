@@ -37,15 +37,15 @@ class helper_plugin_blogtng_linkback extends DokuWiki_Plugin {
                          'status' => 'hidden',
                          'ip' => clientIP(true));
 
-        $sqlitehelper = plugin_load('helper', 'blogtng_sqlite');
+        $dbhelper = plugin_load('helper', 'blogtng_db');
         $query = 'SELECT web, source FROM comments WHERE pid = ?';
 
-        $resid = $sqlitehelper->query($query, $comment['pid']);
+        $resid = $dbhelper->query($query, $comment['pid']);
         if ($resid === false) {
             return false;
         }
 
-        $comments = $sqlitehelper->res2arr($resid);
+        $comments = $dbhelper->res2arr($resid);
 
         foreach($comments as $c) {
             if ($c['web'] === $comment['web'] && $c['source'] === $comment['source']) {

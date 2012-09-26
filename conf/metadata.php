@@ -18,3 +18,9 @@ $meta['tags']                     = array('string');
 $meta['receive_linkbacks']         = array('onoff');
 $meta['send_linkbacks']          = array('onoff');
 $meta['subscribe_noconfirm']     = array('onoff');
+
+// Database configuration
+
+$meta['db_dsn'] = array('string');
+$meta['db_username'] = array('string');
+$meta['db_password'] = array('password');

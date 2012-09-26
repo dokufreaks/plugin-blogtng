@@ -22,3 +22,6 @@ $lang['tags']                      = 'A comma-separated list of allowed tags. If
 $lang['receive_linkbacks']         = 'Receive notices about incoming links to your blogposts (receive linkbacks)?';
 $lang['subscribe_noconfirm']       = 'Do not send confirm email when users subscribe to comments';
 $lang['send_linkbacks']            = 'Inform pages you linked in your blogposts (send linkbacks)?';
+$lang['db_dsn']                    = 'Database DSN for blog database';
+$lang['db_username']               = 'Database username';
+$lang['db_password']               = 'Database password';

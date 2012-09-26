@@ -22,3 +22,6 @@ $lang['editform_set_date']         = 'Erlaube das Einstellen/Ändern des Erstell
 $lang['tags']                      = 'Kommaseparierte Liste (CSV) erlaubter Tags. Sofern leer sind alle Tags erlaubt.';
 $lang['receive_linkbacks']         = 'Hinweise über eingehende Links zu Ihren Blog-Einträgen empfangen (Linkbacks empfangen)?';
 $lang['send_linkbacks']            = 'Websites, die Sie in Ihren Blog-Einträgen verlinken, informieren (Linkbacks senden)?';
+$lang['db_dsn']                    = 'Datenbank-DSN für die Blog-Datenbank';
+$lang['db_username']               = 'Datenbank Benutzername';
+$lang['db_password']               = 'Datenbank Passwort';

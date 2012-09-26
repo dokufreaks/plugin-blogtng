@@ -21,7 +21,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
     var $entry = null;
 
-    var $sqlitehelper  = null;
+    var $dbhelper      = null;
     var $commenthelper = null;
     var $taghelper     = null;
     var $toolshelper   = null;
@@ -29,12 +29,12 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     var $renderer      = null;
 
     /**
-     * Constructor, loads the sqlite helper plugin
+     * Constructor, loads the db helper plugin
      *
      * @author Michael Klier <chi@chimeric.de>
      */
     function helper_plugin_blogtng_entry() {
-        $this->sqlitehelper =& plugin_load('helper', 'blogtng_sqlite');
+        $this->dbhelper =& plugin_load('helper', 'blogtng_db');
         $this->entry = $this->prototype();
     }
 
@@ -54,19 +54,19 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
 
         $query = 'SELECT pid, page, title, blog, image, created, lastmod, author, login, mail, commentstatus FROM entries WHERE pid = ?';
-        $resid = $this->sqlitehelper->query($query, $pid);
+        $resid = $this->dbhelper->query($query, $pid);
         if ($resid === false) {
             msg('blogtng plugin: failed to load entry!', -1);
             $this->entry = $this->prototype();
             return self::RET_ERR_DB;
         }
-        if (sqlite_num_rows($resid) == 0) {
+        if ($this->dbhelper->rowCount($resid) == 0) {
             $this->entry = $this->prototype();
             $this->entry['pid'] = $pid;
             return self::RET_ERR_NOENTRY;
         }
 
-        $result = $this->sqlitehelper->res2arr($resid);
+        $result = $this->dbhelper->res2arr($resid);
         $this->entry = $result[0];
         $this->entry['pid'] = $pid;
         if($this->poke()){
@@ -96,7 +96,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             return self::RET_ERR_BADRES;
         }
 
-        $result = $this->sqlitehelper->res2row($resid, $index);
+        $result = $this->dbhelper->res2row($resid, $index);
         $this->load_by_row($result);
     }
 
@@ -159,7 +159,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
         // delete entry
         $sql = "DELETE FROM entries WHERE pid = ?";
-        $ret = $this->sqlitehelper->query($sql,$this->entry['pid']);
+        $ret = $this->dbhelper->query($sql,$this->entry['pid']);
         $this->entry = $this->prototype();
 
 
@@ -176,7 +176,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
 
         $query = 'INSERT OR IGNORE INTO entries (pid, page, title, blog, image, created, lastmod, author, login, mail, commentstatus) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-        $result = $this->sqlitehelper->query(
+        $result = $this->dbhelper->query(
             $query,
             $this->entry['pid'],
             $this->entry['page'],
@@ -191,7 +191,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             $this->entry['commentstatus']
         );
         $query = 'UPDATE entries SET page = ?, title=?, blog=?, image=?, created = ?, lastmod=?, login = ?, author=?, mail=?, commentstatus=? WHERE pid=?';
-        $result = $this->sqlitehelper->query(
+        $result = $this->dbhelper->query(
             $query,
             $this->entry['page'],
             $this->entry['title'],
@@ -280,12 +280,12 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     function xhtml_pagination($conf){
         $sortkey = ($conf['sortby'] == 'random') ? 'Random()' : $conf['sortby'];
         $blog_query = '(blog = '.
-                      $this->sqlitehelper->quote_and_join($conf['blog'],
+                      $this->dbhelper->quote_and_join($conf['blog'],
                                                           ' OR blog = ').')';
         $tag_query = $tag_table = "";
         if(count($conf['tags'])){
             $tag_query  = ' AND (tag = '.
-                          $this->sqlitehelper->quote_and_join($conf['tags'],
+                          $this->dbhelper->quote_and_join($conf['tags'],
                                                               ' OR tag = ').
                           ') AND A.pid = B.pid GROUP BY A.pid';
             $tag_table  = ', tags B';
@@ -295,9 +295,9 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $query = 'SELECT A.pid
                     FROM entries A'.$tag_table.'
                    WHERE '.$blog_query.$tag_query;
-        $resid = $this->sqlitehelper->query($query);
+        $resid = $this->dbhelper->query($query);
         if (!$resid) return;
-        $count = sqlite_num_rows($resid);
+        $count = $this->dbhelper->rowCount($resid);
         if($count <= $conf['limit']) return '';
 
         // we now prepare an array of pages to show
@@ -547,8 +547,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $query = "SELECT tag
                     FROM tags
                    WHERE pid = '$pid'";
-        $res = $this->sqlitehelper->query($query);
-        $res = $this->sqlitehelper->res2arr($res);
+        $res = $this->dbhelper->query($query);
+        $res = $this->dbhelper->res2arr($res);
         foreach($res as $row){
             $tags[] = $row['tag'];
         }
@@ -556,9 +556,9 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $tags = array_filter($tags);
         if(!count($tags)) return; // no tags for comparison
 
-        $tags  = $this->sqlitehelper->quote_and_join($tags,',');
+        $tags  = $this->dbhelper->quote_and_join($tags,',');
         $blog_query = '(A.blog = '.
-                       $this->sqlitehelper->quote_and_join($blogs,
+                       $this->dbhelper->quote_and_join($blogs,
                                                            ' OR A.blog = ').')';
 
         $query = "SELECT page, title, COUNT(B.pid) AS cnt
@@ -570,9 +570,9 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
                 GROUP BY B.pid HAVING cnt > 0
                 ORDER BY cnt DESC, created DESC
                    LIMIT ".(int) $num;
-        $res = $this->sqlitehelper->query($query);
-        if(!sqlite_num_rows($res)) return; // no results found
-        $res = $this->sqlitehelper->res2arr($res);
+        $res = $this->dbhelper->query($query);
+        if($this->dbhelper->rowCount($res) == 0) return; // no results found
+        $res = $this->dbhelper->res2arr($res);
 
         // now do the output
         echo '<ul class="related">';
@@ -690,7 +690,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         if (count($conf['blog']) > 0) {
         
             $blog_query = '(blog = '.
-                          $this->sqlitehelper->quote_and_join($conf['blog'],
+                          $this->dbhelper->quote_and_join($conf['blog'],
                                                               ' OR blog = ').')';
                                                               
         }                                                             
@@ -707,7 +707,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             }
             
             $tag_query  .= ' (tag = '.
-                          $this->sqlitehelper->quote_and_join($conf['tags'],
+                          $this->dbhelper->quote_and_join($conf['tags'],
                                                               ' OR tag = ').') AND A.pid = B.pid';
             $tag_table  = ', tags B';
         }
@@ -721,8 +721,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
                  ' LIMIT '.$conf['limit'].
                 ' OFFSET '.$conf['offset'];
 
-        $resid = $this->sqlitehelper->query($query);
-        return $this->sqlitehelper->res2arr($resid);
+        $resid = $this->dbhelper->query($query);
+        return $this->dbhelper->res2arr($resid);
     }
 
     /**
@@ -817,9 +817,9 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
                          AND A.blog = B.blog
                     ORDER BY A.created ' . (($type == 'prev') ? 'DESC' : 'ASC') . '
                        LIMIT 1';
-            $res = $this->sqlitehelper->query($query, $pid);
-            if (sqlite_num_rows($res) > 0) {
-                $row = $this->sqlitehelper->res2row($res, 0);
+            $res = $this->dbhelper->query($query, $pid);
+            if ($this->dbhelper->rowCount($res) > 0) {
+                $row = $this->dbhelper->res2row($res, 0);
                 $related[$type] = $row;
             }
         }

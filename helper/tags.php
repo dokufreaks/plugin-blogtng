@@ -11,17 +11,17 @@ if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
 
 class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
 
-    var $sqlitehelper = null;
+    var $dbhelper = null;
 
     var $tags = array();
 
     var $pid = null;
 
     /**
-     * Constructor, loads the sqlite helper plugin
+     * Constructor, loads the db helper plugin
      */
     function helper_plugin_blogtng_tags() {
-        $this->sqlitehelper =& plugin_load('helper', 'blogtng_sqlite');
+        $this->dbhelper =& plugin_load('helper', 'blogtng_database');
     }
 
     /**
@@ -31,12 +31,12 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
         $pid = trim($pid);
         $query = 'SELECT COUNT(tag) AS tagcount FROM tags WHERE pid = ?';
 
-        $resid = $this->sqlitehelper->query($query, $pid);
+        $resid = $this->dbhelper->query($query, $pid);
         if ($resid === false) {
             msg('blogtng plugin: failed to load tags!', -1);
         }
 
-        $tagcount = $this->sqlitehelper->res2row($resid, 0);
+        $tagcount = $this->dbhelper->res2row($resid, 0);
         return $tagcount['tagcount'];
     }
 
@@ -47,16 +47,16 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
         $this->pid = trim($pid);
         $query = 'SELECT tag FROM tags WHERE pid = ? ORDER BY tag ASC';
 
-        $resid = $this->sqlitehelper->query($query, $this->pid);
+        $resid = $this->dbhelper->query($query, $this->pid);
         if ($resid === false) {
             msg('blogtng plugin: failed to load tags!', -1);
             $this->tags = array();
         }
-        if (sqlite_num_rows($resid) == 0) {
+        if ($this->dbhelper->rowCount($resid) == 0) {
             $this->tags = array();
         }
 
-        $tags_from_db = $this->sqlitehelper->res2arr($resid);
+        $tags_from_db = $this->dbhelper->res2arr($resid);
         $tags = array();
         foreach ($tags_from_db as $tag_from_db) {
             array_push($tags, $tag_from_db['tag']);
@@ -69,9 +69,9 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
      */
     function load_by_blog($blogs) {
         $query = 'SELECT DISTINCT tag, A.pid as pid FROM tags A LEFT JOIN entries B ON B.blog IN ("' . implode('","', $blogs) . '")';
-        $resid = $this->sqlitehelper->query($query);
+        $resid = $this->dbhelper->query($query);
         if($resid) {
-            return $this->sqlitehelper->res2arr($resid);
+            return $this->dbhelper->res2arr($resid);
         }
     }
 
@@ -79,29 +79,24 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
      * Save tags
      */
     function save() {
-        //FIXME $sqlite undefined
-        $query = 'BEGIN TRANSACTION';
-        if (!$this->sqlitehelper->query($query)) {
-            $sqlite->query('ROLLBACK TRANSACTION');
-            return;
-        }
+        $this->dbhelper->beginTransaction;
+
         $query = 'DELETE FROM tags WHERE pid = ?';
-        if (!$this->sqlitehelper->query($query, $this->pid)) {
-            $sqlite->query('ROLLBACK TRANSACTION');
+        if (!$this->dbhelper->query($query, $this->pid)) {
+
+            $this->dbhelper->rollbackTransaction();
             return;
         }
         foreach ($this->tags as $tag) {
             $query = 'INSERT INTO tags (pid, tag) VALUES (?, ?)';
-            if (!$this->sqlitehelper->query($query, $this->pid, $tag)) {
-                $sqlite->query('ROLLBACK TRANSACTION');
+            if (!$this->dbhelper->query($query, $this->pid, $tag)) {
+
+                $this->dbhelper->rollbackTransaction();
                 return;
             }
         }
-        $query = 'END TRANSACTION';
-        if (!$this->sqlitehelper->query($query)) {
-            $sqlite->query('ROLLBACK TRANSACTION');
-            return;
-        }
+
+        $this->dbhelper->commitTransaction();
     }
 
     function set($tags) {
@@ -121,11 +116,30 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
         );
         foreach ($tags as $tag) {
             if ($tag{0} == '+') {
-                array_push($tag_clauses['AND'], 'tag = \'' . sqlite_escape_string(substr($tag, 1)) . '\'');
+
+                array_push(
+                    $tag_clauses['AND'],
+                    'tag = \'' . $this->dbhelper->quote_string(
+                        substr($tag, 1)
+                    ) . '\''
+                );
+
             } else if ($tag{0} == '-') {
-                array_push($tag_clauses['NOT'], 'tag != \'' . sqlite_escape_string(substr($tag, 1)) . '\'');
+
+                array_push(
+                    $tag_clauses['NOT'],
+                    'tag != \'' . $this->dbhelper->quote_string(
+                        substr($tag, 1)
+                    ) . '\''
+                );
+
             } else {
-                array_push($tag_clauses['OR'], 'tag = \'' . sqlite_escape_string($tag) . '\'');
+
+                array_push(
+                    $tag_clauses['OR'],
+                    'tag = \'' . $this->dbhelper->quote_string($tag) . '\''
+                );
+
             }
         }
         $tag_clauses = array_map('array_unique', $tag_clauses);

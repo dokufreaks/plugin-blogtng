@@ -15,7 +15,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
 
     var $commenthelper = null;
     var $entryhelper   = null;
-    var $sqlitehelper  = null;
+    var $dbhelper  = null;
     var $taghelper     = null;
 
     function getMenuSort() { return 200; }
@@ -24,7 +24,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
     function admin_plugin_blogtng() {
         $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
         $this->entryhelper   =& plugin_load('helper', 'blogtng_entry');
-        $this->sqlitehelper  =& plugin_load('helper', 'blogtng_sqlite');
+        $this->dbhelper      =& plugin_load('helper', 'blogtng_database');
         $this->taghelper     =& plugin_load('helper', 'blogtng_tags');
     }
 
@@ -211,7 +211,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         }
         $query .= 'ORDER BY created DESC ';
 
-        $resid = $this->sqlitehelper->query($query);
+        $resid = $this->dbhelper->query($query);
         if($resid) {
             $this->xhtml_search_result($resid, $data, 'xhtml_entry_list');
         }
@@ -247,7 +247,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
 
         $query .= 'ORDER BY B.created DESC';
 
-        $resid = $this->sqlitehelper->query($query);
+        $resid = $this->dbhelper->query($query);
         if($resid) {
             $this->xhtml_search_result($resid, $data, 'xhtml_comment_list');
         }
@@ -269,7 +269,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         $query .= 'AND ( B.tag LIKE "%'.$data['string'].'%" ) ';
         $query .= 'ORDER BY created DESC ';
 
-        $resid = $this->sqlitehelper->query($query);
+        $resid = $this->dbhelper->query($query);
         if($resid) {
             $this->xhtml_search_result($resid, $data, 'xhtml_entry_list');
         }
@@ -282,14 +282,14 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         // FIXME selectable?
         $limit = 20;
 
-        $count = sqlite_num_rows($resid);
+        $count = $this->dbhelper->rowCount($resid);
         $start = (isset($_REQUEST['btng']['query']['start'])) ? ($_REQUEST['btng']['query']['start'])  : 0;
         $end   = ($count >= ($start + $limit)) ? ($start + $limit) : $count;
         $cur   = ($start / $limit) + 1;
 
         $items = array();
         for($i = $start; $i < $end; $i++) {
-            $items[] = $this->sqlitehelper->res2row($resid, $i);
+            $items[] = $this->dbhelper->res2row($resid, $i);
         }
 
         if($items) {
@@ -398,7 +398,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
                 ORDER BY created DESC
                    LIMIT ' . $limit;
 
-        $resid = $this->sqlitehelper->query($query);
+        $resid = $this->dbhelper->query($query);
         if(!$resid) return;
         $this->xhtml_search_result($resid, array(), 'xhtml_entry_list');
     }
@@ -416,7 +416,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
                 ORDER BY created DESC
                    LIMIT ' . $limit;
 
-        $resid = $this->sqlitehelper->query($query);
+        $resid = $this->dbhelper->query($query);
         if(!$resid) return;
         $this->xhtml_search_result($resid, array(), 'xhtml_comment_list');
     }
