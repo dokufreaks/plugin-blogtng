@@ -65,6 +65,17 @@ class helper_plugin_blogtng_database extends DokuWiki_Plugin {
 
         }
 
+        if ($this->updateNeeded()) {
+
+            msg(
+                'blogtng plugin: Database update needed!',
+                -1
+            );
+            $this->db = null;
+            return false;
+
+        }
+
         return true;
     }
 
@@ -79,10 +90,7 @@ class helper_plugin_blogtng_database extends DokuWiki_Plugin {
         return (int) $row['val'];
     }
 
-    /**
-     * Update the database if needed
-     */
-    function _updatedb(){
+    function updateNeeded() {
         $current = $this->_currentDBversion();
         if(!$current){
             msg('blogtng: no DB version found. DB probably broken.',-1);
@@ -90,8 +98,25 @@ class helper_plugin_blogtng_database extends DokuWiki_Plugin {
         }
         $latest  = (int) trim(io_readFile(BLOGTNG_DIR.'db/latest.version'));
 
-        // all up to date?
-        if($current >= $latest) return true;
+        return $current <> $latest;
+    }
+
+    /**
+     * Update the database if needed
+     */
+    function _updatedb(){
+
+        if (!$this->updateNeeded()) {
+            return true;
+        }
+
+        $current = $this->_currentDBversion();
+        if(!$current){
+            msg('blogtng: no DB version found. DB probably broken.',-1);
+            return false;
+        }
+        $latest  = (int) trim(io_readFile(BLOGTNG_DIR.'db/latest.version'));
+
         for($i=$current+1; $i<=$latest; $i++){
             $file = sprintf(BLOGTNG_DIR.'db/update%04d.sql',$i);
             if(file_exists($file)){
