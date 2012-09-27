@@ -204,12 +204,14 @@ class helper_plugin_blogtng_database extends DokuWiki_Plugin {
 
         if ($res === false) {
 
+            $errorInfo = $this->db->errorInfo;
+
             msg(
                 sprintf(
                     "Failed to execute query (%s/%s): %s",
                     $this->db->errorCode(),
-                    $this->db->errorInfo()[1],
-                    $this->db->errorInfo()[2]
+                    $errorInfo[1],
+                    $errorInfo[2]
                 ),
                 -1
             );
@@ -218,12 +220,14 @@ class helper_plugin_blogtng_database extends DokuWiki_Plugin {
 
         } elseif ($res->errorCode() == '00000') {
 
+            $errorInfo = $this->db->errorInfo;
+
             msg(
                 sprintf(
                     "Failed to execute query (%s/%s): %s",
                     $res->errorCode(),
-                    $res->errorInfo()[1],
-                    $res->errorInfo()[2]
+                    $errorInfo[1],
+                    $errorInfo[2]
                 ),
                 -1
             );
