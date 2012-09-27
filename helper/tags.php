@@ -51,9 +51,11 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
         if ($resid === false) {
             msg('blogtng plugin: failed to load tags!', -1);
             $this->tags = array();
+            return false;
         }
         if ($this->dbhelper->rowCount($resid) == 0) {
             $this->tags = array();
+            return true;
         }
 
         $tags_from_db = $this->dbhelper->res2arr($resid);
@@ -62,6 +64,8 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
             array_push($tags, $tag_from_db['tag']);
         }
         $this->tags = $tags;
+
+        return true;
     }
 
     /**

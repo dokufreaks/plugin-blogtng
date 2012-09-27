@@ -34,7 +34,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * @author Michael Klier <chi@chimeric.de>
      */
     function helper_plugin_blogtng_entry() {
-        $this->dbhelper =& plugin_load('helper', 'blogtng_db');
+        $this->dbhelper =& plugin_load('helper', 'blogtng_database');
         $this->entry = $this->prototype();
     }
 
@@ -42,6 +42,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     //~~ data access methods
 
     function load_by_pid($pid) {
+
         $this->entry = $this->prototype();
         $this->taghelper = null;
         $this->commenthelper = null;

@@ -37,7 +37,7 @@ class helper_plugin_blogtng_linkback extends DokuWiki_Plugin {
                          'status' => 'hidden',
                          'ip' => clientIP(true));
 
-        $dbhelper = plugin_load('helper', 'blogtng_db');
+        $dbhelper = plugin_load('helper', 'blogtng_database');
         $query = 'SELECT web, source FROM comments WHERE pid = ?';
 
         $resid = $dbhelper->query($query, $comment['pid']);

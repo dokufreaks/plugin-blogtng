@@ -137,55 +137,57 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
             ptln('<p><a href="' . wl($ID, array('do'=>'admin', 'page'=>'blogtng')) . '" title="' . $this->getLang('dashboard') . '">&larr; ' . $this->getLang('dashboard') . '</a></p>');
             ptln('</div>');
 
-        }
+        } else {
 
-        // display search form
-        $this->xhtml_search_form();
+            // display search form
+            $this->xhtml_search_form();
 
-        switch($admin) {
-            case 'search':
+            switch($admin) {
+                case 'search':
 
-                ptln('<h2>' . $this->getLang('searchresults') . '</h2>');
-                $query = $_REQUEST['btng']['query'];
+                    ptln('<h2>' . $this->getLang('searchresults') . '</h2>');
+                    $query = $_REQUEST['btng']['query'];
 
-                switch($query['filter']) {
-                    case 'entry_title':
-                    case 'entry_author':
-                        $this->xhtml_search_entries($query);
-                        break;
-                    case 'comment':
-                    case 'comment_ip':
-                        $this->xhtml_search_comments($query);
-                        break;
-                    case 'tags':
-                        $this->xhtml_search_tags($query);
-                        break;
-                }
-
-                break;
-
-            case 'comment_edit':
-            case 'comment_preview':
-                if($admin == 'comment_edit') {
-                    $obj = $this->commenthelper->comment_by_cid($_REQUEST['btng']['comment']['cid']);
-                    $comment = $obj->data;
-                    if($comment) {
-                        $this->xhtml_comment_edit_form($comment);
+                    switch($query['filter']) {
+                        case 'entry_title':
+                        case 'entry_author':
+                            $this->xhtml_search_entries($query);
+                            break;
+                        case 'comment':
+                        case 'comment_ip':
+                            $this->xhtml_search_comments($query);
+                            break;
+                        case 'tags':
+                            $this->xhtml_search_tags($query);
+                            break;
                     }
-                }
-                if($admin == 'comment_preview') {
-                    $this->xhtml_comment_edit_form($_REQUEST['btng']['comment']);
-                    $this->xhtml_comment_preview($_REQUEST['btng']['comment']);
-                }
-                break;
 
-            default:
-                // print latest entries/commits
-                printf('<h2>'.$this->getLang('comment_latest').'</h2>', 5);
-                $this->xhtml_comment_latest();
-                printf('<h2>'.$this->getLang('entry_latest').'</h2>', 5);
-                $this->xhtml_entry_latest();
-                break;
+                    break;
+
+                case 'comment_edit':
+                case 'comment_preview':
+                    if($admin == 'comment_edit') {
+                        $obj = $this->commenthelper->comment_by_cid($_REQUEST['btng']['comment']['cid']);
+                        $comment = $obj->data;
+                        if($comment) {
+                            $this->xhtml_comment_edit_form($comment);
+                        }
+                    }
+                    if($admin == 'comment_preview') {
+                        $this->xhtml_comment_edit_form($_REQUEST['btng']['comment']);
+                        $this->xhtml_comment_preview($_REQUEST['btng']['comment']);
+                    }
+                    break;
+
+                default:
+                    // print latest entries/commits
+                    printf('<h2>'.$this->getLang('comment_latest').'</h2>', 5);
+                    $this->xhtml_comment_latest();
+                    printf('<h2>'.$this->getLang('entry_latest').'</h2>', 5);
+                    $this->xhtml_entry_latest();
+                    break;
+            }
+
         }
 
         ptln('</div>');
