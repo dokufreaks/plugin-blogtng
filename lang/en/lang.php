@@ -73,3 +73,14 @@ $lang['msg_entry_blog_change']      = 'Blog of the entry was changed';
 
 $lang['err_notitle'] = 'No post title given!';
 
+$lang['manage_database'] = 'Manage database';
+$lang['init_database'] = 'Initialize database';
+$lang['init_database_intro'] = 'This wizard helps you to create the database
+connection of the cache database for the blogtng-database and initialize the
+database.';
+$lang['database_engine'] = 'Database engine';
+$lang['database_host'] = 'Host';
+$lang['database_port'] = 'Port';
+$lang['database_name'] = 'Database name (or filename for SQLite)';
+$lang['database_username'] = 'Database username';
+$lang['database_password'] = 'Database password';

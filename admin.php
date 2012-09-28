@@ -137,57 +137,86 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
             ptln('<p><a href="' . wl($ID, array('do'=>'admin', 'page'=>'blogtng')) . '" title="' . $this->getLang('dashboard') . '">&larr; ' . $this->getLang('dashboard') . '</a></p>');
             ptln('</div>');
 
-        } else {
+        }
 
-            // display search form
-            $this->xhtml_search_form();
+        if ($admin == 'init_database') {
 
-            switch($admin) {
-                case 'search':
+            $this->xhtml_wizard_init_database();
 
-                    ptln('<h2>' . $this->getLang('searchresults') . '</h2>');
-                    $query = $_REQUEST['btng']['query'];
+            return;
 
-                    switch($query['filter']) {
-                        case 'entry_title':
-                        case 'entry_author':
-                            $this->xhtml_search_entries($query);
-                            break;
-                        case 'comment':
-                        case 'comment_ip':
-                            $this->xhtml_search_comments($query);
-                            break;
-                        case 'tags':
-                            $this->xhtml_search_tags($query);
-                            break;
+        }
+
+        // display database functions
+
+        ptln('<h2>'.$this->getLang("manage_database").'</h2>');
+
+        ptln('<ul>');
+
+        ptln('<li><a href="'.
+            wl(
+                $ID,
+                array(
+                    'do'=>'admin',
+                    'page' => 'blogtng',
+                    'btng[admin]' => 'init_database',
+                    'btng[wizard][page]' => 1
+                )
+            ).
+            '">'.
+            $this->getLang('init_database').
+            '</a></li>'
+        );
+
+        ptln('</ul>');
+
+        // display search form
+        $this->xhtml_search_form();
+
+        switch($admin) {
+            case 'search':
+
+                ptln('<h2>' . $this->getLang('searchresults') . '</h2>');
+                $query = $_REQUEST['btng']['query'];
+
+                switch($query['filter']) {
+                    case 'entry_title':
+                    case 'entry_author':
+                        $this->xhtml_search_entries($query);
+                        break;
+                    case 'comment':
+                    case 'comment_ip':
+                        $this->xhtml_search_comments($query);
+                        break;
+                    case 'tags':
+                        $this->xhtml_search_tags($query);
+                        break;
+                }
+
+                break;
+
+            case 'comment_edit':
+            case 'comment_preview':
+                if($admin == 'comment_edit') {
+                    $obj = $this->commenthelper->comment_by_cid($_REQUEST['btng']['comment']['cid']);
+                    $comment = $obj->data;
+                    if($comment) {
+                        $this->xhtml_comment_edit_form($comment);
                     }
+                }
+                if($admin == 'comment_preview') {
+                    $this->xhtml_comment_edit_form($_REQUEST['btng']['comment']);
+                    $this->xhtml_comment_preview($_REQUEST['btng']['comment']);
+                }
+                break;
 
-                    break;
-
-                case 'comment_edit':
-                case 'comment_preview':
-                    if($admin == 'comment_edit') {
-                        $obj = $this->commenthelper->comment_by_cid($_REQUEST['btng']['comment']['cid']);
-                        $comment = $obj->data;
-                        if($comment) {
-                            $this->xhtml_comment_edit_form($comment);
-                        }
-                    }
-                    if($admin == 'comment_preview') {
-                        $this->xhtml_comment_edit_form($_REQUEST['btng']['comment']);
-                        $this->xhtml_comment_preview($_REQUEST['btng']['comment']);
-                    }
-                    break;
-
-                default:
-                    // print latest entries/commits
-                    printf('<h2>'.$this->getLang('comment_latest').'</h2>', 5);
-                    $this->xhtml_comment_latest();
-                    printf('<h2>'.$this->getLang('entry_latest').'</h2>', 5);
-                    $this->xhtml_entry_latest();
-                    break;
-            }
-
+            default:
+                // print latest entries/commits
+                printf('<h2>'.$this->getLang('comment_latest').'</h2>', 5);
+                $this->xhtml_comment_latest();
+                printf('<h2>'.$this->getLang('entry_latest').'</h2>', 5);
+                $this->xhtml_entry_latest();
+                break;
         }
 
         ptln('</div>');
@@ -275,6 +304,81 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         if($resid) {
             $this->xhtml_search_result($resid, $data, 'xhtml_entry_list');
         }
+    }
+
+    /**
+     * Wizard pages for Initialize Database
+     */
+
+    function xhtml_wizard_init_database() {
+
+        ptln('<h2>'.$this->getLang('init_database').'</h2>');
+
+        if ($_REQUEST['btng']['wizard'][page] == 1) {
+
+            ptln('<p>'.$this->getLang('init_database_intro').'</p>');
+
+            $form = new Doku_Form(array('id' => 'blogtng__wizard_init_database'));
+            $form->addHidden('do', 'admin');
+            $form->addHidden('page', 'blogtng');
+            $form->addHidden('btng[admin]', 'init_database');
+            $form->addHidden('btng[wizard][page]', 1);
+            $form->addElement(formSecurityToken());
+            $form->addElement(
+                form_makeListboxField(
+                    'engine',
+                    array(
+                        'sqlite',
+                        'mysql'
+                    ),
+                    'sqlite',
+                    $this->getLang('database_engine')
+                )
+            );
+            $form->addElement('<br />');
+            $form->addElement(
+                form_makeTextField(
+                    'host',
+                    '',
+                    $this->getLang('database_host')
+                )
+            );
+            $form->addElement('<br />');
+            $form->addElement(
+                form_makeTextField(
+                    'port',
+                    '',
+                    $this->getLang('database_port')
+                )
+            );
+            $form->addElement('<br />');
+            $form->addElement(
+                form_makeTextField(
+                    'name',
+                    '',
+                    $this->getLang('database_name')
+                )
+            );
+            $form->addElement('<br />');
+            $form->addElement(
+                form_makeTextField(
+                    'username',
+                    '',
+                    $this->getLang('database_username')
+                )
+            );
+            $form->addElement('<br />');
+            $form->addElement(
+                form_makeTextField(
+                    'password',
+                    '',
+                    $this->getLang('database_password')
+                )
+            );
+            html_form('blogtng__wizard_init_database', $form);
+
+        }
+
     }
 
     function xhtml_search_result($resid, $query, $callback) {
