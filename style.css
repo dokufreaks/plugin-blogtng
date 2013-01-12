@@ -92,6 +92,7 @@ div.dokuwiki div#blogtng__admin table td.comment_name,
 div.dokuwiki div#blogtng__admin table td.comment_web,
 div.dokuwiki div#blogtng__admin table td.entry_created {
     width: 12%;
+    word-break: break-all;
 }
 
 div.dokuwiki div#blogtng__admin table td.comment_text {
