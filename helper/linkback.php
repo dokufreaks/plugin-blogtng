@@ -37,7 +37,11 @@ class helper_plugin_blogtng_linkback extends DokuWiki_Plugin {
                          'status' => 'hidden',
                          'ip' => clientIP(true));
 
-        $sqlitehelper = plugin_load('helper', 'blogtng_sqlite');
+        if ($this->getConf('sqlite_version') == 'SQLite2')
+            $sqlitehelper =& plugin_load('helper', 'blogtng_sqlite');
+        else
+            $sqlitehelper =& plugin_load('helper', 'blogtng_sqlite3');
+
         $query = 'SELECT web, source FROM comments WHERE pid = ?';
 
         $resid = $sqlitehelper->query($query, $comment['pid']);
