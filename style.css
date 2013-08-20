@@ -65,15 +65,24 @@ div.dokuwiki div#blogtng__admin table td.entry_edit {
   width: 1em;
 }
 
-div.dokuwiki div#blogtng__admin table td.comment_created,
-div.dokuwiki div#blogtng__admin table td.comment_ip,
-div.dokuwiki div#blogtng__admin table td.comment_name,
-div.dokuwiki div#blogtng__admin table td.comment_web,
-div.dokuwiki div#blogtng__admin table td.entry_created {
+div.dokuwiki div#blogtng__admin table td span.comment_created,
+div.dokuwiki div#blogtng__admin table td span.comment_ip,
+div.dokuwiki div#blogtng__admin table td span.comment_name,
+div.dokuwiki div#blogtng__admin table td span.comment_web,
+div.dokuwiki div#blogtng__admin table td span.comment_status,
+div.dokuwiki div#blogtng__admin table td span.comment_source,
+div.dokuwiki div#blogtng__admin table td span.entry_created {
   width: 12%;
+  padding-right: 10px;
+  border-right: 2px solid #ccc;
 }
 
-div.dokuwiki div#blogtng__admin table td.comment_text {
+div.dokuwiki div#blogtng__admin table td div.comment_text {
+  padding: 0.5em;
+  font-weight: bold;
+}
+
+div.dokuwiki div#blogtng__admin table td div.comment_metadata {
   padding: 0.5em;
 }
 
@@ -93,6 +102,24 @@ div.dokuwiki div#blogtng__admin table td.comment_source {
 div.dokuwiki div.blogtng_list div.blogtng_footer {
     border-top: 1px solid __border__;
 }
+
+/* small_list template styles */
+div.dokuwiki div.blogtng_small_list {
+  padding-bottom: 1.5em;
+}
+
+div.dokuwiki div.blogtng_small_list_title {
+  font-size: 1.2em;
+  font-weight: bold;
+  border-left: 0.5em solid #060;
+  padding-left: 1em;
+}
+
+div.dokuwiki div.blogtng_small_list_abstract {
+  float: left;
+  padding-right: 2em;
+}
+/* end of small_list template styles */
 
 div.dokuwiki div.blogtng_entry div.blogtng_footer {
     border: 1px solid __border__;

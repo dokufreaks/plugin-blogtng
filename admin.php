@@ -539,6 +539,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      * Displays a list of comments
      *
      * @author Michael Klier <chi@chimeric.de>
+     * @author hArpanet <dokuwiki-blogtng@harpanet.com>
      */
     function xhtml_comment_list($comments) {
         global $lang;
@@ -552,14 +553,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
 
         ptln('<table class="inline">');
         ptln('<th id="blogtng__admin_checkall_th"></th>');
-        ptln('<th>' . $this->getLang('created') . '</th>');
-        ptln('<th>' . $this->getLang('comment_ip') . '</th>');
-        ptln('<th>' . $this->getLang('comment_name') . '</th>');
-        ptln('<th>' . $this->getLang('comment_web') . '</th>');
-        ptln('<th>' . $this->getLang('comment_status') . '</th>');
-        ptln('<th>' . $this->getLang('comment_source') . '</th>');
-        ptln('<th>' . $this->getLang('entry') . '</th>');
-        ptln('<th>' . $this->getLang('comment_text') . '</th>');
+        ptln('<th>' . $this->getLang('comments') . '</th>');
         ptln('<th></th>');
 
         foreach($comments as $comment) {
@@ -582,6 +576,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      * Displays a single comment and related actions
      *
      * @author Michael Klier <chi@chimeric.de>
+     * @author hArpanet <dokuwiki-blogtng@harpanet.com>
      */
     function xhtml_comment_item($comment) {
         global $conf;
@@ -596,32 +591,36 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         $cmt->init($comment);
         ptln('<td class="admin_checkbox"><input type="checkbox" class="comment_cid" name="btng[comments][cids][]" value="' . $comment['cid'] . '" /></td>');
 
-        ptln('<td class="comment_created">' . dformat($comment['created']) . '</td>');
-        ptln('<td class="comment_ip">' . hsc($comment['ip']) . '</td>');
+        ptln('<td class="comment_row">');
 
-        ptln('<td class="comment_name">');
-        $avatar = $cmt->tpl_avatar(16,16,true);
-        if($avatar) ptln('<img src="' . $avatar . '" alt="' . hsc($comment['name']) . '" class="avatar" /> ');
-        if($comment['mail']){
-            ptln('<a href="mailto:' . hsc($comment['mail']) . '" class="mail" title="' . hsc($comment['mail']) . '">' . hsc($comment['name']) . '</a>');
-        }else{
-            ptln(hsc($comment['name']));
-        }
-        ptln('</td>');
+        ptln('<div class="comment_text" title="'.$this->getLang('comment_text').'">' . hsc($comment['text']) . '</div>');
 
-        if($comment['web']) {
-            ptln('<td class="comment_web"><a href="' . hsc($comment['web']) . '" title="' . hsc($comment['web']) . '">' . hsc($comment['web']) . '</a></td>');
-        } else {
-            ptln('<td class="comment_web"></td>');
-        }
+        ptln('<div class="comment_metadata">');
+            ptln('<span class="comment_created" title="'.$this->getLang('created').'">' . dformat($comment['created']) . '</span>');
+            ptln('<span class="comment_ip" title="'.$this->getLang('comment_ip').'">' . hsc($comment['ip']) . '</span>');
 
-        ptln('<td class="comment_status">' . hsc($comment['status']) . '</td>');
-        ptln('<td class="comment_source">' . hsc($comment['source']) . '</td>');
+            ptln('<span class="comment_name" title="'.$this->getLang('comment_name').'">');
+            $avatar = $cmt->tpl_avatar(16,16,true);
+            if($avatar) ptln('<img src="' . $avatar . '" alt="' . hsc($comment['name']) . '" class="avatar" /> ');
+            if($comment['mail']){
+                ptln('<a href="mailto:' . hsc($comment['mail']) . '" class="mail" title="' . hsc($comment['mail']) . '">' . hsc($comment['name']) . '</a>');
+            }else{
+                ptln(hsc($comment['name']));
+            }
+            ptln('</span>');
 
-        $this->entryhelper->load_by_pid($comment['pid']);
-        ptln('<td class="comment_entry">' . html_wikilink($this->entryhelper->entry['page'], $this->entryhelper->entry['title']) . '</td>');
+            if($comment['web']) {
+                ptln('<span class="comment_web" title="'.$this->getLang('comment_web').'"><a href="' . hsc($comment['web']) . '" title="' . hsc($comment['web']) . '">' . hsc($comment['web']) . '</a></span>');
+            } else {
+                ptln('<span class="comment_web" title="'.$this->getLang('comment_web').'"></span>');
+            }
 
-        ptln('<td class="comment_text">' . hsc($comment['text']) . '</td>');
+            ptln('<span class="comment_status" title="'.$this->getLang('comment_status').'">' . hsc($comment['status']) . '</span>');
+            ptln('<span class="comment_source" title="'.$this->getLang('comment_source').'">' . hsc($comment['source']) . '</span>');
+
+            $this->entryhelper->load_by_pid($comment['pid']);
+            ptln('<span class="comment_entry" title="'.$this->getLang('comment_entry').'">' . html_wikilink($this->entryhelper->entry['page'], $this->entryhelper->entry['title']) . '</span>');
+        ptln('</div>');
 
         ptln('<td class="comment_edit"><a href="' . wl($ID, array('do'=>'admin',
                                                                           'page'=>'blogtng',
@@ -653,7 +652,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         global $lang;
         $blogs = $this->entryhelper->get_blogs();
 
-        $form = new Doku_FOrm(array('id'=>'blogtng__entry_set_blog_form'));
+        $form = new Doku_Form(array('id'=>'blogtng__entry_set_blog_form'));
         $form->addHidden('do', 'admin');
         $form->addHidden('page', 'blogtng');
         $form->addHidden('btng[entry][pid]', $entry['pid']);
@@ -798,7 +797,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      */
     private function get_qty($id) {
         $id = sprintf('%s_qty', $id);
-        return (isset($_REQUEST['btng'][$id])) ? $_REQUEST['btng'][$id] : 5;
+        return (isset($_REQUEST['btng'][$id])) ? hsc($_REQUEST['btng'][$id]) : 5;
     }
 }
 // vim:ts=4:sw=4:et:
