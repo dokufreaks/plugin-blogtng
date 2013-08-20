@@ -119,6 +119,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      * Handles the XHTML output of the admin component
      *
      * @author Michael Klier <chi@chimeric.de>
+     * @author hArpanet <dokuwiki-blogtng@harpanet.com>
      */
     function html() {
         global $conf;
@@ -211,10 +212,15 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
                 break;
 
             default:
-                // print latest entries/commits
-                printf('<h2>'.$this->getLang('comment_latest').'</h2>', 5);
+                // print latest 'x' comments/entries
+                $id = 'comments';
+                printf('<h2>'.$this->getLang('comment_latest').'</h2>', $this->get_qty($id));
+                $this->xhtml_quantity_form($id);
                 $this->xhtml_comment_latest();
-                printf('<h2>'.$this->getLang('entry_latest').'</h2>', 5);
+
+                $id = 'entries';
+                printf('<h2>'.$this->getLang('entry_latest').'</h2>', $this->get_qty($id));
+                $this->xhtml_quantity_form($id);
                 $this->xhtml_entry_latest();
                 break;
         }
@@ -285,7 +291,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
     }
 
     /**
-     * Query the tag database for a give search string
+     * Query the tag database for a given search string
      *
      * @author Michael Klier <chi@chimeric.de>
      */
@@ -307,8 +313,20 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
     }
 
     /**
-     * Wizard pages for Initialize Database
+     * Display paginated search results
+     *
+     * @param object $resid    Database resource object
+     * @param array  $query    Query parameters
+     * @param string $callback User_func function name
+     * @param int    $limit    Number of results to display (page size)
+     *
+     * @return void
+     *
+     * @author Michael Klier <chi@chimeric.de>
+     * @author hArpanet <dokuwiki-blogtng@harpanet.com>
      */
+<<<<<<< HEAD
+=======
 
     function xhtml_wizard_init_database() {
 
@@ -381,14 +399,25 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
 
     }
 
-    function xhtml_search_result($resid, $query, $callback) {
+        /**
+     * Display paginated search results
+     *
+     * @param object $resid    Database resource object
+     * @param array  $query    Query parameters
+     * @param string $callback User_func function name
+     * @param int    $limit    Number of results to display (page size)
+     *
+     * @return void
+     *
+     * @author Michael Klier <chi@chimeric.de>
+     * @author hArpanet <dokuwiki-blogtng@harpanet.com>
+     */
+>>>>>>> dashboard update - choose qty of comments to show
+    function xhtml_search_result($resid, $query, $callback, $limit=20) {
         global $lang;
         if(!$resid) return;
 
-        // FIXME selectable?
-        $limit = 20;
-
-        $count = $this->dbhelper->rowCount($resid);
+        $count = $this->sqlitehelper->resRowCount($resid);
         $start = (isset($_REQUEST['btng']['query']['start'])) ? ($_REQUEST['btng']['query']['start'])  : 0;
         $end   = ($count >= ($start + $limit)) ? ($start + $limit) : $count;
         $cur   = ($start / $limit) + 1;
@@ -494,9 +523,10 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      * Displays the latest blog entries
      *
      * @author Michael Klier <chi@chimeric.de>
+     * @author hArpanet <dokuwiki-blogtng@harpanet.com>
      */
     function xhtml_entry_latest() {
-        $limit = 5;
+        $limit = $this->get_qty('entries');
 
         $query = 'SELECT *
                     FROM entries
@@ -506,16 +536,17 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
 
         $resid = $this->dbhelper->query($query);
         if(!$resid) return;
-        $this->xhtml_search_result($resid, array(), 'xhtml_entry_list');
+        $this->xhtml_search_result($resid, array(), 'xhtml_entry_list', $limit);
     }
 
     /**
      * Display the latest comments
      *
      * @author Michael Klier <chi@chimeric.de>
+     * @author hArpanet <dokuwiki-blogtng@harpanet.com>
      */
     function xhtml_comment_latest() {
-        $limit = 5;
+        $limit = $this->get_qty('comments');
 
         $query = 'SELECT *
                     FROM comments
@@ -524,7 +555,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
 
         $resid = $this->dbhelper->query($query);
         if(!$resid) return;
-        $this->xhtml_search_result($resid, array(), 'xhtml_comment_list');
+        $this->xhtml_search_result($resid, array(), 'xhtml_comment_list', $limit);
     }
 
     /**
@@ -631,6 +662,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
 
         ptln('<form action="' . DOKU_SCRIPT . '" method="post" id="blogtng__comment_batch_edit_form">');
         ptln('<input type="hidden" name="page" value="blogtng" />');
+        ptln('<input type="hidden" name="btng[comments_qty]" value="' .$this->get_qty('comments'). '" />');
 
         ptln('<table class="inline">');
         ptln('<th id="blogtng__admin_checkall_th"></th>');
@@ -758,7 +790,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         global $lang;
         $blogs = $this->entryhelper->get_blogs();
 
-        $form = new Doku_FOrm(array('id'=>'blogtng__entry_set_commentstatus_form'));
+        $form = new Doku_Form(array('id'=>'blogtng__entry_set_commentstatus_form'));
         $form->addHidden('do', 'admin');
         $form->addHidden('page', 'blogtng');
         $form->addHidden('btng[entry][pid]', $entry['pid']);
@@ -840,5 +872,47 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         ptln('</div>');
     }
 
+    /**
+     * Displays the quantity selection form
+     *
+     * @author hArpanet <dokuwiki-blogtng@harpanet.com>
+     */
+    function xhtml_quantity_form($id='') {
+        global $lang;
+
+        $limit = $this->get_qty($id);
+
+        ptln('<div class="level1">');
+
+        $form = new Doku_Form(array('id'=>'blogtng__'.$id.'_qty_form'));
+        $form->startFieldset();
+        $form->addHidden('page', 'blogtng');
+        $form->addElement(formSecurityToken());
+
+        $form->addElement(
+                form_makeListBoxField("btng[{$id}_qty]",
+                array(5,10,15,20,25,30,40,50,100),
+                $limit,
+                $this->getLang('numhits')));
+
+        $form->addElement(form_makeButton('submit', 'admin', $lang['btn_update']));
+        $form->endFieldset();
+        html_form('blogtng__'.$id.'_cnt_form', $form);
+
+        ptln('</div>');
+    }
+
+    /**
+     * get submitted quantity value
+     *
+     * @param  string $id Form field identifier
+     * @return int        Quantity (default:5)
+     *
+     * @author hArpanet <dokuwiki-blogtng@harpanet.com>
+     */
+    private function get_qty($id) {
+        $id = sprintf('%s_qty', $id);
+        return (isset($_REQUEST['btng'][$id])) ? $_REQUEST['btng'][$id] : 5;
+    }
 }
 // vim:ts=4:sw=4:et:
