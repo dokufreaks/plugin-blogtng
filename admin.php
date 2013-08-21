@@ -648,10 +648,11 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         global $lang;
         $blogs = $this->entryhelper->get_blogs();
 
-        $form = new Doku_FOrm(array('id'=>'blogtng__entry_set_blog_form'));
+        $form = new Doku_Form(array('id'=>'blogtng__entry_set_blog_form'));
         $form->addHidden('do', 'admin');
         $form->addHidden('page', 'blogtng');
         $form->addHidden('btng[entry][pid]', $entry['pid']);
+        $form->addHidden('btng[entries_qty]', $this->get_qty('entries'));
         $form->addElement(formSecurityToken());
         $form->addElement(form_makeListBoxField('btng[entry][blog]', $blogs, $entry['blog'], ''));
         $form->addElement('<input type="submit" name="btng[admin][entry_set_blog]" class="edit button" value="' . $lang['btn_update'] . '" />');
@@ -675,6 +676,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         $form->addHidden('do', 'admin');
         $form->addHidden('page', 'blogtng');
         $form->addHidden('btng[entry][pid]', $entry['pid']);
+        $form->addHidden('btng[entries_qty]', $this->get_qty('entries'));
         $form->addElement(formSecurityToken());
         $form->addElement(form_makeListBoxField('btng[entry][commentstatus]', array('enabled', 'disabled', 'closed'), $entry['commentstatus'], ''));
         $form->addElement('<input type="submit" name="btng[admin][entry_set_commentstatus]" class="edit button" value="' . $lang['btn_update'] . '" />');
