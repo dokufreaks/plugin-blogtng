@@ -98,16 +98,13 @@ div.dokuwiki div#blogtng__admin table td span.entry_created {
   border-right: 2px solid #ccc;
 }
 
-div.dokuwiki div#blogtng__admin table td.comment_created,
-div.dokuwiki div#blogtng__admin table td.comment_ip,
-div.dokuwiki div#blogtng__admin table td.comment_name,
-div.dokuwiki div#blogtng__admin table td.comment_web,
-div.dokuwiki div#blogtng__admin table td.entry_created {
-    width: 12%;
+div.dokuwiki div#blogtng__admin table td div.comment_text {
+  padding: 0.5em;
+  font-weight: bold;
 }
 
-div.dokuwiki div#blogtng__admin table td.comment_text {
-    padding: 0.5em;
+div.dokuwiki div#blogtng__admin table td div.comment_metadata {
+  padding: 0.5em;
 }
 
 div.dokuwiki div#blogtng__admin table td.entry_comments {
