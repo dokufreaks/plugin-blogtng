@@ -648,15 +648,17 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      * Displays the form to set the blog a entry belongs to
      *
      * @author Michael Klier <chi@chimeric.de>
+     * @author hArpanet <dokuwiki-blogtng@harpanet.com>
      */
     function xhtml_entry_set_blog_form($entry) {
         global $lang;
         $blogs = $this->entryhelper->get_blogs();
 
-        $form = new Doku_FOrm(array('id'=>'blogtng__entry_set_blog_form'));
+        $form = new Doku_Form(array('id'=>'blogtng__entry_set_blog_form'));
         $form->addHidden('do', 'admin');
         $form->addHidden('page', 'blogtng');
         $form->addHidden('btng[entry][pid]', $entry['pid']);
+        $form->addHidden('btng[entries_qty]', $this->get_qty('entries'));
         $form->addElement(formSecurityToken());
         $form->addElement(form_makeListBoxField('btng[entry][blog]', $blogs, $entry['blog'], ''));
         $form->addElement('<input type="submit" name="btng[admin][entry_set_blog]" class="edit button" value="' . $lang['btn_update'] . '" />');
@@ -671,6 +673,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      * Displays the form to set the comment status of a blog entry
      *
      * @author Michael Klier <chi@chimeric.de>
+     * @author hArpanet <dokuwiki-blogtng@harpanet.com>
      */
     function xhtml_entry_set_commentstatus_form($entry) {
         global $lang;
@@ -680,6 +683,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         $form->addHidden('do', 'admin');
         $form->addHidden('page', 'blogtng');
         $form->addHidden('btng[entry][pid]', $entry['pid']);
+        $form->addHidden('btng[entries_qty]', $this->get_qty('entries'));
         $form->addElement(formSecurityToken());
         $form->addElement(form_makeListBoxField('btng[entry][commentstatus]', array('enabled', 'disabled', 'closed'), $entry['commentstatus'], ''));
         $form->addElement('<input type="submit" name="btng[admin][entry_set_commentstatus]" class="edit button" value="' . $lang['btn_update'] . '" />');
@@ -798,7 +802,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      */
     private function get_qty($id) {
         $id = sprintf('%s_qty', $id);
-        return (isset($_REQUEST['btng'][$id])) ? $_REQUEST['btng'][$id] : 5;
+        return (isset($_REQUEST['btng'][$id])) ? hsc($_REQUEST['btng'][$id]) : 5;
     }
 }
 // vim:ts=4:sw=4:et:
