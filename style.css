@@ -62,7 +62,7 @@ div.dokuwiki div#blogtng__admin form#blogtng__comment_batch_edit_form {
 }
 
 div.dokuwiki div#blogtng__admin table {
-    width: 100%;
+  width: 100%;
 }
 
 div.dokuwiki div#blogtng__admin table td {
@@ -70,40 +70,49 @@ div.dokuwiki div#blogtng__admin table td {
 }
 
 div.dokuwiki div#blogtng__admin table tr.odd {
-    background: #f5f5f5;
+  background: #f5f5f5;
 }
 
 div.dokuwiki div#blogtng__admin table tr.even {
-    background: #e7e7e7;
+  background: #e7e7e7;
 }
 
 div.dokuwiki div#blogtng__admin table td.admin_checkbox {
-    width: 16px;
+  width: 16px;
 }
 
 div.dokuwiki div#blogtng__admin table td.comment_edit,
 div.dokuwiki div#blogtng__admin table td.entry_edit {
-    width: 1em;
+  width: 1em;
 }
 
-div.dokuwiki div#blogtng__admin table td.comment_created,
-div.dokuwiki div#blogtng__admin table td.comment_ip,
-div.dokuwiki div#blogtng__admin table td.comment_name,
-div.dokuwiki div#blogtng__admin table td.comment_web,
-div.dokuwiki div#blogtng__admin table td.entry_created {
-    width: 12%;
+div.dokuwiki div#blogtng__admin table td span.comment_created,
+div.dokuwiki div#blogtng__admin table td span.comment_ip,
+div.dokuwiki div#blogtng__admin table td span.comment_name,
+div.dokuwiki div#blogtng__admin table td span.comment_web,
+div.dokuwiki div#blogtng__admin table td span.comment_status,
+div.dokuwiki div#blogtng__admin table td span.comment_source,
+div.dokuwiki div#blogtng__admin table td span.entry_created {
+  width: 12%;
+  padding-right: 10px;
+  border-right: 2px solid #ccc;
 }
 
-div.dokuwiki div#blogtng__admin table td.comment_text {
-    padding: 0.5em;
+div.dokuwiki div#blogtng__admin table td div.comment_text {
+  padding: 0.5em;
+  font-weight: bold;
+}
+
+div.dokuwiki div#blogtng__admin table td div.comment_metadata {
+  padding: 0.5em;
 }
 
 div.dokuwiki div#blogtng__admin table td.entry_comments {
-    width: 6%;
+  width: 6%;
 }
 
 div.dokuwiki div#blogtng__admin table td.comment_entry {
-    width: 20%;
+  width: 20%;
 }
 
 div.dokuwiki div#blogtng__admin table td.comment_status,
@@ -160,6 +169,7 @@ div.dokuwiki h2#the__comments {
     margin-top: 10px;
 }
 
+/* comment display */
 div.dokuwiki div.blogtng_comment {
     margin-bottom: 2em;
 }
@@ -171,11 +181,11 @@ div#insitu__comment img.avatar {
 
 /*____________ comment form ____________*/
 div.dokuwiki form#blogtng__comment_edit_form fieldset {
-    float: left;
-    width: auto;
-    padding-right: 1em;
-    text-align: right;
-    margin-bottom: 2em;
+  float: left;
+  width: auto;
+  padding-right: 1em;
+  text-align: right;
+  margin-bottom: 2em;
 }
 
 div.dokuwiki form#blogtng__comment_edit_form input,
