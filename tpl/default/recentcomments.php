@@ -5,6 +5,9 @@
  * This template is used in the <blog recentcomments> syntax.
  * It is used to display a single comment in
  * the list and is called multiple times (once for each shown comment)
+ *
+ * @var helper_plugin_blogtng_entry $entry
+ * @var blogtng_comment $comment
  */
 ?>
 <li><div class="li">

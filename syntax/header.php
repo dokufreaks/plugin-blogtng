@@ -32,6 +32,11 @@ class syntax_plugin_blogtng_header extends DokuWiki_Syntax_Plugin {
      *
      * Code heavily copied from the header renderer from inc/parser/xhtml.php, just
      * added an href parameter to the anchor tag linking to the wikilink.
+     *
+     * @param   $mode     string              output format being rendered
+     * @param   $renderer Doku_Renderer_xhtml reference to the current renderer object
+     * @param   $indata   array               data created by handler()
+     * @return  boolean                       rendered correctly?
      */
     function render($mode, &$renderer, $indata) {
         global $ID;
