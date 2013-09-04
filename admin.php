@@ -13,9 +13,13 @@ require_once(DOKU_PLUGIN.'admin.php');
 
 class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
 
+    /** @var helper_plugin_blogtng_comments */
     var $commenthelper = null;
+    /** @var helper_plugin_blogtng_entry */
     var $entryhelper   = null;
+    /** @var helper_plugin_blogtng_sqlite */
     var $sqlitehelper  = null;
+    /** @var helper_plugin_blogtng_tags */
     var $taghelper     = null;
 
     function getMenuSort() { return 200; }
@@ -217,7 +221,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         }
         $query .= 'ORDER BY created DESC ';
 
-        $resid = $this->sqlitehelper->query($query);
+        $resid = $this->sqlitehelper->getDB()->query($query);
         if($resid) {
             $this->xhtml_search_result($resid, $data, 'xhtml_entry_list');
         }
@@ -253,7 +257,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
 
         $query .= 'ORDER BY B.created DESC';
 
-        $resid = $this->sqlitehelper->query($query);
+        $resid = $this->sqlitehelper->getDB()->query($query);
         if($resid) {
             $this->xhtml_search_result($resid, $data, 'xhtml_comment_list');
         }
@@ -275,7 +279,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         $query .= 'AND ( B.tag LIKE "%'.$data['string'].'%" ) ';
         $query .= 'ORDER BY created DESC ';
 
-        $resid = $this->sqlitehelper->query($query);
+        $resid = $this->sqlitehelper->getDB()->query($query);
         if($resid) {
             $this->xhtml_search_result($resid, $data, 'xhtml_entry_list');
         }
@@ -298,14 +302,16 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         global $lang;
         if(!$resid) return;
 
-        $count = $this->sqlitehelper->resRowCount($resid);
+        $count = $this->sqlitehelper->getDB()->res2count($resid);
         $start = (isset($_REQUEST['btng']['query']['start'])) ? ($_REQUEST['btng']['query']['start'])  : 0;
         $end   = ($count >= ($start + $limit)) ? ($start + $limit) : $count;
         $cur   = ($start / $limit) + 1;
 
+        //TODO check whether this is supported by PDO adapter of sqlite helper plugin, maybe adding LIMIT to query?
+        //TODO check whether res2count doesn't mess the pointer. adapterpdo::res2count has already read the whole result as array
         $items = array();
         for($i = $start; $i < $end; $i++) {
-            $items[] = $this->sqlitehelper->res2row($resid, $i);
+            $items[] = $this->sqlitehelper->getDB()->res2row($resid, $i);
         }
 
         if($items) {
@@ -415,7 +421,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
                 ORDER BY created DESC
                    LIMIT ' . $limit;
 
-        $resid = $this->sqlitehelper->query($query);
+        $resid = $this->sqlitehelper->getDB()->query($query);
         if(!$resid) return;
         $this->xhtml_search_result($resid, array(), 'xhtml_entry_list', $limit);
     }
@@ -434,7 +440,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
                 ORDER BY created DESC
                    LIMIT ' . $limit;
 
-        $resid = $this->sqlitehelper->query($query);
+        $resid = $this->sqlitehelper->getDB()->query($query);
         if(!$resid) return;
         $this->xhtml_search_result($resid, array(), 'xhtml_comment_list', $limit);
     }
@@ -769,7 +775,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         ptln('<div class="level1">');
 
         $form = new Doku_Form(array('id'=>'blogtng__'.$id.'_qty_form'));
-        $form->startFieldset();
+        $form->startFieldset("");
         $form->addHidden('page', 'blogtng');
         $form->addElement(formSecurityToken());
 

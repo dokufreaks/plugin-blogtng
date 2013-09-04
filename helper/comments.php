@@ -11,6 +11,9 @@ if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
 
 class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
 
+    /**
+     * @var helper_plugin_blogtng_sqlite
+     */
     var $sqlitehelper = null;
 
     var $comments = array();
@@ -44,14 +47,14 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
 
     function comment_by_cid($cid) {
         $query = 'SELECT cid, pid, source, name, mail, web, avatar, created, text, status FROM comments WHERE cid = ?';
-        $resid = $this->sqlitehelper->query($query, $cid);
+        $resid = $this->sqlitehelper->getDB()->query($query, $cid);
         if ($resid === false) {
             return false;
         }
-        if (sqlite_num_rows($resid) == 0) {
+        if ($this->sqlitehelper->getDB()->res2count($resid) == 0) {
             return null;
         }
-        $result = $this->sqlitehelper->res2arr($resid);
+        $result = $this->sqlitehelper->getDB()->res2arr($resid);
 
         $comment = new blogtng_comment();
         $comment->init($result[0]);
@@ -80,8 +83,8 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
             }
             $sql .= ' AND type IN ('.join(',',$qs).')';
         }
-        $res = $this->sqlitehelper->query($sql,$args);
-        $res = $this->sqlitehelper->res2row($res,0);
+        $res = $this->sqlitehelper->getDB()->query($sql,$args);
+        $res = $this->sqlitehelper->getDB()->res2row($res,0);
         return $res['val'];
     }
 
@@ -93,7 +96,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
             // Doing an update
             $query = 'UPDATE comments SET pid=?, source=?, name=?, mail=?, ' .
                      'web=?, avatar=?, created=?, text=?, status=? WHERE cid=?';
-            $this->sqlitehelper->query($query,
+            $this->sqlitehelper->getDB()->query($query,
                 $comment['pid'],
                 $comment['source'],
                 $comment['name'],
@@ -109,22 +112,26 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         }
 
         // Doing an insert
+        /** @var helper_plugin_blogtng_entry $entry */
         $entry = plugin_load('helper', 'blogtng_entry');
         $entry->load_by_pid($comment['pid']);
         if ($entry->entry['commentstatus'] !== 'enabled') {
             return;
         }
 
-        $query = 'INSERT OR IGNORE INTO comments (';
-        $query .= 'pid, source, name, mail, web, avatar, created, text, status, ip) VALUES (';
-        $query .= '?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+        $query =
+            'INSERT OR IGNORE INTO comments (
+                pid, source, name, mail, web, avatar, created, text, status, ip
+            ) VALUES (
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+            )';
         $comment['status']  = ($this->getconf('moderate_comments')) ? 'hidden' : 'visible';
 
         if(!isset($comment['created'])) $comment['created'] = time();
 
         $comment['avatar']  = ''; // FIXME create avatar using a helper function
 
-        $this->sqlitehelper->query($query,
+        $this->sqlitehelper->getDB()->query($query,
             $comment['pid'],
             $comment['source'],
             $comment['name'],
@@ -152,7 +159,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      */
     function delete($cid) {
         $query = 'DELETE FROM comments WHERE cid = ?';
-        $this->sqlitehelper->query($query, $cid);
+        $this->sqlitehelper->getDB()->query($query, $cid);
     }
 
     /**
@@ -160,7 +167,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      */
     function delete_all($pid) {
         $sql = "DELETE FROM comments WHERE pid = ?";
-        return (bool) $this->sqlitehelper->query($sql,$pid);
+        return (bool) $this->sqlitehelper->getDB()->query($sql,$pid);
     }
 
     /**
@@ -168,7 +175,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      */
     function moderate($cid, $status) {
         $query = 'UPDATE comments SET status = ? WHERE cid = ?';
-        $this->sqlitehelper->query($query, $status, $cid);
+        $this->sqlitehelper->getDB()->query($query, $status, $cid);
     }
 
     /**
@@ -184,8 +191,8 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         $sql = "SELECT title, page, mail
                   FROM entries
                  WHERE pid = ?";
-        $res = $this->sqlitehelper->query($sql,$comment['pid']);
-        $entry = $this->sqlitehelper->res2row($res,0);
+        $res = $this->sqlitehelper->getDB()->query($sql,$comment['pid']);
+        $entry = $this->sqlitehelper->getDB()->res2row($res,0);
 
         // prepare mail bodies
         $atext = io_readFile($this->localFN('notifymail'));
@@ -210,7 +217,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         $stext = str_replace(array_keys($repl),array_values($repl),$stext);
 
         // notify author
-        $mails = array_map('trim', split(',', $conf['notify']));
+        $mails = array_map('trim', explode(',', $conf['notify']));
         $mails[] = $entry['mail'];
         $mails = array_unique(array_filter($mails));
         if (count($mails) > 0) {
@@ -226,8 +233,8 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
                  WHERE A.mail = B.mail
                    AND B.optin = 1
                    AND A.pid = ?";
-        $res = $this->sqlitehelper->query($sql,$comment['pid']);
-        $rows = $this->sqlitehelper->res2arr($res);
+        $res = $this->sqlitehelper->getDB()->query($sql,$comment['pid']);
+        $rows = $this->sqlitehelper->getDB()->res2arr($res);
         foreach($rows as $row){
             // ignore commenter herself:
             if($row['mail'] == $comment['mail']) continue;
@@ -266,23 +273,23 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         // add to subscription list
         $sql = "INSERT OR IGNORE INTO subscriptions
                       (pid, mail) VALUES (?,?)";
-        $this->sqlitehelper->query($sql,$pid,strtolower($mail));
+        $this->sqlitehelper->getDB()->query($sql,$pid,strtolower($mail));
         $optin = $this->getConf('subscribe_noconfirm');
 
         // add to optin list
         if($optin == 1){
             $sql = "INSERT OR REPLACE INTO optin
                           (mail,optin,key) VALUES (?,?,?)";
-            $this->sqlitehelper->query($sql,strtolower($mail),$optin,md5(time()));
+            $this->sqlitehelper->getDB()->query($sql,strtolower($mail),$optin,md5(time()));
         }else{
             $sql = "INSERT OR IGNORE INTO optin
                           (mail,optin,key) VALUES (?,?,?)";
-            $this->sqlitehelper->query($sql,strtolower($mail),$optin,md5(time()));
+            $this->sqlitehelper->getDB()->query($sql,strtolower($mail),$optin,md5(time()));
 
             // see if we need to send a optin mail
             $sql = "SELECT optin, key FROM optin WHERE mail = ?";
-            $res = $this->sqlitehelper->query($sql,strtolower($mail));
-            $row = $this->sqlitehelper->res2row($res,0);
+            $res = $this->sqlitehelper->getDB()->query($sql,strtolower($mail));
+            $row = $this->sqlitehelper->getDB()->res2row($res,0);
             if($row['optin'] == 0){
                 $this->send_optin_mail($mail,$row['key']);
             }
@@ -293,8 +300,8 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
 
     function unsubscribe_by_key($pid, $key) {
         $sql = 'SELECT mail FROM optin WHERE key = ?';
-        $res = $this->sqlitehelper->query($sql, $key);
-        $row = $this->sqlitehelper->res2row($res);
+        $res = $this->sqlitehelper->getDB()->query($sql, $key);
+        $row = $this->sqlitehelper->getDB()->res2row($res);
         if (!$row) {
             msg($this->getLang('unsubscribe_err_key'), -1);
             return;
@@ -308,8 +315,9 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      */
     function unsubscribe($pid, $mail) {
         $sql = 'DELETE FROM subscriptions WHERE pid = ? AND mail = ?';
-        $this->sqlitehelper->query($sql, $pid, $mail);
-        $upd = sqlite_changes($this->sqlitehelper->db);
+        $res = $this->sqlitehelper->getDB()->query($sql, $pid, $mail);
+        $upd = $this->sqlitehelper->getDB()->countChanges($res);
+
         if ($upd) {
             msg($this->getLang('unsubscribe_ok'), 1);
         } else {
@@ -322,8 +330,8 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      */
     function optin($key) {
         $sql = 'UPDATE optin SET optin = 1 WHERE key = ?';
-        $this->sqlitehelper->query($sql,$key);
-        $upd = sqlite_changes($this->sqlitehelper->db);
+        $res = $this->sqlitehelper->getDB()->query($sql,$key);
+        $upd = $this->sqlitehelper->getDB()->countChanges($res);
 
         if($upd){
             msg($this->getLang('optin_ok'),1);
@@ -359,7 +367,6 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      *  add toolbar
      */
     function tpl_form($page, $pid) {
-        global $INFO;
         global $BLOGTNG;
 
         $form = new DOKU_Form('blogtng__comment_form',wl($page).'#blogtng__comment_form');
@@ -395,6 +402,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         }
 
         //add captcha if available
+        /** @var helper_plugin_captcha $helper */
         $helper = null;
         if(@is_dir(DOKU_PLUGIN.'captcha')) $helper = plugin_load('helper','captcha');
         if(!is_null($helper) && $helper->isEnabled()){
@@ -428,6 +436,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      * @param string $fmt_one_comments - text for 1 comment
      * @param string $fmt_comments - text for 1+ comment
      * @param array  $types - a list of wanted comment sources (empty for all)
+     * @return bool
      */
     function tpl_count($fmt_zero_comments='', $fmt_one_comments='', $fmt_comments='', $types=null) {
         if(!$this->pid) return false;
@@ -475,8 +484,8 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
             $sql .= ' AND type IN ('.join(',',$qs).')';
         }
         $sql .= ' ORDER BY created ASC';
-        $res = $this->sqlitehelper->query($sql,$args);
-        $res = $this->sqlitehelper->res2arr($res);
+        $res = $this->sqlitehelper->getDB()->query($sql,$args);
+        $res = $this->sqlitehelper->getDB()->res2arr($res);
 
         $comment = new blogtng_comment();
         foreach($res as $row){
@@ -502,8 +511,6 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      * Display a list of recent comments
      */
     function tpl_recentcomments($tpl='default',$num=5,$blogs=array('default'),$types=array()){
-        global $INFO;
-
         // check template
         $tpl = helper_plugin_blogtng_tools::getTplFile($tpl, 'recentcomments');
         if($tpl === false){
@@ -512,13 +519,13 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
 
         // prepare and execute query
         if(count($types)){
-            $types  = $this->sqlitehelper->quote_and_join($types,',');
+            $types  = $this->sqlitehelper->getDB()->quote_and_join($types,',');
             $tquery = " AND B.source IN ($types) ";
         }else{
             $tquery = "";
         }
         $blog_query = '(A.blog = '.
-                       $this->sqlitehelper->quote_and_join($blogs,
+                       $this->sqlitehelper->getDB()->quote_and_join($blogs,
                                                            ' OR A.blog = ').')';
         $query = "SELECT A.pid as pid, page, title, cid
                     FROM entries A, comments B
@@ -529,17 +536,20 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
                 ORDER BY B.created DESC
                    LIMIT ".(int) $num;
 
-        $res = $this->sqlitehelper->query($query);
-        if(!sqlite_num_rows($res)) return; // no results found
-        $res = $this->sqlitehelper->res2arr($res);
+        $res = $this->sqlitehelper->getDB()->query($query);
+
+        if(!$this->sqlitehelper->getDB()->res2count($res)) return false; // no results found
+        $res = $this->sqlitehelper->getDB()->res2arr($res);
 
         // print all hits using the template
         foreach($res as $row){
+            /** @var helper_plugin_blogtng_entry $entry */
             $entry   =& plugin_load('helper', 'blogtng_entry');
             $entry->load_by_pid($row['pid']);
             $comment = $this->comment_by_cid($row['cid']);
             include($tpl);
         }
+        return true;
     }
 
 }
@@ -558,10 +568,17 @@ class blogtng_comment{
         $this->tools = new helper_plugin_blogtng_tools();
     }
 
+    /**
+     * @param $row array row of table 'commments'
+     */
     function init($row){
         $this->data = $row;
     }
 
+    /**
+     * @param string $name of template
+     * @return bool
+     */
     function output($name){
         global $INFO;
         $name = preg_replace('/[^a-zA-Z_\-]+/','',$name);
@@ -575,8 +592,13 @@ class blogtng_comment{
             $comment->num++;
             include($tpl);
         }
+        return true;
     }
 
+    /**
+     * @param   string  $name     id of the string to be retrieved
+     * @return  string  string in appropriate language or english if not available
+     */
     function getLang($name){
         return $this->tools->getLang($name);
     }
@@ -592,6 +614,10 @@ class blogtng_comment{
         echo $this->data['cid'];
     }
 
+    /**
+     * @param bool $link whether wrapped with link element
+     * @param string $fmt format of number
+     */
     function tpl_number($link=true,$fmt='%d'){
         if($link) echo '<a href="#comment_'.$this->data['cid'].'" class="blogtng_num">';
         printf($fmt,$this->num);
@@ -628,6 +654,9 @@ class blogtng_comment{
         echo hsc($this->data['web']);
     }
 
+    /**
+     * @param string $fmt date format, empty string default to $conf['dformat']
+     */
     function tpl_created($fmt=''){
         echo hsc(dformat($this->data['created'],$fmt));
     }
@@ -636,6 +665,12 @@ class blogtng_comment{
         echo $this->data['status'];
     }
 
+    /**
+     * @param int $w avatar width
+     * @param int $h avatar height
+     * @param bool $return whether the url is returned or printed
+     * @return void|string url of avatar
+     */
     function tpl_avatar($w=0,$h=0,$return=false){
         global $conf;
         $img = '';
