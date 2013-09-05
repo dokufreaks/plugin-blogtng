@@ -15,7 +15,12 @@ require_once(DOKU_PLUGIN.'action.php');
 
 class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
 
+    /** @var helper_plugin_blogtng_entry */
     var $entryhelper = null;
+    /** @var  helper_plugin_blogtng_tags */
+    var $taghelper;
+    /** @var  helper_plugin_blogtng_tools */
+    var $tools;
 
     var $preact = null;
 

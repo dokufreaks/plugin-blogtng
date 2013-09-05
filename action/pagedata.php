@@ -15,7 +15,7 @@ require_once(DOKU_PLUGIN.'action.php');
 
 class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
 
-    /** @var helper_plugin_blogtng_entry $entryhelper */
+    /** @var helper_plugin_blogtng_entry */
     var $entryhelper;
     var $entry;
 
@@ -32,6 +32,7 @@ class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
      */
     function update_data(&$event, $params) {
         global $ID;
+        /** @var DokuWiki_Auth_Plugin $auth */
         global $auth;
 
         $data = $event->result; //newly rendered data is here.

@@ -18,14 +18,17 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     const RET_ERR_DEL     = -4;
     const RET_ERR_RES     = -5;
 
-
+    /** @var array|null */
     var $entry = null;
-
+    /** @var helper_plugin_blogtng_sqlite */
     var $sqlitehelper  = null;
+    /** @var helper_plugin_blogtng_comments */
     var $commenthelper = null;
+    /** @var helper_plugin_blogtng_tags */
     var $taghelper     = null;
+    /** @var helper_plugin_blogtng_tools */
     var $toolshelper   = null;
-
+    /** @var Doku_Renderer_xhtml */
     var $renderer      = null;
 
     /**
@@ -53,20 +56,25 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             return self::RET_ERR_BADPID;
         }
 
+        if(!$this->sqlitehelper->ready()) {
+            msg('blogtng plugin: failed to load sqlite helper plugin', -1);
+            $this->entry = $this->prototype();
+            return self::RET_ERR_DB;
+        }
         $query = 'SELECT pid, page, title, blog, image, created, lastmod, author, login, mail, commentstatus FROM entries WHERE pid = ?';
-        $resid = $this->sqlitehelper->query($query, $pid);
+        $resid = $this->sqlitehelper->getDB()->query($query, $pid);
         if ($resid === false) {
             msg('blogtng plugin: failed to load entry!', -1);
             $this->entry = $this->prototype();
             return self::RET_ERR_DB;
         }
-        if (sqlite_num_rows($resid) == 0) {
+        if ($this->sqlitehelper->getDB()->res2count($resid) == 0) {
             $this->entry = $this->prototype();
             $this->entry['pid'] = $pid;
             return self::RET_ERR_NOENTRY;
         }
 
-        $result = $this->sqlitehelper->res2arr($resid);
+        $result = $this->sqlitehelper->getDB()->res2arr($resid);
         $this->entry = $result[0];
         $this->entry['pid'] = $pid;
         if($this->poke()){
@@ -76,29 +84,29 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
     }
 
-    /**
-     * FIXME: Is this deprecated?
-     *
-     * @param $resid
-     * @param $index
-     * @return unknown_type
-     */
-    function load_by_res($resid, $index) {
-        $this->entry = $this->prototype();
-        $this->taghelper = null;
-        $this->commenthelper = null;
-
-        // FIXME validate resid and index
-        if($resid === false) {
-            msg('blogtng plugin: failed to load entry, did not get a valid resource id!', -1);
-            $this->entry = $this->prototype();
-            // FIXME undefined constant
-            return self::RET_ERR_BADRES;
-        }
-
-        $result = $this->sqlitehelper->res2row($resid, $index);
-        $this->load_by_row($result);
-    }
+//    /**
+//     * FIXME: Is this deprecated?
+//     *
+//     * @param $resid
+//     * @param $index
+//     * @return unknown_type
+//     */
+//    function load_by_res($resid, $index) {
+//        $this->entry = $this->prototype();
+//        $this->taghelper = null;
+//        $this->commenthelper = null;
+//
+//        // FIXME validate resid and index
+//        if($resid === false) {
+//            msg('blogtng plugin: failed to load entry, did not get a valid resource id!', -1);
+//            $this->entry = $this->prototype();
+//            // FIXME undefined constant
+//            return self::RET_ERR_BADRES;
+//        }
+//
+//        $result = $this->sqlitehelper->getDB()->res2row($resid, $index);
+//        $this->load_by_row($result);
+//    }
 
     function load_by_row($row) {
         $this->entry = $row;
@@ -159,7 +167,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
         // delete entry
         $sql = "DELETE FROM entries WHERE pid = ?";
-        $ret = $this->sqlitehelper->query($sql,$this->entry['pid']);
+        $ret = $this->sqlitehelper->getDB()->query($sql,$this->entry['pid']);
         $this->entry = $this->prototype();
 
 
@@ -176,7 +184,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
 
         $query = 'INSERT OR IGNORE INTO entries (pid, page, title, blog, image, created, lastmod, author, login, mail, commentstatus) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-        $result = $this->sqlitehelper->query(
+        $result = $this->sqlitehelper->getDB()->query(
             $query,
             $this->entry['pid'],
             $this->entry['page'],
@@ -191,7 +199,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             $this->entry['commentstatus']
         );
         $query = 'UPDATE entries SET page = ?, title=?, blog=?, image=?, created = ?, lastmod=?, login = ?, author=?, mail=?, commentstatus=? WHERE pid=?';
-        $result = $this->sqlitehelper->query(
+        $result = $this->sqlitehelper->getDB()->query(
             $query,
             $this->entry['page'],
             $this->entry['title'],
@@ -280,12 +288,12 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     function xhtml_pagination($conf){
         $sortkey = ($conf['sortby'] == 'random') ? 'Random()' : $conf['sortby'];
         $blog_query = '(blog = '.
-                      $this->sqlitehelper->quote_and_join($conf['blog'],
+                      $this->sqlitehelper->getDB()->quote_and_join($conf['blog'],
                                                           ' OR blog = ').')';
         $tag_query = $tag_table = "";
         if(count($conf['tags'])){
             $tag_query  = ' AND (tag = '.
-                          $this->sqlitehelper->quote_and_join($conf['tags'],
+                          $this->sqlitehelper->getDB()->quote_and_join($conf['tags'],
                                                               ' OR tag = ').
                           ') AND A.pid = B.pid GROUP BY A.pid';
             $tag_table  = ', tags B';
@@ -295,9 +303,9 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $query = 'SELECT A.pid
                     FROM entries A'.$tag_table.'
                    WHERE '.$blog_query.$tag_query;
-        $resid = $this->sqlitehelper->query($query);
+        $resid = $this->sqlitehelper->getDB()->query($query);
         if (!$resid) return;
-        $count = sqlite_num_rows($resid);
+        $count = $this->sqlitehelper->getDB()->res2count($resid);
         if($count <= $conf['limit']) return '';
 
         // we now prepare an array of pages to show
@@ -527,16 +535,15 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $this->commenthelper->tpl_count($fmt_zero_comments, $fmt_one_comment, $fmt_comments);
     }
 
-
     /**
      * Print a list of related posts
      *
      * Can be called statically. Also exported as syntax <blog related>
      *
-     * @param int    $num    - maximum number of links
-     * @param array  $blogs  - blogs to search
-     * @param string $id     - reference page (false for current)
-     * @param array  $tags   - additional tags to consider
+     * @param int         $num    - maximum number of links
+     * @param array       $blogs  - blogs to search
+     * @param bool|string $id     - reference page (false for current)
+     * @param array       $tags   - additional tags to consider
      */
     function tpl_related($num=5,$blogs=array('default'),$id=false,$tags=array()){
         global $INFO;
@@ -547,8 +554,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $query = "SELECT tag
                     FROM tags
                    WHERE pid = '$pid'";
-        $res = $this->sqlitehelper->query($query);
-        $res = $this->sqlitehelper->res2arr($res);
+        $res = $this->sqlitehelper->getDB()->query($query);
+        $res = $this->sqlitehelper->getDB()->res2arr($res);
         foreach($res as $row){
             $tags[] = $row['tag'];
         }
@@ -556,9 +563,9 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $tags = array_filter($tags);
         if(!count($tags)) return; // no tags for comparison
 
-        $tags  = $this->sqlitehelper->quote_and_join($tags,',');
+        $tags  = $this->sqlitehelper->getDB()->quote_and_join($tags,',');
         $blog_query = '(A.blog = '.
-                       $this->sqlitehelper->quote_and_join($blogs,
+                       $this->sqlitehelper->getDB()->quote_and_join($blogs,
                                                            ' OR A.blog = ').')';
 
         $query = "SELECT page, title, COUNT(B.pid) AS cnt
@@ -570,9 +577,9 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
                 GROUP BY B.pid HAVING cnt > 0
                 ORDER BY cnt DESC, created DESC
                    LIMIT ".(int) $num;
-        $res = $this->sqlitehelper->query($query);
-        if(!sqlite_num_rows($res)) return; // no results found
-        $res = $this->sqlitehelper->res2arr($res);
+        $res = $this->sqlitehelper->getDB()->query($query);
+        if(!$this->sqlitehelper->getDB()->res2count($res)) return; // no results found
+        $res = $this->sqlitehelper->getDB()->res2arr($res);
 
         // now do the output
         echo '<ul class="related">';
@@ -623,12 +630,12 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     /**
      * Renders the link to the previous blog post using the given template.
      *
-     * @param $tpl    string a template specifing the link text. May contain placeholders
-     *                       for title, author and creation date of post
-     * @param $id     string page id of blog post for which to generate the adjacent link
-     * @param $return bool   whether to return the link or print it, defaults to print
-     * @param bool/string if there is no such link, false. otherwise, if $return is true,
-     *                    a string containing the generated HTML link, otherwise true.
+     * @param string      $tpl     a template specifing the link text. May contain placeholders
+     *                             for title, author and creation date of post
+     * @param bool|string $id      string page id of blog post for which to generate the adjacent link
+     * @param bool        $return  whether to return the link or print it, defaults to print
+     * @return bool/string if there is no such link, false. otherwise, if $return is true,
+     *                     a string containing the generated HTML link, otherwise true.
      */
     function tpl_previouslink($tpl, $id=false, $return=false) {
         $out =  $this->_navi_link($tpl, 'prev', $id);
@@ -644,12 +651,12 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     /**
      * Renders the link to the next blog post using the given template.
      *
-     * @param $tpl    string a template specifing the link text. May contain placeholders
-     *                       for title, author and creation date of post
-     * @param $id     string page id of blog post for which to generate the adjacent link
-     * @param $return bool   whether to return the link or print it, defaults to print
-     * @param bool/string if there is no such link, false. otherwise, if $return is true,
-     *                    a string containing the generated HTML link, otherwise true.
+     * @param string $tpl   a template specifing the link text. May contain placeholders
+     *                      for title, author and creation date of post
+     * @param bool|string   $id       page id of blog post for which to generate the adjacent link
+     * @param bool          $return   whether to return the link or print it, defaults to print
+     * @return bool/string if there is no such link, false. otherwise, if $return is true,
+     *                      a string containing the generated HTML link, otherwise true.
      */
     function tpl_nextlink($tpl, $id=false, $return=false) {
         $out =  $this->_navi_link($tpl, 'next', $id);
@@ -690,7 +697,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         if (count($conf['blog']) > 0) {
         
             $blog_query = '(blog = '.
-                          $this->sqlitehelper->quote_and_join($conf['blog'],
+                          $this->sqlitehelper->getDB()->quote_and_join($conf['blog'],
                                                               ' OR blog = ').')';
                                                               
         }                                                             
@@ -707,7 +714,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             }
             
             $tag_query  .= ' (tag = '.
-                          $this->sqlitehelper->quote_and_join($conf['tags'],
+                          $this->sqlitehelper->getDB()->quote_and_join($conf['tags'],
                                                               ' OR tag = ').') AND A.pid = B.pid';
             $tag_table  = ', tags B';
         }
@@ -721,8 +728,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
                  ' LIMIT '.$conf['limit'].
                 ' OFFSET '.$conf['offset'];
 
-        $resid = $this->sqlitehelper->query($query);
-        return $this->sqlitehelper->res2arr($resid);
+        $resid = $this->sqlitehelper->getDB()->query($query);
+        return $this->sqlitehelper->getDB()->res2arr($resid);
     }
 
     /**
@@ -730,7 +737,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * @param $readmore
      * @param $inc_level
      * @param $skipheader
-     * @return unknown_type
+     * @return bool|string html of content
      */
     function get_entrycontent($readmore='syntax', $inc_level=true, $skipheader=false) {
         static $recursion = array();
@@ -797,8 +804,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     /**
      * Gets the adjacent (previous and next) links of a blog entry.
      *
-     * @param $id string page id of the entry for which to get said links
-     * @param array 2d assoziative array containing page id, title, author and creation date
+     * @param bool|string $id page id of the entry for which to get said links
+     * @return array 2d assoziative array containing page id, title, author and creation date
      *              for both prev and next link
      */
     function getAdjacentLinks($id = false) {
@@ -817,10 +824,10 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
                          AND A.blog = B.blog
                     ORDER BY A.created ' . (($type == 'prev') ? 'DESC' : 'ASC') . '
                        LIMIT 1';
-            $res = $this->sqlitehelper->query($query, $pid);
-            if (sqlite_num_rows($res) > 0) {
-                $row = $this->sqlitehelper->res2row($res, 0);
-                $related[$type] = $row;
+            $res = $this->sqlitehelper->getDB()->query($query, $pid);
+            if ($this->sqlitehelper->getDB()->res2count($res) > 0) {
+                $result = $this->sqlitehelper->getDB()->res2arr($res);
+                $related[$type] = $result[0];
             }
         }
         return $related;
@@ -937,9 +944,9 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     /**
      * Convert relative internal links and media
      *
-     * @param    integer $i: counter for current instruction
+     * @param    string  $link: internal links or media
      * @param    string  $ns: namespace of included page
-     * @return   string  $link: converted, now absolute link
+     * @return   string  $link converted, now absolute link
      */
     function _convert_internal_link($link, $ns) {
         if ($link{0} == '.') {
@@ -1031,11 +1038,11 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * Generates the HTML output of the link to the previous or to the next blog
      * entry in respect to the given page id using the specified template.
      *
-     * @param $tpl string  a template specifing the link text. May contain placeholders
-     *                     for title, author and creation date of post
-     * @param $type string type of link to generate, may be 'prev' or 'next'
-     * @param $id   string page id of blog post for which to generate the adjacent link
-     * @return string a string containing the prepared HTML anchor tag, or false if there
+     * @param string      $tpl  a template specifing the link text. May contain placeholders
+     *                          for title, author and creation date of post
+     * @param string      $type type of link to generate, may be 'prev' or 'next'
+     * @param bool|string $id   page id of blog post for which to generate the adjacent link
+     * @return bool|string a string containing the prepared HTML anchor tag, or false if there
      *                is no fitting post to link to
      */
     function _navi_link($tpl, $type, $id = false) {

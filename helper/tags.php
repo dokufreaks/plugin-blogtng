@@ -11,6 +11,7 @@ if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
 
 class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
 
+    /** @var helper_plugin_blogtng_sqlite */
     var $sqlitehelper = null;
 
     var $tags = array();
@@ -31,12 +32,12 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
         $pid = trim($pid);
         $query = 'SELECT COUNT(tag) AS tagcount FROM tags WHERE pid = ?';
 
-        $resid = $this->sqlitehelper->query($query, $pid);
+        $resid = $this->sqlitehelper->getDB()->query($query, $pid);
         if ($resid === false) {
             msg('blogtng plugin: failed to load tags!', -1);
         }
 
-        $tagcount = $this->sqlitehelper->res2row($resid, 0);
+        $tagcount = $this->sqlitehelper->getDB()->res2row($resid, 0);
         return $tagcount['tagcount'];
     }
 
@@ -45,23 +46,31 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
      */
     function load($pid) {
         $this->pid = trim($pid);
-        $query = 'SELECT tag FROM tags WHERE pid = ? ORDER BY tag ASC';
 
-        $resid = $this->sqlitehelper->query($query, $this->pid);
+        if(!$this->sqlitehelper->ready()) {
+            msg('blogtng plugin: failed to load sqlite helper plugin!', -1);
+            $this->tags = array();
+            return false;
+        }
+        $query = 'SELECT tag FROM tags WHERE pid = ? ORDER BY tag ASC';
+        $resid = $this->sqlitehelper->getDB()->query($query, $this->pid);
         if ($resid === false) {
             msg('blogtng plugin: failed to load tags!', -1);
             $this->tags = array();
+            return false;
         }
-        if (sqlite_num_rows($resid) == 0) {
+        if ($this->sqlitehelper->getDB()->res2count($resid) == 0) {
             $this->tags = array();
+            return true;
         }
 
-        $tags_from_db = $this->sqlitehelper->res2arr($resid);
+        $tags_from_db = $this->sqlitehelper->getDB()->res2arr($resid);
         $tags = array();
         foreach ($tags_from_db as $tag_from_db) {
             array_push($tags, $tag_from_db['tag']);
         }
         $this->tags = $tags;
+        return true;
     }
 
     /**
@@ -69,37 +78,39 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
      */
     function load_by_blog($blogs) {
         $query = 'SELECT DISTINCT tag, A.pid as pid FROM tags A LEFT JOIN entries B ON B.blog IN ("' . implode('","', $blogs) . '")';
-        $resid = $this->sqlitehelper->query($query);
+        $resid = $this->sqlitehelper->getDB()->query($query);
         if($resid) {
-            return $this->sqlitehelper->res2arr($resid);
+            return $this->sqlitehelper->getDB()->res2arr($resid);
         }
+        return false;
     }
 
     /**
      * Save tags
      */
     function save() {
-        //FIXME $sqlite undefined
+        if (!$this->sqlitehelper->ready()) return;
+
         $query = 'BEGIN TRANSACTION';
-        if (!$this->sqlitehelper->query($query)) {
-            $sqlite->query('ROLLBACK TRANSACTION');
+        if (!$this->sqlitehelper->getDB()->query($query)) {
+            $this->sqlitehelper->getDB()->query('ROLLBACK TRANSACTION');
             return;
         }
         $query = 'DELETE FROM tags WHERE pid = ?';
-        if (!$this->sqlitehelper->query($query, $this->pid)) {
-            $sqlite->query('ROLLBACK TRANSACTION');
+        if (!$this->sqlitehelper->getDB()->query($query, $this->pid)) {
+            $this->sqlitehelper->getDB()->query('ROLLBACK TRANSACTION');
             return;
         }
         foreach ($this->tags as $tag) {
             $query = 'INSERT INTO tags (pid, tag) VALUES (?, ?)';
-            if (!$this->sqlitehelper->query($query, $this->pid, $tag)) {
-                $sqlite->query('ROLLBACK TRANSACTION');
+            if (!$this->sqlitehelper->getDB()->query($query, $this->pid, $tag)) {
+                $this->sqlitehelper->getDB()->query('ROLLBACK TRANSACTION');
                 return;
             }
         }
         $query = 'END TRANSACTION';
-        if (!$this->sqlitehelper->query($query)) {
-            $sqlite->query('ROLLBACK TRANSACTION');
+        if (!$this->sqlitehelper->getDB()->query($query)) {
+            $this->sqlitehelper->getDB()->query('ROLLBACK TRANSACTION');
             return;
         }
     }

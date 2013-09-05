@@ -8,6 +8,8 @@
  *
  * This example shows full entries and add a footer with info
  * on tags and comments.
+ *
+ * @var $entry helper_plugin_blogtng_entry
  */
 ?>
 <div class="blogtng_list">
