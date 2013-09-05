@@ -464,7 +464,6 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         ptln('<div class="level2">');
         ptln('<table class="inline">');
 
-        // FIXME language strings
         ptln('<th>' . $this->getLang('created') . '</th>');
         ptln('<th>' . $this->getLang('author') . '</th>');
         ptln('<th>' . $this->getLang('entry') . '</th>');
@@ -496,7 +495,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
 
         ptln('<td class="entry_created">' . dformat($entry['created']) . '</td>');
         ptln('<td class="entry_author">' . hsc($entry['author']) . '</td>');
-        ptln('<td class="entry_title">' . html_wikilink($entry['page'], $entry['title']) . '</td>');
+        ptln('<td class="entry_title">' . html_wikilink(':'.$entry['page'], $entry['title']) . '</td>');
 
         ptln('<td class="entry_set_blog">' . $this->xhtml_entry_set_blog_form($entry) . '</th>');
 
@@ -630,7 +629,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
             ptln('<span class="comment_source" title="'.$this->getLang('comment_source').'">' . hsc($comment['source']) . '</span>');
 
             $this->entryhelper->load_by_pid($comment['pid']);
-            ptln('<span class="comment_entry" title="'.$this->getLang('comment_entry').'">' . html_wikilink($this->entryhelper->entry['page'], $this->entryhelper->entry['title']) . '</span>');
+            ptln('<span class="comment_entry" title="'.$this->getLang('comment_entry').'">' . html_wikilink(':'.$this->entryhelper->entry['page'], $this->entryhelper->entry['title']) . '</span>');
         ptln('</div>');
 
         ptln('<td class="comment_edit"><a href="' . wl($ID, array('do'=>'admin',
@@ -716,7 +715,6 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         $form = new Doku_Form(array('id'=>'blogtng__comment_edit_form'));
         $form->startFieldset($this->getLang('act_comment_edit'));
         $form->addHidden('page', 'blogtng');
-        $form->addHidden('btng[admin]', $action); //FIXME this var doesn't exist
         $form->addHidden('do', 'admin');
         $form->addHidden('btng[comment][cid]', $comment['cid']);
         $form->addHidden('btng[comment][pid]', $comment['pid']);
