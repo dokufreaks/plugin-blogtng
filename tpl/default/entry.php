@@ -6,6 +6,8 @@
  * blog was chosen from the dropdown on editing a page.
  *
  * It displays the entry and adds comments and navigational elements.
+ *
+ * @var $entry helper_plugin_blogtng_entry
  */
 ?>
 <div class="blogtng_entry">

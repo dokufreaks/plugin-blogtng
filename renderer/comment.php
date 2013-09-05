@@ -51,6 +51,7 @@ class renderer_plugin_blogtng_comment extends Doku_Renderer_xhtml {
     function plugin($name, $data) {
         $comments_xhtml_renderer = array_map('trim', explode(',', $this->getConf('comments_xhtml_renderer')));
         $comments_forbid_syntax = array_map('trim', explode(',', $this->getConf('comments_forbid_syntax')));
+        /** @var DokuWiki_Syntax_Plugin $plugin */
         $plugin =& plugin_load('syntax',$name);
         if($plugin != null){
             if (in_array($name, $comments_forbid_syntax)) {

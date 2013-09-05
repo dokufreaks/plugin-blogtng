@@ -31,9 +31,14 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         'listwrap'  => 0, //default depends on syntax type
     );
 
+    /** @var helper_plugin_blogtng_entry */
     var $entryhelper  = null;
+    /** @var helper_plugin_blogtng_tools */
     var $tools = null;
+    /** @var helper_plugin_blogtng_comments */
     var $commenthelper  = null;
+    /** @var helper_plugin_blogtng_tags */
+    var $taghelper;
 
     /**
      * Types we accept in our syntax
@@ -122,8 +127,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
     function render($mode, &$renderer, $data) {
         if($mode != 'xhtml') return false;
 
-        $this->entryhelper =& plugin_load('helper', 'blogtng_entry');
-        $this->tools =& plugin_load('helper', 'blogtng_tools');
+        $this->loadHelpers();
 
         // set target if not set yet
         global $ID;
@@ -162,7 +166,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
                 $renderer->doc .= $this->commenthelper->xhtml_recentcomments($data['conf']);
                 break;
             case 'tagcloud':
-                $renderer->inf['cache'] = false; // never cache this
+                $renderer->info['cache'] = false; // never cache this
                 $this->taghelper =& plugin_load('helper', 'blogtng_tags');
                 $renderer->doc .= $this->taghelper->xhtml_tagcloud($data['conf']);
                 break;
@@ -199,6 +203,11 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
             default;
                 continue;
         }
+    }
+
+    private function loadHelpers() {
+        $this->entryhelper =& plugin_load('helper', 'blogtng_entry');
+        $this->tools = & plugin_load('helper', 'blogtng_tools');
     }
 }
 // vim:ts=4:sw=4:et:

@@ -15,7 +15,9 @@ require_once(DOKU_PLUGIN.'action.php');
 
 class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
 
+    /** @var helper_plugin_blogtng_comments */
     var $commenthelper = null;
+    /** @var helper_plugin_blogtng_tools */
     var $tools = null;
 
     function action_plugin_blogtng_comments() {
@@ -33,6 +35,10 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
      * Takes care of handling all the post input from creating
      * comments and saves them. Also handles optin and unsubscribe
      * actions.
+     *
+     * @param Doku_Event $event  event object by reference
+     * @param array      $param  empty array as passed to register_hook()
+     * @return bool
      */
     function handle_act_preprocess(&$event, $param) {
         global $INFO, $ID;
@@ -85,6 +91,7 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
             // check CAPTCHA if available (on submit only)
             $captchaok = true;
             if($BLOGTNG['comment_action'] == 'submit'){
+                /** @var helper_plugin_captcha $helper */
                 $helper = null;
                 if(@is_dir(DOKU_PLUGIN.'captcha')) $helper = plugin_load('helper','captcha');
                 if(!is_null($helper) && $helper->isEnabled()){

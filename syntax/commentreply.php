@@ -32,6 +32,7 @@ class syntax_plugin_blogtng_commentreply extends DokuWiki_Syntax_Plugin {
     function render($mode, &$renderer, $indata) {
         if ($mode == 'blogtng_comment') {
             list($cid) = $indata;
+            /** @var helper_plugin_blogtng_comments $commenthelper */
             $commenthelper =& plugin_load('helper', 'blogtng_comments');
             $comment = $commenthelper->comment_by_cid($cid);
             if (!is_object($comment)) return false; // comment does not exist, cid is invalid

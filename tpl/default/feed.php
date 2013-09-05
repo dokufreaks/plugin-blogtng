@@ -1,4 +1,8 @@
-<?php echo $entry->get_entrycontent() ?>
+<?php
+/**
+ * @var $entry helper_plugin_blogtng_entry
+ */
+echo $entry->get_entrycontent() ?>
 
 <p>
     <small>

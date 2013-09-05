@@ -15,6 +15,7 @@ require_once(DOKU_PLUGIN.'action.php');
 
 class action_plugin_blogtng_new extends DokuWiki_Action_Plugin{
 
+    /** @var helper_plugin_blogtng_comments */
     var $commenthelper = null;
 
     function __construct() {
@@ -30,12 +31,17 @@ class action_plugin_blogtng_new extends DokuWiki_Action_Plugin{
      *
      * @author Andreas Gohr <gohr@cosmocode.de>
      * @author Gina Haeussge <osd@foosel.net>
+     *
+     * @param Doku_Event $event  event object by reference
+     * @param array      $param  empty array as passed to register_hook()
+     * @return bool
      */
     function handle_act_preprocess(&$event, $param) {
         global $TEXT;
         global $ID;
 
         if($event->data != 'btngnew') return true;
+        /** @var helper_plugin_blogtng_tools $tools */
         $tools =& plugin_load('helper', 'blogtng_tools');
         if(!$tools->getParam('new/title')){
             msg($this->getLang('err_notitle'),-1);
