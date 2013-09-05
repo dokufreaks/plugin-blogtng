@@ -56,6 +56,11 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             return self::RET_ERR_BADPID;
         }
 
+        if(!$this->sqlitehelper->ready()) {
+            msg('blogtng plugin: failed to load sqlite helper plugin', -1);
+            $this->entry = $this->prototype();
+            return self::RET_ERR_DB;
+        }
         $query = 'SELECT pid, page, title, blog, image, created, lastmod, author, login, mail, commentstatus FROM entries WHERE pid = ?';
         $resid = $this->sqlitehelper->getDB()->query($query, $pid);
         if ($resid === false) {
@@ -79,29 +84,29 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
     }
 
-    /**
-     * FIXME: Is this deprecated?
-     *
-     * @param $resid
-     * @param $index
-     * @return unknown_type
-     */
-    function load_by_res($resid, $index) {
-        $this->entry = $this->prototype();
-        $this->taghelper = null;
-        $this->commenthelper = null;
-
-        // FIXME validate resid and index
-        if($resid === false) {
-            msg('blogtng plugin: failed to load entry, did not get a valid resource id!', -1);
-            $this->entry = $this->prototype();
-            // FIXME undefined constant
-            return self::RET_ERR_BADRES;
-        }
-
-        $result = $this->sqlitehelper->getDB()->res2row($resid, $index);
-        $this->load_by_row($result);
-    }
+//    /**
+//     * FIXME: Is this deprecated?
+//     *
+//     * @param $resid
+//     * @param $index
+//     * @return unknown_type
+//     */
+//    function load_by_res($resid, $index) {
+//        $this->entry = $this->prototype();
+//        $this->taghelper = null;
+//        $this->commenthelper = null;
+//
+//        // FIXME validate resid and index
+//        if($resid === false) {
+//            msg('blogtng plugin: failed to load entry, did not get a valid resource id!', -1);
+//            $this->entry = $this->prototype();
+//            // FIXME undefined constant
+//            return self::RET_ERR_BADRES;
+//        }
+//
+//        $result = $this->sqlitehelper->getDB()->res2row($resid, $index);
+//        $this->load_by_row($result);
+//    }
 
     function load_by_row($row) {
         $this->entry = $row;
@@ -821,8 +826,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
                        LIMIT 1';
             $res = $this->sqlitehelper->getDB()->query($query, $pid);
             if ($this->sqlitehelper->getDB()->res2count($res) > 0) {
-                $row = $this->sqlitehelper->getDB()->res2row($res, 0);
-                $related[$type] = $row;
+                $result = $this->sqlitehelper->getDB()->res2arr($res);
+                $related[$type] = $result[0];
             }
         }
         return $related;

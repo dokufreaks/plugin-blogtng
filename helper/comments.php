@@ -33,16 +33,16 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         $this->pid = trim($pid);
         //$query = 'SELECT FIXME FROM comments WHERE pid = ?';
 
-        //$resid = $this->sqlitehelper->query($query, $pid);
+        //$resid = $this->sqlitehelper->getDB->query($query, $pid);
         //if ($resid === false) {
         //    msg('blogtng plugin: failed to load comments!', -1);
         //    $this->comments = array();
         //}
-        //if (sqlite_num_rows($resid) == 0) {
+        //if ($this->sqlitehelper->getDB()->res2count($resid) == 0) {
         //    $this->comments = array();
         //}
 
-        //$this->comments = $this->sqlitehelper->res2arr($resid);
+        //$this->comments = $this->sqlitehelper->getDB->res2arr($resid);
     }
 
     function comment_by_cid($cid) {

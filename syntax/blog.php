@@ -127,8 +127,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
     function render($mode, &$renderer, $data) {
         if($mode != 'xhtml') return false;
 
-        $this->entryhelper =& plugin_load('helper', 'blogtng_entry');
-        $this->tools = & plugin_load('helper', 'blogtng_tools');
+        $this->loadHelpers();
 
         // set target if not set yet
         global $ID;
@@ -204,6 +203,11 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
             default;
                 continue;
         }
+    }
+
+    private function loadHelpers() {
+        $this->entryhelper =& plugin_load('helper', 'blogtng_entry');
+        $this->tools = & plugin_load('helper', 'blogtng_tools');
     }
 }
 // vim:ts=4:sw=4:et:

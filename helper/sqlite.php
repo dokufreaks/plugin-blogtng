@@ -36,7 +36,7 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
                 msg('The data plugin needs the sqlite plugin', -1);
                 return false;
             }
-            if(!$this->db->init('blogtng', dirname(__FILE__) . '/db/')) {
+            if(!$this->db->init('blogtng', dirname(__FILE__) . '/../db/')) {
                 $this->db = null;
                 return false;
             }

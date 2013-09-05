@@ -1,7 +1,3 @@
-CREATE TABLE opts (opt,val);
-CREATE UNIQUE INDEX idx_opt ON opts(opt);
-INSERT INTO opts (opt,val) VALUES('dbversion',1);
-
 CREATE TABLE entries (
     pid PRIMARY KEY,
     page,

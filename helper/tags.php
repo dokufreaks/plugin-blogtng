@@ -46,15 +46,22 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
      */
     function load($pid) {
         $this->pid = trim($pid);
-        $query = 'SELECT tag FROM tags WHERE pid = ? ORDER BY tag ASC';
 
+        if(!$this->sqlitehelper->ready()) {
+            msg('blogtng plugin: failed to load sqlite helper plugin!', -1);
+            $this->tags = array();
+            return false;
+        }
+        $query = 'SELECT tag FROM tags WHERE pid = ? ORDER BY tag ASC';
         $resid = $this->sqlitehelper->getDB()->query($query, $this->pid);
         if ($resid === false) {
             msg('blogtng plugin: failed to load tags!', -1);
             $this->tags = array();
+            return false;
         }
         if ($this->sqlitehelper->getDB()->res2count($resid) == 0) {
             $this->tags = array();
+            return true;
         }
 
         $tags_from_db = $this->sqlitehelper->getDB()->res2arr($resid);
@@ -63,6 +70,7 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
             array_push($tags, $tag_from_db['tag']);
         }
         $this->tags = $tags;
+        return true;
     }
 
     /**
@@ -81,7 +89,8 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
      * Save tags
      */
     function save() {
-        //FIXME $sqlite undefined
+        if (!$this->sqlitehelper->ready()) return;
+
         $query = 'BEGIN TRANSACTION';
         if (!$this->sqlitehelper->getDB()->query($query)) {
             $this->sqlitehelper->getDB()->query('ROLLBACK TRANSACTION');
