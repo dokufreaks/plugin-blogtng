@@ -132,11 +132,20 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
         );
         foreach ($tags as $tag) {
             if ($tag{0} == '+') {
-                array_push($tag_clauses['AND'], 'tag = \'' . sqlite_escape_string(substr($tag, 1)) . '\'');
+                array_push(
+                    $tag_clauses['AND'],
+                    'tag = '. $this->sqlitehelper->getDB()->quote_string(substr($tag, 1))
+                );
             } else if ($tag{0} == '-') {
-                array_push($tag_clauses['NOT'], 'tag != \'' . sqlite_escape_string(substr($tag, 1)) . '\'');
+                array_push(
+                    $tag_clauses['NOT'],
+                    'tag != '.$this->sqlitehelper->getDB()->quote_string(substr($tag, 1))
+                );
             } else {
-                array_push($tag_clauses['OR'], 'tag = \'' . sqlite_escape_string($tag) . '\'');
+                array_push(
+                    $tag_clauses['OR'],
+                    'tag = '.$this->sqlitehelper->getDB()->quote_string($tag)
+                );
             }
         }
         $tag_clauses = array_map('array_unique', $tag_clauses);
