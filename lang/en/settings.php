@@ -11,6 +11,7 @@
  * @license GPL 2 (http://www.gnu.org/licenses/gpl.html)
  */
 
+$lang['default_commentstatus']     = 'Default comment status choice in edit window';
 $lang['comments_allow_web']        = 'Allow users to link to their website with comments?';
 $lang['comments_subscription']     = 'Allow users to subscribe to new comments via email?';
 $lang['comments_gravatar_rating']  = 'Minimum rating for gravatars.';
