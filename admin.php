@@ -24,7 +24,12 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
     function admin_plugin_blogtng() {
         $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
         $this->entryhelper   =& plugin_load('helper', 'blogtng_entry');
-        $this->sqlitehelper  =& plugin_load('helper', 'blogtng_sqlite');
+
+        if ($this->getConf('sqlite_version') == 'SQLite2')
+            $this->sqlitehelper  =& plugin_load('helper', 'blogtng_sqlite');
+        else
+            $this->sqlitehelper  =& plugin_load('helper', 'blogtng_sqlite3');
+
         $this->taghelper     =& plugin_load('helper', 'blogtng_tags');
     }
 

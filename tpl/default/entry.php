@@ -23,8 +23,8 @@
     </div>
     <?php $entry->tpl_entry(true, false, false) ?>
     <div class="blogtng_footer level1">
-        <?php 
-            global $lang; 
+        <?php
+            global $lang;
             global $conf;
             echo $lang['created'].": ";$entry->tpl_created($conf['dformat']);echo ", ";
             if ($entry->entry['created'] != $entry->entry['lastmod']) {
