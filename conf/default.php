@@ -10,3 +10,4 @@ $conf['tags']                      = '';
 $conf['receive_linkbacks']         = 1;
 $conf['send_linkbacks']            = 0;
 $conf['subscribe_noconfirm']       = 0;
+$conf['sqlite_version']            = 'SQLite3';

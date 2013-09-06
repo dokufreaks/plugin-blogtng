@@ -123,6 +123,7 @@ div.dokuwiki div#blogtng__admin table td.comment_source {
 /*____________ blog list ____________*/
 /* create new post form */
 div.dokuwiki div.blogtng_newform {
+    clear: both;
     margin: 1em;
 }
 
@@ -156,6 +157,24 @@ div.dokuwiki .blogtng_nextlink {
     float:right;
 }
 
+/* small_list template styles */
+div.dokuwiki div.blogtng_small_list {
+  padding-bottom: 1.5em;
+}
+
+div.dokuwiki div.blogtng_small_list_title {
+  font-size: 1.2em;
+  font-weight: bold;
+  border-left: 0.5em solid #060;
+  padding-left: 1em;
+}
+
+div.dokuwiki div.blogtng_small_list_abstract {
+  float: left;
+  padding-right: 2em;
+}
+/* end of small_list template styles */
+
 /* blog entry */
 div.dokuwiki div.blogtng_entry div.blogtng_footer {
     border: 1px solid __border__;
@@ -179,6 +198,10 @@ div#insitu__comment img.avatar {
     padding: 0 0.5em 0.5em 0;
 }
 
+div.dokuwiki div.blogtng_comment div.vcard {
+    display: inline;
+}
+
 /*____________ comment form ____________*/
 div.dokuwiki form#blogtng__comment_edit_form fieldset {
   float: left;
@@ -195,27 +218,30 @@ div.dokuwiki form#blogtng__comment_edit_form textarea {
     margin-bottom: 0.5em;
 }
 
+div.dokuwiki form#blogtng__search_form fieldset {
+  float: left;
+  width: auto;
+}
+
+div.dokuwiki form#blogtng__search_form label {
+  font-weight: bold;
+}
+
 div.dokuwiki div.blogtng_comment_status_hidden {
     opacity: 0.5;
     filter: alpha(opacity = 50);
 }
 
+/* comment form */
 div.dokuwiki form#blogtng__comment_form,
 div.dokuwiki form#blogtng__comment_edit_form {
     padding: 2em;
-    /*width: 500px;*/
+    width: 500px;
     display: block;
 }
 
 div.dokuwiki form#blogtng__comment_edit_form {
     text-align: right;
-}
-
-div.dokuwiki form#blogtng__comment_edit_form input,
-div.dokuwiki form#blogtng__comment_edit_form select,
-div.dokuwiki form#blogtng__comment_form textarea,
-div.dokuwiki form#blogtng__comment_edit_form textarea {
-    margin-bottom: 0.5em;
 }
 
 div.dokuwiki form#blogtng__comment_form div#plugin__captcha_wrapper label{
@@ -231,6 +257,12 @@ div.dokuwiki div#blogtng__ajax_preview {
     padding: 1em;
     margin: 1em;
     border: 1px dashed __border__;
+}
+
+div.dokuwiki div#blogtng__admin div#blogtng__comment_preview {
+  width: 50%;
+  float: left;
+  margin-top: 0;
 }
 
 div.dokuwiki div#blogtng__ajax_preview {

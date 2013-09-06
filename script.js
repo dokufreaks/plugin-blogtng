@@ -78,18 +78,19 @@ var blogtng = {
 
         params={call: 'blogtng__comment_preview'};
         if(jQuery('#blogtng__comment_name').length > 0)
-            params.name = jQuery('#blogtng__comment_name').val();
+            params.name = encodeURIComponent(jQuery('#blogtng__comment_name').val());
         if(jQuery('#blogtng__comment_mail').length > 0)
-            params.mail = jQuery('#blogtng__comment_mail').val();
+            params.mail = encodeURIComponent(jQuery('#blogtng__comment_mail').val());
         if(jQuery('#blogtng__comment_web').length > 0)
-            params.web  = jQuery('#blogtng__comment_web').val();
+            params.web  = encodeURIComponent(jQuery('#blogtng__comment_web').val());
         if(jQuery('#wiki__text').length > 0)
-            params.text = jQuery('#wiki__text').val();
+            params.text = encodeURIComponent(jQuery('#wiki__text').val());
 
         jQuery.post(DOKU_BASE + 'lib/exe/ajax.php', params,
         function(data){
             if(data === '') return;
-            preview.innerHTML = data;
+            // @FIXME: decode breaks display of Avatar in preview
+            preview.innerHTML = decodeURIComponent(data);
         });
 
         return false;
