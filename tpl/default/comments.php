@@ -16,8 +16,8 @@
     <?php $comment->tpl_comment()?>
     <div class="blogtng__commentmetadatarow">
         <?php $comment->tpl_number()?> |
-        <?php $comment->tpl_created()?> |
         <?php $comment->tpl_hcard()?> |
+        <?php $comment->tpl_created()?> |
         <?php $comment->tpl_number(true, '%d', $comment->getLang('comment_reply'))?>
     </div>
 </div>

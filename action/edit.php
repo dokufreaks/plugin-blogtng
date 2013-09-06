@@ -154,7 +154,7 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
 
                     $this->entryhelper->load_by_pid($pid);
 
-                    $entry = $this->collectInfoForEntry();
+                    $entry = $this->_collectInfoForEntry();
                     $this->entryhelper->set($entry);
 
                     $this->entryhelper->entry['blog'] = $blog;
