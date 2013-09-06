@@ -185,6 +185,20 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         $atext = io_readFile($this->localFN('notifymail'));
         $stext = io_readFile($this->localFN('subscribermail'));
         $title = sprintf($this->getLang('subscr_subject'),$entry['title']);
+        if (!isset($comment['cid'])) {
+            $sql = "SELECT cid
+                      FROM comments
+                     WHERE pid = ?
+                       AND created = ?
+                       AND mail =?
+                     LIMIT 1";
+            $res = $this->sqlitehelper->getDB()->query($sql,
+                                                       $comment['pid'],
+                                                       $comment['created'],
+                                                       $comment['mail']);
+            $cid = $this->sqlitehelper->getDB()->res2single($res);
+            $comment['cid'] = $cid === false ? 0 : $cid;
+        }
 
         $repl = array(
             '@TITLE@'       => $entry['title'],
@@ -196,7 +210,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
             '@BROWSER@'     => $_SERVER['HTTP_USER_AGENT'],
             '@IPADDRESS@'   => clientIP(),
             '@HOSTNAME@'    => gethostsbyaddrs(clientIP()),
-            '@URL@'         => wl($entry['page'],'',true), #FIXME cid
+            '@URL@'         => wl($entry['page'],'',true).'#comment_'.$comment['cid'],
             '@DOKUWIKIURL@' => DOKU_URL,
         );
 
