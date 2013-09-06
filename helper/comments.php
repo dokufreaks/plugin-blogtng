@@ -14,38 +14,25 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     /**
      * @var helper_plugin_blogtng_sqlite
      */
-    var $sqlitehelper = null;
+    private $sqlitehelper = null;
 
-    var $comments = array();
-    var $pid;
+    private $pid;
 
     /**
      * Constructor, loads the sqlite helper plugin
      */
-    function helper_plugin_blogtng_comments() {
+    public function helper_plugin_blogtng_comments() {
         $this->sqlitehelper =& plugin_load('helper', 'blogtng_sqlite');
     }
 
     /**
-     * Load comments for specified pid
+     * Set pid
      */
-    function load($pid) {
+    public function setPid($pid) {
         $this->pid = trim($pid);
-        //$query = 'SELECT FIXME FROM comments WHERE pid = ?';
-
-        //$resid = $this->sqlitehelper->getDB->query($query, $pid);
-        //if ($resid === false) {
-        //    msg('blogtng plugin: failed to load comments!', -1);
-        //    $this->comments = array();
-        //}
-        //if ($this->sqlitehelper->getDB()->res2count($resid) == 0) {
-        //    $this->comments = array();
-        //}
-
-        //$this->comments = $this->sqlitehelper->getDB->res2arr($resid);
     }
 
-    function comment_by_cid($cid) {
+    public function comment_by_cid($cid) {
         $query = 'SELECT cid, pid, source, name, mail, web, avatar, created, text, status FROM comments WHERE cid = ?';
         $resid = $this->sqlitehelper->getDB()->query($query, $cid);
         if ($resid === false) {
@@ -64,7 +51,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     /**
      * Get comment count
      */
-    function get_count($types=null, $includehidden=false) {
+    public function get_count($types=null, $includehidden=false) {
         $pid = $this->pid;
 
         $sql = 'SELECT COUNT(pid) as val
@@ -91,7 +78,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     /**
      * Save comment
      */
-    function save($comment) {
+    public function save($comment) {
         if (isset($comment['cid'])) {
             // Doing an update
             $query = 'UPDATE comments SET pid=?, source=?, name=?, mail=?, ' .
@@ -157,7 +144,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     /**
      * Delete comment
      */
-    function delete($cid) {
+    public function delete($cid) {
         $query = 'DELETE FROM comments WHERE cid = ?';
         $this->sqlitehelper->getDB()->query($query, $cid);
     }
@@ -165,7 +152,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     /**
      * Delete all comments for an entry
      */
-    function delete_all($pid) {
+    public function delete_all($pid) {
         $sql = "DELETE FROM comments WHERE pid = ?";
         return (bool) $this->sqlitehelper->getDB()->query($sql,$pid);
     }
@@ -173,7 +160,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     /**
      * Moderate comment
      */
-    function moderate($cid, $status) {
+    public function moderate($cid, $status) {
         $query = 'UPDATE comments SET status = ? WHERE cid = ?';
         $this->sqlitehelper->getDB()->query($query, $status, $cid);
     }
@@ -184,7 +171,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      * Mails are sent to the author of the post and
      * all subscribers that opted-in
      */
-    function send_subscriber_mails($comment){
+    public function send_subscriber_mails($comment){
         global $conf;
 
         // get general article info
@@ -247,7 +234,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     /**
      * Send a mail to commenter and let her login
      */
-    function send_optin_mail($mail,$key){
+    public function send_optin_mail($mail,$key){
         global $conf;
 
         $text  = io_readFile($this->localFN('optinmail'));
@@ -269,7 +256,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      * @param string $pid  - entry to subscribe
      * @param string $mail - email of subscriber
      */
-    function subscribe($pid, $mail) {
+    public function subscribe($pid, $mail) {
         // add to subscription list
         $sql = "INSERT OR IGNORE INTO subscriptions
                       (pid, mail) VALUES (?,?)";
@@ -298,7 +285,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
 
     }
 
-    function unsubscribe_by_key($pid, $key) {
+    public function unsubscribe_by_key($pid, $key) {
         $sql = 'SELECT mail FROM optin WHERE key = ?';
         $res = $this->sqlitehelper->getDB()->query($sql, $key);
         $row = $this->sqlitehelper->getDB()->res2row($res);
@@ -313,7 +300,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     /**
      * Unsubscribe entry
      */
-    function unsubscribe($pid, $mail) {
+    public function unsubscribe($pid, $mail) {
         $sql = 'DELETE FROM subscriptions WHERE pid = ? AND mail = ?';
         $res = $this->sqlitehelper->getDB()->query($sql, $pid, $mail);
         $upd = $this->sqlitehelper->getDB()->countChanges($res);
@@ -328,7 +315,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     /**
      * Opt in
      */
-    function optin($key) {
+    public function optin($key) {
         $sql = 'UPDATE optin SET optin = 1 WHERE key = ?';
         $res = $this->sqlitehelper->getDB()->query($sql,$key);
         $upd = $this->sqlitehelper->getDB()->countChanges($res);
@@ -344,19 +331,19 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     /**
      * Enable discussion
      */
-    function enable($pid) {
+    public function enable($pid) {
     }
 
     /**
      * Disable discussion
      */
-    function disable($pid) {
+    public function disable($pid) {
     }
 
     /**
      * Close discussion
      */
-    function close($pid) {
+    public function close($pid) {
     }
 
     /**
@@ -366,7 +353,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      *  allow comments only for registered users
      *  add toolbar
      */
-    function tpl_form($page, $pid) {
+    public function tpl_form($page, $pid) {
         global $BLOGTNG;
 
         $form = new DOKU_Form('blogtng__comment_form',wl($page).'#blogtng__comment_form');
@@ -438,8 +425,8 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      * @param array  $types - a list of wanted comment sources (empty for all)
      * @return bool
      */
-    function tpl_count($fmt_zero_comments='', $fmt_one_comments='', $fmt_comments='', $types=null) {
-        if(!$this->pid) return false;
+    public function tpl_count($fmt_zero_comments='', $fmt_one_comments='', $fmt_comments='', $types=null) {
+        if(!$this->pid) return;
 
         if(!$fmt_zero_comments)
             $fmt_zero_comments = $this->getLang('0comments');
@@ -466,9 +453,9 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     /**
      * Print the comemnts
      */
-    function tpl_comments($name,$types=null) {
+    public function tpl_comments($name,$types=null) {
         $pid = $this->pid;
-        if(!$pid) return false;
+        if(!$pid) return;
 
         $sql = 'SELECT *
                   FROM comments
@@ -497,7 +484,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     /**
      * Displays a list of recent comments
      */
-    function xhtml_recentcomments($conf){
+    public function xhtml_recentcomments($conf){
         ob_start();
         if($conf['listwrap']) echo '<ul class="blogtng_recentcomments">';
         $this->tpl_recentcomments($conf['tpl'],$conf['limit'],$conf['blog'],$conf['type']);
@@ -510,7 +497,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     /**
      * Display a list of recent comments
      */
-    function tpl_recentcomments($tpl='default',$num=5,$blogs=array('default'),$types=array()){
+    public function tpl_recentcomments($tpl='default',$num=5,$blogs=array('default'),$types=array()){
         // check template
         $tpl = helper_plugin_blogtng_tools::getTplFile($tpl, 'recentcomments');
         if($tpl === false){

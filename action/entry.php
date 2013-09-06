@@ -49,7 +49,7 @@ class action_plugin_blogtng_entry extends DokuWiki_Action_Plugin{
         // we can handle it
         $event->preventDefault();
 
-        $this->commenthelper->load($pid);
+        $this->commenthelper->setPid($pid);
         $this->entryhelper->tpl_content($this->entryhelper->entry['blog'], 'entry');
     }
 

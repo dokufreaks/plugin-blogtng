@@ -513,7 +513,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         if(!$this->commenthelper) {
             $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
         }
-        $this->commenthelper->load($this->entry['pid']);
+        $this->commenthelper->setPid($this->entry['pid']);
         $this->commenthelper->tpl_comments($name,$types);
     }
 
@@ -526,7 +526,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         if(!$this->commenthelper) {
             $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
         }
-        $this->commenthelper->load($this->entry['pid']);
+        $this->commenthelper->setPid($this->entry['pid']);
         $this->commenthelper->tpl_count($fmt_zero_comments, $fmt_one_comment, $fmt_comments);
     }
 
@@ -835,7 +835,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     public function &getCommentHelper(){
         if(!$this->commenthelper) {
             $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
-            $this->commenthelper->load($this->entry['pid']);
+            $this->commenthelper->setPid($this->entry['pid']);
         }
         return $this->commenthelper;
     }

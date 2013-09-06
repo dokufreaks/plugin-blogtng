@@ -501,7 +501,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
 
         ptln('<td class="entry_set_commentstatus">' . $this->xhtml_entry_set_commentstatus_form($entry) . '</th>');
 
-        $this->commenthelper->load($entry['pid']);
+        $this->commenthelper->setPid($entry['pid']);
 
         // comments edit link
         ptln('<td class="entry_comments">');
