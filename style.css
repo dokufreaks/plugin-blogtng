@@ -181,7 +181,8 @@ div.dokuwiki div.blogtng_comment {
 }
 
 div.dokuwiki div.blogtng_comment p {
-    min-height: 35px;
+    min-height: 45px;
+    margin-bottom: 0.8em;
 }
 
 div.dokuwiki div.blogtng__commentmetadatarow {
