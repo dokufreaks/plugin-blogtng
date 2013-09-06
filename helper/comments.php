@@ -269,13 +269,13 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      *
      * @param string $pid  - entry to subscribe
      * @param string $mail - email of subscriber
+     * @param int $optin - set to 1 for immediate optin
      */
-    public function subscribe($pid, $mail) {
+    public function subscribe($pid, $mail, $optin = -3) {
         // add to subscription list
         $sql = "INSERT OR IGNORE INTO subscriptions
                       (pid, mail) VALUES (?,?)";
         $this->sqlitehelper->getDB()->query($sql,$pid,strtolower($mail));
-        $optin = $this->getConf('subscribe_noconfirm');
 
         // add to optin list
         if($optin == 1){
@@ -291,8 +291,10 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
             $sql = "SELECT optin, key FROM optin WHERE mail = ?";
             $res = $this->sqlitehelper->getDB()->query($sql,strtolower($mail));
             $row = $this->sqlitehelper->getDB()->res2row($res,0);
-            if($row['optin'] == 0){
+            if($row['optin'] < 0){
                 $this->send_optin_mail($mail,$row['key']);
+                $sql = "UPDATE optin SET optin = optin+1 WHERE mail = ?";
+                $this->sqlitehelper->getDB()->query($sql,strtolower($mail));
             }
         }
 
