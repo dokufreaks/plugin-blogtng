@@ -19,24 +19,24 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     const RET_ERR_RES     = -5;
 
     /** @var array|null */
-    var $entry = null;
+    public $entry = null;
     /** @var helper_plugin_blogtng_sqlite */
-    var $sqlitehelper  = null;
+    private $sqlitehelper  = null;
     /** @var helper_plugin_blogtng_comments */
-    var $commenthelper = null;
+    private $commenthelper = null;
     /** @var helper_plugin_blogtng_tags */
-    var $taghelper     = null;
+    private $taghelper     = null;
     /** @var helper_plugin_blogtng_tools */
-    var $toolshelper   = null;
+    private $toolshelper   = null;
     /** @var Doku_Renderer_xhtml */
-    var $renderer      = null;
+    private $renderer      = null;
 
     /**
      * Constructor, loads the sqlite helper plugin
      *
      * @author Michael Klier <chi@chimeric.de>
      */
-    function helper_plugin_blogtng_entry() {
+    public function helper_plugin_blogtng_entry() {
         $this->sqlitehelper =& plugin_load('helper', 'blogtng_sqlite');
         $this->entry = $this->prototype();
     }
@@ -44,7 +44,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
     //~~ data access methods
 
-    function load_by_pid($pid) {
+    public function load_by_pid($pid) {
         $this->entry = $this->prototype();
         $this->taghelper = null;
         $this->commenthelper = null;
@@ -104,7 +104,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 //        $this->load_by_row($result);
 //    }
 
-    function load_by_row($row) {
+    public function load_by_row($row) {
         $this->entry = $row;
         if($this->poke()){
             return self::RET_OK;
@@ -113,7 +113,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
     }
 
-    function set($entry) {
+    public function set($entry) {
         foreach (array_keys($entry) as $key) {
             if (!in_array($key, array('pid', 'page', 'created', 'login')) || empty($this->entry[$key])) {
                 $this->entry[$key] = $entry[$key];
@@ -121,7 +121,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
     }
 
-    function prototype() {
+    private function prototype() {
         return array(
             'pid' => null,
             'page' => null,
@@ -139,10 +139,10 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     /**
      * Poke the entry with a stick and see if it is alive
      *
-     * If page does not exist, delete DB entry
+     * If page does not exist or is not a blog, delete DB entry
      */
-    function poke(){
-        if(!$this->entry['page'] or !page_exists($this->entry['page'])){
+    public function poke(){
+        if(!$this->entry['page'] or !page_exists($this->entry['page']) OR !$this->entry['blog']){
             $this->delete();
             return false;
         }
@@ -152,7 +152,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     /**
      * delete the current entry
      */
-    function delete(){
+    private function delete(){
         if(!$this->entry['pid']) return false;
 
         // delete comment
@@ -173,7 +173,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     /**
      * Save an entry into the database
      */
-    function save() {
+    public function save() {
         if(!$this->entry['pid'] || $this->entry['pid'] == md5('')){
             msg('blogtng: no pid, refusing to save',-1);
             return false;
@@ -224,7 +224,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      *
      * Calls the *_list template for each entry in the result set
      */
-    function xhtml_list($conf, &$renderer=null){
+    public function xhtml_list($conf, &$renderer=null){
         $posts = $this->get_posts($conf);
         if (!$posts) return '';
         $rendererBackup =& $this->renderer;
@@ -250,7 +250,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      *
      * Calls the *_tagsearch template for each entry in the result set
      */
-    function xhtml_tagsearch($conf, &$renderer=null){
+    public function xhtml_tagsearch($conf, &$renderer=null){
         if (count($conf['tags']) == 0) {
             
             return '';
@@ -281,7 +281,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      *
      * @author Andreas Gohr <gohr@cosmocode.de>
      */
-    function xhtml_pagination($conf){
+    public function xhtml_pagination($conf){
         $sortkey = ($conf['sortby'] == 'random') ? 'Random()' : $conf['sortby'];
         $blog_query = '(blog = '.
                       $this->sqlitehelper->getDB()->quote_and_join($conf['blog'],
@@ -371,7 +371,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     /**
      * Displays a list of related blog entries
      */
-    function xhtml_related($conf){
+    public function xhtml_related($conf){
         ob_start();
         $this->tpl_related($conf['limit'],$conf['blog'],$conf['page'],$conf['tags']);
         $output = ob_get_contents();
@@ -382,7 +382,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     /**
      * Displays a form to create new entries
      */
-    function xhtml_newform($conf){
+    public function xhtml_newform($conf){
         global $ID;
 
         // allowed to create?
@@ -412,7 +412,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
     //~~ template methods
 
-    function tpl_content($name, $type) {
+    public function tpl_content($name, $type) {
         $whitelist = array('list', 'entry', 'feed', 'tagsearch');
         if(!in_array($type, $whitelist)) return false;
 
@@ -432,8 +432,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * @param bool   $skipheader - Remove the first header
      * @return bool false if a recursion was detected and the entry could not be printed, true otherwise
      */
-    function tpl_entry($included=true, $readmore='syntax',
-                       $inc_level=true, $skipheader=false) {
+    public function tpl_entry($included=true, $readmore='syntax', $inc_level=true, $skipheader=false) {
         $content = $this->get_entrycontent($readmore, $inc_level, $skipheader);
 
         if ($included) {
@@ -447,15 +446,15 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         return true;
     }
 
-    function tpl_link($anchor=''){
+    public function tpl_link($anchor=''){
         echo wl($this->entry['page']).(!empty($anchor) ? '#'.$anchor : '');
     }
 
-    function tpl_permalink($str) {
+    public function tpl_permalink($str) {
         echo '<a href="' . wl ($this->entry['page']) . '" title="' . hsc($this->entry['title']) . '">' . $str . '</a>';
     }
 
-    function tpl_abstract($len=0) {
+    public function tpl_abstract($len=0) {
         $this->_load_abstract();
         if($len){
             $abstract = utf8_substr($this->entry['abstract'], 0, $len).'…';
@@ -465,21 +464,21 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         echo hsc($abstract);
     }
 
-    function tpl_title() {
+    public function tpl_title() {
         print hsc($this->entry['title']);
     }
 
-    function tpl_created($format='') {
+    public function tpl_created($format='') {
         if(!$this->entry['created']) return; // uh oh, something went wrong
         print dformat($this->entry['created'],$format);
     }
 
-    function tpl_lastmodified($format='') {
+    public function tpl_lastmodified($format='') {
         if(!$this->entry['lastmod']) return; // uh oh, something went wrong
         print dformat($this->entry['lastmod'], $format);
     }
 
-    function tpl_author() {
+    public function tpl_author() {
         if(empty($this->entry['author'])) return;
         print hsc($this->entry['author']);
     }
@@ -489,7 +488,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      *
      * @author Michael Klier <chi@chimeric.de>
      */
-    function tpl_hcard() {
+    public function tpl_hcard() {
         if(empty($this->entry['author'])) return;
 
         // FIXME
@@ -509,7 +508,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      *
      * Wrapper around commenthelper->tpl_comments()
      */
-    function tpl_comments($name,$types=null) {
+    public function tpl_comments($name,$types=null) {
         if ($this->entry['commentstatus'] == 'disabled') return;
         if(!$this->commenthelper) {
             $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
@@ -523,7 +522,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      *
      * Wrapper around commenthelper->tpl_commentcount()
      */
-    function tpl_commentcount($fmt_zero_comments='', $fmt_one_comment='', $fmt_comments='',$types=null) {
+    public function tpl_commentcount($fmt_zero_comments='', $fmt_one_comment='', $fmt_comments='',$types=null) {
         if(!$this->commenthelper) {
             $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
         }
@@ -541,7 +540,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * @param bool|string $id     - reference page (false for current)
      * @param array       $tags   - additional tags to consider
      */
-    function tpl_related($num=5,$blogs=array('default'),$id=false,$tags=array()){
+    public function tpl_related($num=5,$blogs=array('default'),$id=false,$tags=array()){
         global $INFO;
         if($id === false) $id = $INFO['id']; //sidebar safe
 
@@ -592,7 +591,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      *
      * Wrapper around commenthelper->tpl_form()
      */
-    function tpl_commentform() {
+    public function tpl_commentform() {
         if ($this->entry['commentstatus'] == 'closed' || $this->entry['commentstatus'] == 'disabled') return;
         if(!$this->commenthelper) {
             $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
@@ -600,14 +599,14 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $this->commenthelper->tpl_form($this->entry['page'], $this->entry['pid']);
     }
 
-    function tpl_linkbacks() {}
+    public function tpl_linkbacks() {}
 
     /**
      * Print a list of tags associated with the entry
      *
      * @param string $target - tag links will point to this page, tag is passed as parameter
      */
-    function tpl_tags($target) {
+    public function tpl_tags($target) {
         if (!$this->taghelper) {
             $this->taghelper =& plugin_load('helper', 'blogtng_tags');
         }
@@ -615,7 +614,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $this->taghelper->tpl_tags($target);
     }
 
-    function tpl_tagstring($target, $separator=', ') {
+    public function tpl_tagstring($target, $separator=', ') {
         if (!$this->taghelper) {
             $this->taghelper =& plugin_load('helper', 'blogtng_tags');
         }
@@ -633,7 +632,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * @return bool/string if there is no such link, false. otherwise, if $return is true,
      *                     a string containing the generated HTML link, otherwise true.
      */
-    function tpl_previouslink($tpl, $id=false, $return=false) {
+    public function tpl_previouslink($tpl, $id=false, $return=false) {
         $out =  $this->_navi_link($tpl, 'prev', $id);
         if ($return) {
             return $out;
@@ -654,7 +653,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * @return bool/string if there is no such link, false. otherwise, if $return is true,
      *                      a string containing the generated HTML link, otherwise true.
      */
-    function tpl_nextlink($tpl, $id=false, $return=false) {
+    public function tpl_nextlink($tpl, $id=false, $return=false) {
         $out =  $this->_navi_link($tpl, 'next', $id);
         if ($return) {
             return $out;
@@ -667,7 +666,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
     //~~ utility methods
 
-    function get_blogs() {
+    public function get_blogs() {
         $pattern = DOKU_PLUGIN . 'blogtng/tpl/*{_,/}entry.php';
         $files = glob($pattern, GLOB_BRACE);
         $blogs = array('');
@@ -677,7 +676,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         return $blogs;
     }
 
-    function get_blog() {
+    public function get_blog() {
         if ($this->entry != null) {
             return $this->entry['blog'];
         } else {
@@ -685,7 +684,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
     }
 
-    function get_posts($conf) {
+    public function get_posts($conf) {
         $sortkey = ($conf['sortby'] == 'random') ? 'Random()' : $conf['sortby'];
         
         $blog_query = '';
@@ -735,7 +734,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * @param $skipheader
      * @return bool|string html of content
      */
-    function get_entrycontent($readmore='syntax', $inc_level=true, $skipheader=false) {
+    public function get_entrycontent($readmore='syntax', $inc_level=true, $skipheader=false) {
         static $recursion = array();
 
         $id = $this->entry['page'];
@@ -786,11 +785,11 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         return $content;
     }
 
-    function is_valid_pid($pid) {
+    public function is_valid_pid($pid) {
         return (preg_match('/^[0-9a-f]{32}$/', trim($pid)));
     }
 
-    function has_tags() {
+    public function has_tags() {
         if (!$this->taghelper) {
             $this->taghelper =& plugin_load('helper', 'blogtng_tags');
         }
@@ -804,7 +803,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * @return array 2d assoziative array containing page id, title, author and creation date
      *              for both prev and next link
      */
-    function getAdjacentLinks($id = false) {
+    public function getAdjacentLinks($id = false) {
         global $INFO;
         if($id === false) $id = $INFO['id']; //sidebar safe
         $pid = md5(cleanID($id));
@@ -833,7 +832,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * Returns a reference to the comment helper plugin preloaded with
      * the current entry
      */
-    function &getCommentHelper(){
+    public function &getCommentHelper(){
         if(!$this->commenthelper) {
             $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
             $this->commenthelper->load($this->entry['pid']);
@@ -845,7 +844,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * Returns a reference to the tag helper plugin preloaded with
      * the current entry
      */
-    function &getTagHelper(){
+    public function &getTagHelper(){
         if (!$this->taghelper) {
             $this->taghelper =& plugin_load('helper', 'blogtng_tags');
             $this->taghelper->load($this->entry['pid']);
@@ -857,14 +856,14 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
     //~~ private methods
 
-    function _load_abstract(){
+    private function _load_abstract(){
         if(isset($this->entry['abstract'])) return;
         $id = $this->entry['page'];
 
         $this->entry['abstract'] = p_get_metadata($id,'description abstract',true);
     }
 
-    function _convert_instructions(&$ins, $inc_level, $readmore, $skipheader) {
+    private function _convert_instructions(&$ins, $inc_level, $readmore, $skipheader) {
         global $ID;
 
         $id = $this->entry['page'];
@@ -944,7 +943,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * @param    string  $ns: namespace of included page
      * @return   string  $link converted, now absolute link
      */
-    function _convert_internal_link($link, $ns) {
+    private function _convert_internal_link($link, $ns) {
         if ($link{0} == '.') {
             // relative subnamespace
             if ($link{1} == '.') {
@@ -966,7 +965,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
     }
 
-    function _read_more(&$ins, $i, $open_sections, $inc_level) {
+    private function _read_more(&$ins, $i, $open_sections, $inc_level) {
         $append_link = (is_array($ins[$i+1]) && $ins[$i+1][0] != 'document_end');
         $ins = array_slice($ins, 0, $i);
         if ($append_link) {
@@ -985,7 +984,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     /**
      * Adds 'document_start' and 'document_end' instructions if not already there
      */
-    function _finish_convert(&$ins, $open_sections) {
+    private function _finish_convert(&$ins, $open_sections) {
         if ($ins[0][0] != 'document_start')
             @array_unshift($ins, array('document_start', array(), 0));
         $c = array_pop(array_keys($ins)); // we can't use count here, instructions are not even indexed
@@ -993,7 +992,13 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             $ins[] = array('document_end', array(), 0);
     }
 
-    function _convert_footnotes($html) {
+    /**
+     * Converts footnotes
+     *
+     * @param string $html content of wikipage
+     * @return string html with converted footnotes
+     */
+    private function _convert_footnotes($html) {
         $id = str_replace(':', '_', $this->entry['page']);
         $replace = array(
             '!<a href="#fn__(\d+)" name="fnt__(\d+)" id="fnt__(\d+)" class="fn_top">!' =>
@@ -1008,7 +1013,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     /**
      * Display an edit button for the included page
      */
-    function _edit_button() {
+    private function _edit_button() {
         global $ID;
         $id = $this->entry['page'];
         $perm = auth_quickaclcheck($id);
@@ -1021,6 +1026,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             }
         } elseif ($perm >= AUTH_CREATE) {
             $action = 'create';
+        } else {
+            return '';
         }
 
         $params = array('do' => 'edit');
@@ -1041,7 +1048,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * @return bool|string a string containing the prepared HTML anchor tag, or false if there
      *                is no fitting post to link to
      */
-    function _navi_link($tpl, $type, $id = false) {
+    private function _navi_link($tpl, $type, $id = false) {
         $related = $this->getAdjacentLinks($id);
         if (isset($related[$type])) {
             $replace = array(

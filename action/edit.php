@@ -135,7 +135,6 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
 
             case 'after':
                 global $ID;
-                global $ACT;
 
                 if ($this->preact != 'save' || $event->data != 'show') {
                     return;
@@ -148,67 +147,114 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
                 $blogs = $this->entryhelper->get_blogs();
                 if (!in_array($blog, $blogs)) $blog = null;
 
-                $pid = md5($ID);
+                if($blog === null) {
+                    $this->entryhelper->poke();
+                } else {
+                    $pid = md5($ID);
 
-                $this->entryhelper->load_by_pid($pid);
-                $this->entryhelper->entry['blog'] = $blog;
-                $this->entryhelper->entry['commentstatus'] = $this->tools->getParam('post/commentstatus');
+                    $this->entryhelper->load_by_pid($pid);
 
-                if (empty($this->entryhelper->entry['page'])) {
+                    $entry = $this->collectInfoForEntry();
+                    $this->entryhelper->set($entry);
 
-                    $this->entryhelper->entry['page'] = $ID;
+                    $this->entryhelper->entry['blog'] = $blog;
+                    $this->entryhelper->entry['commentstatus'] = $this->tools->getParam('post/commentstatus');
 
-                }
+                    if (empty($this->entryhelper->entry['page'])) {
 
-                // allow to override created date
-                if($this->tools->getParam('post/date') && $this->getConf('editform_set_date')) {
-                    foreach(array('hh', 'mm', 'MM', 'DD') as $key) {
-                        $_REQUEST['btng']['post']['date'][$key] = ($_REQUEST['btng']['post']['date'][$key]{0} == 0) ? $_REQUEST['btng']['post']['date'][$key]{1} : $_REQUEST['btng']['post']['date'][$key];
+                        $this->entryhelper->entry['page'] = $ID;
+
                     }
-                    $time = mktime($this->tools->getParam('post/date/hh'),
-                                   $this->tools->getParam('post/date/mm'),
-                                   0,
-                                   $this->tools->getParam('post/date/MM'),
-                                   $this->tools->getParam('post/date/DD'),
-                                   $this->tools->getParam('post/date/YY'));
-                    $this->entryhelper->entry['created'] = $time;
-                }
 
-                $this->entryhelper->save();
+                    // allow to override created date
+                    if($this->tools->getParam('post/date') && $this->getConf('editform_set_date')) {
+                        foreach(array('hh', 'mm', 'MM', 'DD') as $key) {
+                            $_REQUEST['btng']['post']['date'][$key] = ($_REQUEST['btng']['post']['date'][$key]{0} == 0) ? $_REQUEST['btng']['post']['date'][$key]{1} : $_REQUEST['btng']['post']['date'][$key];
+                        }
+                        $time = mktime($this->tools->getParam('post/date/hh'),
+                                       $this->tools->getParam('post/date/mm'),
+                                       0,
+                                       $this->tools->getParam('post/date/MM'),
+                                       $this->tools->getParam('post/date/DD'),
+                                       $this->tools->getParam('post/date/YY'));
+                        $this->entryhelper->entry['created'] = $time;
+                    }
 
-                $tags = $this->_get_post_tags();
-                if ($tags === false) $tags = array();
-                $allowed_tags = $this->_get_allowed_tags();
-                if (count($allowed_tags) > 0) {
-                    foreach($tags as $n => $tag) {
-                        if (!in_array($tag, $allowed_tags)) {
-                            unset($tags[$n]);
+                    $this->entryhelper->save();
+
+                    $tags = $this->_get_post_tags();
+                    if ($tags === false) $tags = array();
+                    $allowed_tags = $this->_get_allowed_tags();
+                    if (count($allowed_tags) > 0) {
+                        foreach($tags as $n => $tag) {
+                            if (!in_array($tag, $allowed_tags)) {
+                                unset($tags[$n]);
+                            }
                         }
                     }
+                    $this->taghelper->load($pid);
+                    $this->taghelper->set($tags);
+                    $this->taghelper->save();
                 }
-                $this->taghelper->load($pid);
-                $this->taghelper->set($tags);
-                $this->taghelper->save();
-
                 break;
         }
     }
 
-    function _split_tags($tags) {
+    private function _split_tags($tags) {
         return array_filter(preg_split('/\s*,\s*/', $tags));
     }
 
-    function _get_allowed_tags() {
+    private function _get_allowed_tags() {
         return $this->_split_tags($this->getConf('tags'));
     }
 
-    function _get_post_tags() {
+    private function _get_post_tags() {
         $tags = $this->tools->getParam('post/tags');
         if ($tags === false) return $tags;
         if (!is_array($tags)) {
             $tags = $this->_split_tags($tags);
         }
         return $tags;
+    }
+
+    /**
+     * Gather general info for a blogentry
+     *
+     * @return array
+     */
+    protected function _collectInfoForEntry() {
+        /** @var DokuWiki_Auth_Plugin $auth */
+        global $auth;
+        global $ID;
+
+        // fetch author info
+        $login = $this->entryhelper->entry['login'];
+        if(!$login) $login = p_get_metadata($ID, 'user');
+        if(!$login) $login = $_SERVER['REMOTE_USER'];
+
+        $userdata = false;
+        if($login) {
+            if($auth != null) {
+                $userdata = $auth->getUserData($login);
+            }
+        }
+
+        // fetch dates
+        $date_created = p_get_metadata($ID, 'date created');
+        $date_modified = p_get_metadata($ID, 'date modified');
+
+        // prepare entry ...
+        $entry = array(
+            'page' => $ID,
+            'title' => p_get_metadata($ID, 'title'),
+            'image' => p_get_metadata($ID, 'relation firstimage'),
+            'created' => $date_created,
+            'lastmod' => (!$date_modified) ? $date_created : $date_modified,
+            'login' => $login,
+            'author' => ($userdata) ? $userdata['name'] : $login,
+            'mail' => ($userdata) ? $userdata['mail'] : '',
+        );
+        return $entry;
     }
 }
 

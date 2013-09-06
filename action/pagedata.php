@@ -40,37 +40,42 @@ class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
         $pid = md5($ID);
         $this->entryhelper->load_by_pid($pid);
 
-        // fetch author info
-        $login = $this->entryhelper->entry['login'];
-        if(!$login) $login = $data['current']['user'];
-        if(!$login) $login = $_SERVER['REMOTE_USER'];
+        //only refreshing for blog entries
+        if($this->entryhelper->entry['blog']) {
 
-        $userdata = false;
-        if($login){
-            if ($auth != null){
-                $userdata = $auth->getUserData($login);
+            // fetch author info
+            $login = $this->entryhelper->entry['login'];
+            if(!$login) $login = $data['current']['user'];
+            if(!$login) $login = $_SERVER['REMOTE_USER'];
+
+            $userdata = false;
+            if($login){
+                if ($auth != null){
+                    $userdata = $auth->getUserData($login);
+                }
             }
+
+
+            // fetch dates
+            $date_created = $data['current']['date']['created'];
+            $date_modified = $data['current']['date']['modified'];
+
+            // prepare entry ...
+            $entry = array(
+                'page' => $ID,
+                'title' => $data['current']['title'],
+                'image' => $data['current']['relation']['firstimage'],
+                'created' => $date_created,
+                'lastmod' => (!$date_modified) ? $date_created : $date_modified,
+                'login' => $login,
+                'author' => ($userdata) ? $userdata['name'] : $login,
+                'mail' => ($userdata) ? $userdata['mail'] : '',
+            );
+            $this->entryhelper->set($entry);
+
+            // ... and save it
+            $this->entryhelper->save();
         }
-
-        // fetch dates
-        $date_created = $data['current']['date']['created'];
-        $date_modified = $data['current']['date']['modified'];
-
-        // prepare entry ...
-        $entry = array(
-            'page' => $ID,
-            'title' => $data['current']['title'],
-            'image' => $data['current']['relation']['firstimage'],
-            'created' => $date_created,
-            'lastmod' => (!$date_modified) ? $date_created : $date_modified,
-            'login' => $login,
-            'author' => ($userdata) ? $userdata['name'] : $login,
-            'mail' => ($userdata) ? $userdata['mail'] : '',
-        );
-        $this->entryhelper->set($entry);
-
-        // ... and save it
-        $this->entryhelper->save();
 
         // unset old persistent tag data
         if (isset($data['persistent']['subject'])) {
