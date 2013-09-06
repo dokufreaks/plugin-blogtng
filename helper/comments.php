@@ -615,12 +615,15 @@ class blogtng_comment{
     }
 
     /**
-     * @param bool $link whether wrapped with link element
-     * @param string $fmt format of number
+     * @param bool   $link  whether wrapped with link element
+     * @param string $fmt   format of number
+     * @param string $title null or alternative title
      */
-    function tpl_number($link=true,$fmt='%d'){
-        if($link) echo '<a href="#comment_'.$this->data['cid'].'" class="blogtng_num">';
-        printf($fmt,$this->num);
+    function tpl_number($link = true, $fmt = '%d', $title = null) {
+        if($title === null) $title = sprintf($fmt, $this->num);
+
+        if($link) echo '<a href="#comment_' . $this->data['cid'] . '" class="blogtng_num">';
+        echo $title;
         if($link) echo '</a>';
     }
 

@@ -177,9 +177,20 @@ div.dokuwiki div.blogtng_comment {
     margin-bottom: 2em;
 }
 
+div.dokuwiki div.blogtng_comment p {
+    min-height: 35px;
+}
+
+div.dokuwiki div.blogtng__commentmetadatarow {
+    color: __text_alt__;
+}
 div.dokuwiki div.blogtng_comment img.avatar,
 div#insitu__comment img.avatar {
     padding: 0 0.5em 0.5em 0;
+}
+
+div.dokuwiki div.blogtng_comment div.vcard {
+    display: inline;
 }
 
 /*____________ comment form ____________*/
