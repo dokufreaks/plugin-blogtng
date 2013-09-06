@@ -49,17 +49,14 @@ class action_plugin_blogtng_ajax extends DokuWiki_Action_Plugin{
         $comment->data['status']  = 'visible';
 
         if(!$comment->data['name'] && $_SERVER['REMOTE_USER']){
-            if($auth) {
-                $info = $auth->getUserData($_SERVER['REMOTE_USER']);
+            if($auth AND $info = $auth->getUserData($_SERVER['REMOTE_USER'])) {
                 $comment->data['name'] = $info['name'];
                 $comment->data['mail'] = $info['mail'];
             }
-            // FIXME ???
-            $comment->data['name'] = $_SERVER['REMOTE_USER'];
         }
 
         // FIXME this has to be the template of the used blog
-        $comment->output('default');
+        $comment->output($_REQUEST['tplname']);
     }
 }
 // vim:ts=4:sw=4:et:

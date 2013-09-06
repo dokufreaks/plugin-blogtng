@@ -596,7 +596,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         if(!$this->commenthelper) {
             $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
         }
-        $this->commenthelper->tpl_form($this->entry['page'], $this->entry['pid']);
+        $this->commenthelper->tpl_form($this->entry['page'], $this->entry['pid'], $this->entry['blog']);
     }
 
     public function tpl_linkbacks() {}

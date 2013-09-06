@@ -131,6 +131,21 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
             $comment['ip']
         );
 
+        //retrieve cid of this comment
+        $sql = "SELECT cid
+                  FROM comments
+                 WHERE pid = ?
+                   AND created = ?
+                   AND mail =?
+                 LIMIT 1";
+        $res = $this->sqlitehelper->getDB()->query($sql,
+                                                   $comment['pid'],
+                                                   $comment['created'],
+                                                   $comment['mail']);
+        $cid = $this->sqlitehelper->getDB()->res2single($res);
+        $comment['cid'] = $cid === false ? 0 : $cid;
+
+
         // handle subscriptions
         if($this->getConf('comments_subscription')) {
             if($comment['subscribe']) {
@@ -185,20 +200,6 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         $atext = io_readFile($this->localFN('notifymail'));
         $stext = io_readFile($this->localFN('subscribermail'));
         $title = sprintf($this->getLang('subscr_subject'),$entry['title']);
-        if (!isset($comment['cid'])) {
-            $sql = "SELECT cid
-                      FROM comments
-                     WHERE pid = ?
-                       AND created = ?
-                       AND mail =?
-                     LIMIT 1";
-            $res = $this->sqlitehelper->getDB()->query($sql,
-                                                       $comment['pid'],
-                                                       $comment['created'],
-                                                       $comment['mail']);
-            $cid = $this->sqlitehelper->getDB()->res2single($res);
-            $comment['cid'] = $cid === false ? 0 : $cid;
-        }
 
         $repl = array(
             '@TITLE@'       => $entry['title'],
@@ -369,10 +370,10 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      *  allow comments only for registered users
      *  add toolbar
      */
-    public function tpl_form($page, $pid) {
+    public function tpl_form($page, $pid, $tplname) {
         global $BLOGTNG;
 
-        $form = new DOKU_Form('blogtng__comment_form',wl($page).'#blogtng__comment_form');
+        $form = new Doku_Form(array('id'=>'blogtng__comment_form','action'=>wl($page).'#blogtng__comment_form','data-tplname'=>$tplname));
         $form->addHidden('pid', $pid);
         $form->addHidden('id', $page);
         $form->addHidden('btng[comment][source]', 'comment');
@@ -426,7 +427,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
             $comment = new blogtng_comment();
             $comment->data = $BLOGTNG['comment'];
             $comment->data['cid'] = 'preview';
-            $comment->output('default');
+            $comment->output($tplname);
             print '</div>' . DOKU_LF;
         }
         print '</div>'.DOKU_LF;

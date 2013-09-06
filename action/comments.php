@@ -102,7 +102,7 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
             // return on errors
             if(!empty($BLOGTNG['comment_submit_errors']) || !$captchaok) {
                 $event->data = 'show';
-                $_SERVER['REQUEST_METHOD'] = 'get'; //FIXME hack to avoid redirect
+                $_SERVER['REQUEST_METHOD'] = 'get'; //hack to avoid redirect
                 return false;
             }
 
@@ -112,7 +112,7 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
                 act_redirect($comment['page'], 'show');
             } elseif($BLOGTNG['comment_action'] == 'preview') {
                 $event->data = 'show';
-                $_SERVER['REQUEST_METHOD'] = 'get'; //FIXME hack to avoid redirect
+                $_SERVER['REQUEST_METHOD'] = 'get'; // hack to avoid redirect
                 return false;
             }
         } else {

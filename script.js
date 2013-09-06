@@ -76,22 +76,25 @@ var blogtng = {
 
         preview.innerHTML = '<img src="'+DOKU_BASE+'/lib/images/throbber.gif" />';
 
-        var params = {call: 'blogtng__comment_preview'};
+        var params = {
+            call: 'blogtng__comment_preview',
+            tplname: jQuery('#blogtng__comment_form').data('tplname')
+        };
 
         var $name = jQuery('#blogtng__comment_name');
         var $email = jQuery('#blogtng__comment_mail');
         var $web = jQuery('#blogtng__comment_web');
         var $text = jQuery('#wiki__text');
 
-        if($name.length > 0)  params.name = encodeURIComponent($name.val());
-        if($email.length > 0) params.mail = encodeURIComponent($email.val());
-        if($web.length > 0)   params.web  = encodeURIComponent($web.val());
-        if($text.length > 0)  params.text = encodeURIComponent($text.val());
+        if($name.length > 0)  params.name = $name.val();
+        if($email.length > 0) params.mail = $email.val();
+        if($web.length > 0)   params.web  = $web.val();
+        if($text.length > 0)  params.text = $text.val();
 
         jQuery.post(DOKU_BASE + 'lib/exe/ajax.php', params,
         function(data){
             if(data === '') return;
-            preview.innerHTML = decodeURIComponent(data);
+            preview.innerHTML = data;
         });
 
         return false;
