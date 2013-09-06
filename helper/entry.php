@@ -51,25 +51,21 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
         $pid = trim($pid);
         if (!$this->is_valid_pid($pid)) {
-            // FIXME we got an invalid pid, shout at the user accordingly
-            msg('blogtng plugin: "'.$pid.'" is not a valid pid!', -1);
+            msg('BlogTNG plugin: "'.$pid.'" is not a valid pid!', -1);
             return self::RET_ERR_BADPID;
         }
 
         if(!$this->sqlitehelper->ready()) {
-            msg('blogtng plugin: failed to load sqlite helper plugin', -1);
-            $this->entry = $this->prototype();
+            msg('BlogTNG plugin: failed to load sqlite helper plugin', -1);
             return self::RET_ERR_DB;
         }
         $query = 'SELECT pid, page, title, blog, image, created, lastmod, author, login, mail, commentstatus FROM entries WHERE pid = ?';
         $resid = $this->sqlitehelper->getDB()->query($query, $pid);
         if ($resid === false) {
-            msg('blogtng plugin: failed to load entry!', -1);
-            $this->entry = $this->prototype();
+            msg('BlogTNG plugin: failed to load entry!', -1);
             return self::RET_ERR_DB;
         }
         if ($this->sqlitehelper->getDB()->res2count($resid) == 0) {
-            $this->entry = $this->prototype();
             $this->entry['pid'] = $pid;
             return self::RET_ERR_NOENTRY;
         }
