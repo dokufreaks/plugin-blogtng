@@ -126,8 +126,6 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      * @author hArpanet <dokuwiki-blogtng@harpanet.com>
      */
     function html() {
-        global $conf;
-        global $lang;
         global $ID;
 
         ptln('<h1>'.$this->getLang('menu').'</h1>');
@@ -144,11 +142,10 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
 
         }
 
-        // display search form
-        $this->xhtml_search_form();
-
         switch($admin) {
             case 'search':
+                // display search form
+                $this->xhtml_search_form();
 
                 ptln('<h2>' . $this->getLang('searchresults') . '</h2>');
                 $query = $_REQUEST['btng']['query'];
@@ -185,6 +182,9 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
                 break;
 
             default:
+                // display search form
+                $this->xhtml_search_form();
+
                 // print latest 'x' comments/entries
                 $id = 'comments';
                 printf('<h2>'.$this->getLang('comment_latest').'</h2>', $this->getNumberOfItems($id));
