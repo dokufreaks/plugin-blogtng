@@ -13,7 +13,6 @@ div.dokuwiki fieldset#blogtng__edit {
 }
 
 div.dokuwiki fieldset#blogtng__edit label {
-    float: left;
     margin-right: 0.2em;
 }
 
@@ -26,17 +25,21 @@ div.dokuwiki fieldset#blogtng__edit input#blogtng__tags {
     margin-right: 0.5em;
 }
 
-div.dokuwiki fieldset#blogtng__edit input#blogtng__date_YY {
+div.dokuwiki fieldset#blogtng__edit label.btng__date_YY {
+    display: inline-block;
     width: 38px;
-    float: left;
+    margin-left: 1em;
+}
+div.dokuwiki fieldset#blogtng__edit label.btng__date_YY  input {
+    width: 38px;
 }
 
-div.dokuwiki fieldset#blogtng__edit input#blogtng__date_MM,
-div.dokuwiki fieldset#blogtng__edit input#blogtng__date_DD,
-div.dokuwiki fieldset#blogtng__edit input#blogtng__date_hh,
-div.dokuwiki fieldset#blogtng__edit input#blogtng__date_mm {
+div.dokuwiki fieldset#blogtng__edit label.btng__date {
+    display: inline-block;
     width: 24px;
-    float: left;
+}
+div.dokuwiki fieldset#blogtng__edit label.btng__date  input {
+    width: 24px;
 }
 
 /*____________ admin interface ____________*/
