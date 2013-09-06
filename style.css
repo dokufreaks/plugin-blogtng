@@ -123,6 +123,7 @@ div.dokuwiki div#blogtng__admin table td.comment_source {
 /*____________ blog list ____________*/
 /* create new post form */
 div.dokuwiki div.blogtng_newform {
+    clear: both;
     margin: 1em;
 }
 
@@ -203,7 +204,6 @@ div.dokuwiki div.blogtng_comment_status_hidden {
 div.dokuwiki form#blogtng__comment_form,
 div.dokuwiki form#blogtng__comment_edit_form {
     padding: 2em;
-    /*width: 500px;*/
     display: block;
 }
 

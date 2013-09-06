@@ -44,7 +44,7 @@ class action_plugin_blogtng_entry extends DokuWiki_Action_Plugin{
 
         $pid = md5($ID);
         $this->entryhelper->load_by_pid($pid);
-        if($this->entryhelper->get_blog($pid) == '') return true;
+        if($this->entryhelper->get_blog() == '') return true;
 
         // we can handle it
         $event->preventDefault();
