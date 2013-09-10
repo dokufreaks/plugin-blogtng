@@ -27,7 +27,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         'page'      => false,
         'cache'     => false,
         'title'     => '',
-        'format'    => ':blog:%Y:%m:%{title}', #FIXME
+        'format'    => ':blog:%Y:%m:%{title}',
         'listwrap'  => 0, //default depends on syntax type
     );
 

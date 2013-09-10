@@ -398,7 +398,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
     public function tpl_content($name, $type) {
         $whitelist = array('list', 'entry', 'feed', 'tagsearch');
-        if(!in_array($type, $whitelist)) return false;
+        if(!in_array($type, $whitelist)) return;
 
         $tpl = helper_plugin_blogtng_tools::getTplFile($name, $type);
         if($tpl !== false) {
@@ -859,6 +859,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
         $first_header = true;
         $open_sections = 0;
+        $open_paragraphs = 0;
         $n = count($ins);
         for ($i = 0; $i < $n; $i++) {
             $current = $ins[$i][0];
@@ -907,11 +908,15 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
                 if ($level > 5) $level = 5;
                 $ins[$i][1][0] = $level;
                 $open_sections++;
+            } elseif ($current == 'p_open') {
+                $open_paragraphs++;
+            } elseif ($current == 'p_close') {
+                $open_paragraphs--;
             } elseif ($current == 'section_close') {
                 $open_sections--;
             } elseif (($current == 'plugin') && ($ins[$i][1][0] == 'blogtng_readmore') && $readmore) {
                 // cut off the instructions here
-                $this->_read_more($ins, $i, $open_sections, $inc_level);
+                $this->_read_more($ins, $i, $open_sections, $open_paragraphs, $inc_level);
                 $open_sections = 0;
                 break;
             }
@@ -949,11 +954,14 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
     }
 
-    private function _read_more(&$ins, $i, $open_sections, $inc_level) {
+    private function _read_more(&$ins, $i, $open_sections, $open_paragraphs, $inc_level) {
         $append_link = (is_array($ins[$i+1]) && $ins[$i+1][0] != 'document_end');
         $ins = array_slice($ins, 0, $i);
         if ($append_link) {
             $last = $ins[$i-1];
+            if($open_paragraphs) {
+                $ins[] = array('p_close', array(), $last[2]);
+            }
             for ($i = 0; $i < $open_sections; $i++) {
                 $ins[] = array('section_close', array(), $last[2]);
             }
