@@ -224,22 +224,24 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      *
      * Calls the *_list template for each entry in the result set
      */
-    public function xhtml_list($conf, &$renderer=null){
+    public function xhtml_list($conf, &$renderer=null, $templatetype='list'){
         $posts = $this->get_posts($conf);
         if (!$posts) return '';
+
         $rendererBackup =& $this->renderer;
         $this->renderer =& $renderer;
-
         $entryBackup = $this->entry;
+
         ob_start();
-        if($conf['listwrap']) echo '<ul class="blogtng_list">';
+        if($conf['listwrap']) echo "<ul class=\"blogtng_$templatetype\">";
         foreach ($posts as $row) {
             $this->load_by_row($row);
-            $this->tpl_content($conf['tpl'], 'list');
+            $this->tpl_content($conf['tpl'], $templatetype);
         }
         if($conf['listwrap']) echo '</ul>';
         $output = ob_get_contents();
         ob_end_clean();
+
         $this->entry = $entryBackup; // restore previous entry in order to allow nesting
         $this->renderer =& $rendererBackup; // clean up again
         return $output;
@@ -252,28 +254,10 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      */
     public function xhtml_tagsearch($conf, &$renderer=null){
         if (count($conf['tags']) == 0) {
-            
             return '';
-            
         };
-        $posts = $this->get_posts($conf);
-        if (!$posts) return '';
-        $rendererBackup =& $this->renderer;
-        $this->renderer =& $renderer;
 
-        $entryBackup = $this->entry;
-        ob_start();
-        if(!$conf['nolist']) echo '<ul class="blogtng_tagsearch">';
-        foreach ($posts as $row) {
-            $this->load_by_row($row);
-            $this->tpl_content($conf['tpl'], 'tagsearch');
-        }
-        if(!$conf['nolist']) echo '</ul>';
-        $output = ob_get_contents();
-        ob_end_clean();
-        $this->entry = $entryBackup; // restore previous entry in order to allow nesting
-        $this->renderer =& $rendererBackup; // clean up again
-        return $output;
+        return $this->xhtml_list($conf, $renderer, $templatetype='tagsearch');
     }
 
     /**
@@ -715,7 +699,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
 
         $query = 'SELECT A.pid as pid, page, title, blog, image, created,
-                         lastmod, login, author, mail
+                         lastmod, login, author, mail, commentstatus
                     FROM entries A'.$tag_table.'
                    WHERE '.$blog_query.$tag_query.'
                 GROUP BY A.pid

@@ -62,7 +62,7 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
         $comment['name']   = (($commentname = $this->tools->getParam('comment/name'))) ? $commentname : $INFO['userinfo']['name'];
         $comment['mail']   = (($commentmail = $this->tools->getParam('comment/mail'))) ? $commentmail : $INFO['userinfo']['mail'];
         $comment['web']    = (($commentweb = $this->tools->getParam('comment/web'))) ? $commentweb : '';
-        $comment['text']   = isset($_REQUEST['wikitext']) ? $_REQUEST['wikitext'] : null; // FIXME clean text
+        $comment['text']   = isset($_REQUEST['wikitext']) ? cleanText($_REQUEST['wikitext']) : null;
         $comment['pid']    = isset($_REQUEST['pid'])      ? $_REQUEST['pid']      : null;
         $comment['page']   = isset($_REQUEST['id'])       ? $_REQUEST['id']       : null;
         $comment['subscribe'] = isset($_REQUEST['blogtng']['subscribe']) ? $_REQUEST['blogtng']['subscribe'] : null;

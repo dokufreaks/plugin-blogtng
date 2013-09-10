@@ -55,7 +55,6 @@ class action_plugin_blogtng_ajax extends DokuWiki_Action_Plugin{
             }
         }
 
-        // FIXME this has to be the template of the used blog
         $comment->output($_REQUEST['tplname']);
     }
 }

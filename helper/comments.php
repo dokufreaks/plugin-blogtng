@@ -568,14 +568,14 @@ class blogtng_comment{
     /**
      * Resets the internal data with a given row
      */
-    function blogtng_comment(){
+    public function blogtng_comment(){
         $this->tools = new helper_plugin_blogtng_tools();
     }
 
     /**
      * @param $row array row of table 'commments'
      */
-    function init($row){
+    public function init($row){
         $this->data = $row;
     }
 
@@ -583,7 +583,7 @@ class blogtng_comment{
      * @param string $name of template
      * @return bool
      */
-    function output($name){
+    public function output($name){
         global $INFO;
         $name = preg_replace('/[^a-zA-Z_\-]+/','',$name);
         $tpl = $this->tools->getTplFile($name,'comments');
@@ -603,18 +603,18 @@ class blogtng_comment{
      * @param   string  $name     id of the string to be retrieved
      * @return  string  string in appropriate language or english if not available
      */
-    function getLang($name){
+    public function getLang($name){
         return $this->tools->getLang($name);
     }
 
-    function tpl_comment(){
+    public function tpl_comment(){
         //FIXME add caching
 
         $inst = p_get_instructions($this->data['text']);
         echo p_render('blogtng_comment',$inst,$info);
     }
 
-    function tpl_cid(){
+    public function tpl_cid(){
         echo $this->data['cid'];
     }
 
@@ -623,7 +623,7 @@ class blogtng_comment{
      * @param string $fmt   format of number
      * @param string $title null or alternative title
      */
-    function tpl_number($link = true, $fmt = '%d', $title = null) {
+    public function tpl_number($link = true, $fmt = '%d', $title = null) {
         if($title === null) $title = sprintf($fmt, $this->num);
 
         if($link) echo '<a href="#comment_' . $this->data['cid'] . '" class="blogtng_num">';
@@ -631,7 +631,7 @@ class blogtng_comment{
         if($link) echo '</a>';
     }
 
-    function tpl_hcard(){
+    public function tpl_hcard(){
         echo '<div class="vcard">';
         if($this->data['web']){
             echo '<a href="'.hsc($this->data['web']).'" class="fn nickname">';
@@ -645,30 +645,30 @@ class blogtng_comment{
         echo '</div>';
     }
 
-    function tpl_name(){
+    public function tpl_name(){
         echo hsc($this->data['name']);
     }
 
-    function tpl_type(){
+    public function tpl_type(){
         echo hsc($this->data['type']);
     }
 
-    function tpl_mail(){
+    public function tpl_mail(){
         echo hsc($this->data['mail']);
     }
 
-    function tpl_web(){
+    public function tpl_web(){
         echo hsc($this->data['web']);
     }
 
     /**
      * @param string $fmt date format, empty string default to $conf['dformat']
      */
-    function tpl_created($fmt=''){
+    public function tpl_created($fmt=''){
         echo hsc(dformat($this->data['created'],$fmt));
     }
 
-    function tpl_status() {
+    public function tpl_status() {
         echo $this->data['status'];
     }
 
@@ -678,7 +678,7 @@ class blogtng_comment{
      * @param bool $return whether the url is returned or printed
      * @return void|string url of avatar
      */
-    function tpl_avatar($w=0,$h=0,$return=false){
+    public function tpl_avatar($w=0,$h=0,$return=false){
         global $conf;
         $img = '';
         if($this->data['avatar']) {

@@ -92,12 +92,6 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
             $conf['blog'] = array('default');
             
         }
-        
-        if (array_key_exists('nolist', $conf)) {
-            
-            $conf['nolist'] = false;
-            
-        }
 
         // higher default limit for tag cloud
         if($type == 'tagcloud' && !$conf['limit']) {
@@ -105,7 +99,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         }
 
         // default to listwrap for recent comments
-        if($type == 'recentcomments' && !isset($conf['listwrap'])){
+        if(($type == 'recentcomments' || $type == 'tagsearch') && !isset($conf['listwrap'])){
             $conf['listwrap'] = 1;
         }
 
@@ -113,6 +107,11 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         if($conf['nolistwrap']) {
             $conf['listwrap'] = 0;
             unset($conf['nolistwrap']);
+        }
+        // reversed nolist to listwrap syntax (backward compatibility)
+        if($conf['nolist']) {
+            $conf['listwrap'] = 0;
+            unset($conf['nolist']);
         }
 
         // merge with default config
@@ -162,12 +161,10 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
                 break;
             case 'recentcomments':
                 // FIXME to cache or not to cache?
-                $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
                 $renderer->doc .= $this->commenthelper->xhtml_recentcomments($data['conf']);
                 break;
             case 'tagcloud':
                 $renderer->info['cache'] = false; // never cache this
-                $this->taghelper =& plugin_load('helper', 'blogtng_tags');
                 $renderer->doc .= $this->taghelper->xhtml_tagcloud($data['conf']);
                 break;
             case 'tagsearch':
@@ -208,6 +205,8 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
     private function loadHelpers() {
         $this->entryhelper =& plugin_load('helper', 'blogtng_entry');
         $this->tools = & plugin_load('helper', 'blogtng_tools');
+        $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
+        $this->taghelper =& plugin_load('helper', 'blogtng_tags');
     }
 }
 // vim:ts=4:sw=4:et:
