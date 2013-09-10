@@ -80,30 +80,6 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
     }
 
-//    /**
-//     * FIXME: Is this deprecated?
-//     *
-//     * @param $resid
-//     * @param $index
-//     * @return unknown_type
-//     */
-//    function load_by_res($resid, $index) {
-//        $this->entry = $this->prototype();
-//        $this->taghelper = null;
-//        $this->commenthelper = null;
-//
-//        // FIXME validate resid and index
-//        if($resid === false) {
-//            msg('blogtng plugin: failed to load entry, did not get a valid resource id!', -1);
-//            $this->entry = $this->prototype();
-//            // FIXME undefined constant
-//            return self::RET_ERR_BADRES;
-//        }
-//
-//        $result = $this->sqlitehelper->getDB()->res2row($resid, $index);
-//        $this->load_by_row($result);
-//    }
-
     public function load_by_row($row) {
         $this->entry = $row;
         if($this->poke()){
@@ -411,8 +387,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * Print the whole entry, reformat it or cut it when needed
      *
      * @param bool   $included   - set true if you want content to be reformated
-     * @param string $readmore   - where to cut the entry valid: 'syntax', FIXME
-     * @param bool   $inc_level  - FIXME
+     * @param string $readmore   - where to cut the entry valid: 'syntax', FIXME -->add 'firstsection'??
+     * @param bool   $inc_level  - FIXME --> this attribute is always set to false
      * @param bool   $skipheader - Remove the first header
      * @return bool false if a recursion was detected and the entry could not be printed, true otherwise
      */
@@ -730,7 +706,11 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
         $recursion[] = $id;
 
-        // FIXME do some caching here!
+        /*
+         * FIXME do some caching here!
+         * - of the converted instructions
+         * - of p_render
+         */
         global $ID, $TOC, $conf;
         $info = array();
 
@@ -858,70 +838,95 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $convert = (getNS($ID) == $ns) ? false : true;
 
         $first_header = true;
-        $open_sections = 0;
-        $open_paragraphs = 0;
+        $open_wraps = array(
+            'section' => 0,
+            'p' => 0,
+            'list' => 0,
+            'table' => 0,
+            'tablecell' => 0,
+            'tableheader' => 0
+        );
+
         $n = count($ins);
         for ($i = 0; $i < $n; $i++) {
             $current = $ins[$i][0];
             if ($convert && (substr($current, 0, 8) == 'internal')) {
                 // convert internal links and media from relative to absolute
                 $ins[$i][1][0] = $this->_convert_internal_link($ins[$i][1][0], $ns);
-            } elseif ($current == 'header') {
-                // convert header levels and convert first header to permalink
-                $text = $ins[$i][1][0];
-                $level = $ins[$i][1][1];
+            } else {
+                switch($current) {
+                    case 'header':
+                        // convert header levels and convert first header to permalink
+                        $text = $ins[$i][1][0];
+                        $level = $ins[$i][1][1];
 
-                // change first header to permalink
-                if ($first_header) {
-                    if($skipheader){
-                        unset($ins[$i]);
-                    }else{
-                        $ins[$i] = array('plugin',
-                            array(
-                                'blogtng_header',
-                                array(
-                                    $text,
-                                    $level
-                                ),
-                            ),
-                            $ins[$i][1][2]
-                        );
-                    }
-                }
-                $first_header = false;
+                        // change first header to permalink
+                        if ($first_header) {
+                            if($skipheader){
+                                unset($ins[$i]);
+                            }else{
+                                $ins[$i] = array('plugin',
+                                                 array(
+                                                     'blogtng_header',
+                                                     array(
+                                                         $text,
+                                                         $level
+                                                     ),
+                                                 ),
+                                                 $ins[$i][1][2]
+                                );
+                            }
+                        }
+                        $first_header = false;
 
-                // increase level of header
-                if ($inc_level) {
-                    $level = $level + 1;
-                    if ($level > 5) $level = 5;
-                    if (is_array($ins[$i][1][1])) {
-                        // permalink header
-                        $ins[$i][1][1][1] = $level;
-                    } else {
-                        // normal header
-                        $ins[$i][1][1] = $level;
-                    }
+                        // increase level of header
+                        if ($inc_level) {
+                            $level = $level + 1;
+                            if ($level > 5) $level = 5;
+                            if (is_array($ins[$i][1][1])) {
+                                // permalink header
+                                $ins[$i][1][1][1] = $level;
+                            } else {
+                                // normal header
+                                $ins[$i][1][1] = $level;
+                            }
+                        }
+                        break;
+
+                    //fallthroughs for counting tags
+                    case 'section_open';
+                        // the same for sections
+                        $level = $ins[$i][1][0];
+                        if ($inc_level) $level = $level + 1;
+                        if ($level > 5) $level = 5;
+                        $ins[$i][1][0] = $level;
+                        /* fallthrough */
+                    case 'section_close':
+                    case 'p_open':
+                    case 'p_close':
+                    case 'listu_open':
+                    case 'listu_close':
+                    case 'table_open':
+                    case 'table_close':
+                    case 'tablecell_open':
+                    case 'tableheader_open':
+                    case 'tablecell_close':
+                    case 'tableheader_close':
+                        list($item,$action) = explode('_', $current, 2);
+                        $open_wraps[$item] += ($action == 'open' ? 1 : -1);
+                        break;
+
+                    case 'plugin':
+                        if(($ins[$i][1][0] == 'blogtng_readmore') && $readmore) {
+                            // cut off the instructions here
+                            $this->_read_more($ins, $i, $open_wraps, $inc_level);
+                            $open_wraps['sections'] = 0;
+                        }
+                        break 2;
                 }
-            } elseif ($current == 'section_open') {
-                // the same for sections
-                if ($inc_level) $level = $ins[$i][1][0] + 1;
-                if ($level > 5) $level = 5;
-                $ins[$i][1][0] = $level;
-                $open_sections++;
-            } elseif ($current == 'p_open') {
-                $open_paragraphs++;
-            } elseif ($current == 'p_close') {
-                $open_paragraphs--;
-            } elseif ($current == 'section_close') {
-                $open_sections--;
-            } elseif (($current == 'plugin') && ($ins[$i][1][0] == 'blogtng_readmore') && $readmore) {
-                // cut off the instructions here
-                $this->_read_more($ins, $i, $open_sections, $open_paragraphs, $inc_level);
-                $open_sections = 0;
-                break;
             }
         }
-        $this->_finish_convert($ins, $open_sections);
+        $this->_finish_convert($ins, $open_wraps['sections']);
         return true;
     }
 
@@ -954,17 +959,41 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
     }
 
-    private function _read_more(&$ins, $i, $open_sections, $open_paragraphs, $inc_level) {
+    private function _read_more(&$ins, $i, $open_wraps, $inc_level) {
         $append_link = (is_array($ins[$i+1]) && $ins[$i+1][0] != 'document_end');
+
+        //iterate to the end of a tablerow
+        if($append_link && $open_wraps['table'] && ($open_wraps['tablecell'] || $open_wraps['tableheader'])) {
+            for(; $i < count($ins); $i++) {
+                if($ins[$i][0] == 'tablerow_close') {
+                    $i++; //include tablerow_close instruction
+                    break;
+                }
+            }
+        }
         $ins = array_slice($ins, 0, $i);
+
         if ($append_link) {
             $last = $ins[$i-1];
-            if($open_paragraphs) {
+
+            //close open wrappers
+            if($open_wraps['p']) {
                 $ins[] = array('p_close', array(), $last[2]);
             }
-            for ($i = 0; $i < $open_sections; $i++) {
+            for ($i = 0; $i < $open_wraps['listu']; $i++) {
+                if($i === 0) {
+                    $ins[] = array('listcontent_close', array(), $last[2]);
+                }
+                $ins[] = array('listitem_close', array(), $last[2]);
+                $ins[] = array('listu_close', array(), $last[2]);
+            }
+            if($open_wraps['table']) {
+                $ins[] = array('table_close', array(), $last[2]);
+            }
+            for ($i = 0; $i < $open_wraps['section']; $i++) {
                 $ins[] = array('section_close', array(), $last[2]);
             }
+
             $ins[] = array('section_open', array(($inc_level ? 2 : 1)), $last[2]);
             $ins[] = array('p_open', array(), $last[2]);
             $ins[] = array('internallink',array($this->entry['page'].'#readmore_'.str_replace(':', '_', $this->entry['page']), $this->getLang('readmore')),$last[2]);
