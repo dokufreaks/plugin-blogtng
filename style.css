@@ -103,13 +103,8 @@ div.dokuwiki div#blogtng__admin table td span img {
     text-align: center;
 }
 
-div.dokuwiki div#blogtng__admin table td div.comment_text {
-  padding: 0.5em;
-  font-weight: bold;
-}
-
 div.dokuwiki div#blogtng__admin table td div.comment_metadata {
-  padding: 0 0.5em;
+  padding: 0.7em 0 0 0;
 }
 
 div.dokuwiki div#blogtng__admin table td.entry_comments {
