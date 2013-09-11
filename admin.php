@@ -521,7 +521,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         // tags filter links
         ptln('<td class="entry_tags">');
         $this->taghelper->load($entry['pid']);
-        $tags = $this->taghelper->tags;
+        $tags = $this->taghelper->getTags();
         $count = count($tags);
         for($i=0;$i<$count;$i++) {
             $link = '<a href="' . wl($ID, array('do'=>'admin',

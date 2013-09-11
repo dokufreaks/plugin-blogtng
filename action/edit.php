@@ -61,7 +61,7 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
         $this->taghelper->load($pid);
         $allowed_tags = $this->_get_allowed_tags();
         $tags = $this->_get_post_tags();
-        if ($tags === false) $tags = $this->taghelper->tags;
+        if ($tags === false) $tags = $this->taghelper->getTags();
         if (count($allowed_tags) > 0) {
             $event->data->insertElement($pos++, form_makeOpenTag('div'));
             foreach($this->_get_allowed_tags() as $val) {

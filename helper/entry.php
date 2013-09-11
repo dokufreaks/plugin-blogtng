@@ -644,34 +644,29 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
     }
 
+    /**
+     * FIXME parsing of tags by using taghelper->parse_tag_query
+     * @param $conf
+     * @return array
+     */
     public function get_posts($conf) {
         $sortkey = ($conf['sortby'] == 'random') ? 'Random()' : $conf['sortby'];
         
         $blog_query = '';
-        
-        if (count($conf['blog']) > 0) {
-        
-            $blog_query = '(blog = '.
-                          $this->sqlitehelper->getDB()->quote_and_join($conf['blog'],
-                                                              ' OR blog = ').')';
-                                                              
-        }                                                             
-                                                              
+        if(count($conf['blog']) > 0) {
+            $blog_query = '(blog = ' . $this->sqlitehelper->getDB()->quote_and_join($conf['blog'], ' OR blog = ') . ')';
+        }
+
         $tag_query = $tag_table = "";
-        if(count($conf['tags'])){
-            
+        if(count($conf['tags'])) {
             $tag_query = '';
-            
-            if (count($conf['blog']) > 0){
-                
-                $tag_query = ' AND';
-                
+            if(count($conf['blog']) > 0) {
+                $tag_query .= ' AND';
             }
-            
-            $tag_query  .= ' (tag = '.
-                          $this->sqlitehelper->getDB()->quote_and_join($conf['tags'],
-                                                              ' OR tag = ').') AND A.pid = B.pid';
-            $tag_table  = ', tags B';
+            $tag_query .= ' (tag = ' . $this->sqlitehelper->getDB()->quote_and_join($conf['tags'], ' OR tag = ') . ')';
+            $tag_query .= ' AND A.pid = B.pid';
+
+            $tag_table = ', tags B';
         }
 
         $query = 'SELECT A.pid as pid, page, title, blog, image, created,

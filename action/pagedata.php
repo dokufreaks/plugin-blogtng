@@ -89,9 +89,9 @@ class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
         // save blogtng tags to the metadata of the page
         $taghelper = $this->entryhelper->getTagHelper();
         if (isset($data['current']['subject'])) {
-            $event->result['current']['subject'] = array_unique(array_merge((array)$data['current']['subject'], $taghelper->tags));
+            $event->result['current']['subject'] = array_unique(array_merge((array)$data['current']['subject'], $taghelper->getTags()));
         } else {
-            $event->result['current']['subject'] = $taghelper->tags;
+            $event->result['current']['subject'] = $taghelper->getTags();
         }
     }
 
