@@ -198,7 +198,7 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
                         }
                     }
                     $this->taghelper->load($pid);
-                    $this->taghelper->set($tags);
+                    $this->taghelper->setTags($tags);
                     $this->taghelper->save();
                 }
                 break;

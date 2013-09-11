@@ -26,19 +26,21 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
     }
 
     /**
-     * Count tags for specified pid
+     * Set pid of page
+     *
+     * @param string $pid
      */
-    public function count($pid) {
-        $pid = trim($pid);
-        $query = 'SELECT COUNT(tag) AS tagcount FROM tags WHERE pid = ?';
+    public function setPid($pid) {
+        $this->pid = trim($pid);
+    }
 
-        $resid = $this->sqlitehelper->getDB()->query($query, $pid);
-        if ($resid === false) {
-            msg('blogtng plugin: failed to load tags!', -1);
-        }
-
-        $tagcount = $this->sqlitehelper->getDB()->res2row($resid, 0);
-        return $tagcount['tagcount'];
+    /**
+     * Set tags, filtered and unique
+     *
+     * @param array $tags
+     */
+    public function setTags($tags) {
+        $this->tags = array_unique(array_filter(array_map('trim', $tags)));
     }
 
     /**
@@ -54,7 +56,7 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
      * Load tags for specified pid
      */
     public function load($pid) {
-        $this->pid = trim($pid);
+        $this->setPid($pid);
 
         if(!$this->sqlitehelper->ready()) {
             msg('blogtng plugin: failed to load sqlite helper plugin!', -1);
@@ -80,6 +82,23 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
         }
         $this->tags = $tags;
         return true;
+    }
+
+
+    /**
+     * Count tags for specified pid
+     */
+    public function count($pid) {
+        $pid = trim($pid);
+        $query = 'SELECT COUNT(tag) AS tagcount FROM tags WHERE pid = ?';
+
+        $resid = $this->sqlitehelper->getDB()->query($query, $pid);
+        if ($resid === false) {
+            msg('blogtng plugin: failed to load tags!', -1);
+        }
+
+        $tagcount = $this->sqlitehelper->getDB()->res2row($resid, 0);
+        return $tagcount['tagcount'];
     }
 
     /**
@@ -122,15 +141,6 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
             $this->sqlitehelper->getDB()->query('ROLLBACK TRANSACTION');
             return;
         }
-    }
-
-    /**
-     * Set tags, filtered and unique
-     *
-     * @param array $tags
-     */
-    public function set($tags) {
-        $this->tags = array_unique(array_filter(array_map('trim', $tags)));
     }
 
     /**
@@ -203,7 +213,7 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
     }
 
     /**
-     * Returns the joined tags as a string
+     * Print the joined tags as a string
      *
      * @param string $target - tag links will point to this page
      * @param string $separator

@@ -137,6 +137,14 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
         $this->commenthelper->delete_all($this->entry['pid']);
 
+        // delete tags
+        if(!$this->taghelper) {
+            $this->taghelper =& plugin_load('helper', 'blogtng_tags');
+        }
+        $this->taghelper->setPid($this->entry['pid']);
+        $this->taghelper->setTags(array()); //empty tag set
+        $this->taghelper->save();
+
         // delete entry
         $sql = "DELETE FROM entries WHERE pid = ?";
         $ret = $this->sqlitehelper->getDB()->query($sql,$this->entry['pid']);
