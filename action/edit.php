@@ -40,7 +40,7 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
      * Adds additional fields of used by the BlogTNG plugin to the editor.
      */
     function handle_editform_output(&$event, $param) {
-        global $ID;
+        global $ID, $INFO;
 
         $pos = $event->data->findElementByAttribute('type','submit');
         if(!$pos) return; // no submit button found, source view
@@ -50,6 +50,7 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
         $this->entryhelper->load_by_pid($pid);
         $blog = $this->tools->getParam('post/blog');
         if (!$blog) $blog = $this->entryhelper->get_blog();
+        if (!$blog && !$INFO['exists']) $blog = $this->getConf('default_blog');
         $blogs = $this->entryhelper->get_blogs();
 
         $event->data->insertElement($pos, form_openfieldset(array('_legend' => 'BlogTNG', 'class' => 'edit', 'id' => 'blogtng__edit')));

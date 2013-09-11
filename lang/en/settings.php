@@ -12,6 +12,7 @@
  */
 
 $lang['default_commentstatus']     = 'Default comment status choice in edit window';
+$lang['default_blog']              = 'Default blog choice in edit window for new pages';
 $lang['comments_allow_web']        = 'Allow users to link to their website with comments?';
 $lang['comments_subscription']     = 'Allow users to subscribe to new comments via email?';
 $lang['comments_gravatar_rating']  = 'Minimum rating for gravatars.';
