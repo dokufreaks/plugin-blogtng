@@ -105,7 +105,8 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
      * Load tags for a specified blog
      */
     public function load_by_blog($blogs) {
-        $query = 'SELECT DISTINCT tag, A.pid as pid FROM tags A LEFT JOIN entries B ON B.blog IN ("' . implode('","', $blogs) . '")';
+        $query = 'SELECT tags.tag AS tag, tags.pid AS pid FROM tags, entries WHERE tags.pid = entries.pid AND entries.blog IN ("' . implode('","', $blogs) . '")';
+
         $resid = $this->sqlitehelper->getDB()->query($query);
         if($resid) {
             return $this->sqlitehelper->getDB()->res2arr($resid);
