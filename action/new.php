@@ -67,7 +67,9 @@ class action_plugin_blogtng_new extends DokuWiki_Action_Plugin{
      * @author Gina Haeussge <osd@foosel.net>
      */
     function _prepare_template($id, $title) {
-        $tpl = io_readFile(DOKU_PLUGIN . 'blogtng/tpl/newentry.txt');
+        $tpl = pageTemplate($id);
+        if(!$tpl) $tpl = io_readFile(DOKU_PLUGIN . 'blogtng/tpl/newentry.txt');
+
         $replace = array(
             '@TITLE@' => $title,
         );
