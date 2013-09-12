@@ -222,7 +222,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
             '@BROWSER@'     => $_SERVER['HTTP_USER_AGENT'],
             '@IPADDRESS@'   => clientIP(),
             '@HOSTNAME@'    => gethostsbyaddrs(clientIP()),
-            '@URL@'         => wl($entry['page'],'',true).'#comment_'.$comment['cid'],
+            '@URL@'         => wl($entry['page'],'',true).($comment['cid'] ? '#comment_'.$comment['cid'] : ''),
             '@DOKUWIKIURL@' => DOKU_URL,
         );
 
