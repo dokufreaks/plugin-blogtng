@@ -134,6 +134,11 @@ class action_plugin_blogtng_feed extends DokuWiki_Action_Plugin{
         // strip first heading and replace item title
         $event->data['item']->description = preg_replace('#[^\n]*?>\s*?' . preg_quote(hsc($firstheading), '#') . '\s*?<.*\n#', '', $output, 1);
         $event->data['item']->title = $ditem['entry']['title'];
+
+        //only supported by RSS 0.91 and RSS 2.0
+        if($ditem['entry']['commentstatus'] !== 'disabled') {
+            $event->data['item']->comments = $event->data['item']->link.'#the__comments';
+        }
     }
 
     /**
