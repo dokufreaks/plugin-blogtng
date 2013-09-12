@@ -570,6 +570,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
                      AND A.pid = B.pid
                      $tquery
                      AND B.status = 'visible'
+                     AND CHECKACL(A.page) >= ".AUTH_READ."
                 ORDER BY B.created DESC
                    LIMIT ".(int) $num;
 

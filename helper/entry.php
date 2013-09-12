@@ -59,7 +59,9 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             msg('BlogTNG plugin: failed to load sqlite helper plugin', -1);
             return self::RET_ERR_DB;
         }
-        $query = 'SELECT pid, page, title, blog, image, created, lastmod, author, login, mail, commentstatus FROM entries WHERE pid = ?';
+        $query = 'SELECT pid, page, title, blog, image, created, lastmod, author, login, mail, commentstatus
+                    FROM entries
+                   WHERE pid = ?';
         $resid = $this->sqlitehelper->getDB()->query($query, $pid);
         if ($resid === false) {
             msg('BlogTNG plugin: failed to load entry!', -1);
@@ -259,7 +261,6 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     public function xhtml_pagination($conf){
         if(!$this->sqlitehelper->ready()) return '';
 
-        $sortkey = ($conf['sortby'] == 'random') ? 'Random()' : $conf['sortby'];
         $blog_query = '(blog = '.
                       $this->sqlitehelper->getDB()->quote_and_join($conf['blog'],
                                                           ' OR blog = ').')';
@@ -273,9 +274,10 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
 
         // get the number of all matching entries
-        $query = 'SELECT A.pid
+        $query = 'SELECT A.pid, A.page
                     FROM entries A'.$tag_table.'
-                   WHERE '.$blog_query.$tag_query;
+                   WHERE '.$blog_query.$tag_query.'
+                   AND CHECKACL(page) >= '.AUTH_READ;
         $resid = $this->sqlitehelper->getDB()->query($query);
         if (!$resid) return '';
         $count = $this->sqlitehelper->getDB()->res2count($resid);
@@ -558,6 +560,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
                      AND A.pid != '$pid'
                      AND A.pid = B.pid
                      AND B.tag IN ($tags)
+                     AND CHECKACL(page) >= ".AUTH_READ."
                 GROUP BY B.pid HAVING cnt > 0
                 ORDER BY cnt DESC, created DESC
                    LIMIT ".(int) $num;
@@ -704,6 +707,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
                          lastmod, login, author, mail, commentstatus
                     FROM entries A'.$tag_table.'
                    WHERE '.$blog_query.$tag_query.'
+                     AND CHECKACL(page) >= '.AUTH_READ.'
                 GROUP BY A.pid
                 ORDER BY '.$sortkey.' '.$conf['sortorder'].
                  ' LIMIT '.$conf['limit'].
@@ -809,6 +813,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
                          AND A.pid != B.pid
                          AND A.created ' . (($type == 'prev') ? '<' : '>') . ' B.created
                          AND A.blog = B.blog
+                         AND CHECKACL(A.page) >= ".AUTH_READ."
                     ORDER BY A.created ' . (($type == 'prev') ? 'DESC' : 'ASC') . '
                        LIMIT 1';
             $res = $this->sqlitehelper->getDB()->query($query, $pid);
