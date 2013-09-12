@@ -48,6 +48,8 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
 
         $pid = md5($ID);
         $this->entryhelper->load_by_pid($pid);
+        $isNotExistingBlog = $this->entryhelper->entry['blog'] === null;
+
         $blog = $this->tools->getParam('post/blog');
         if (!$blog) $blog = $this->entryhelper->get_blog();
         if (!$blog && !$INFO['exists']) $blog = $this->getConf('default_blog');
@@ -60,11 +62,14 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
         $pos += 1;
 
         $this->taghelper->load($pid);
-        $allowed_tags = $this->_get_allowed_tags();
+
         $tags = $this->_get_post_tags();
         if ($tags === false) $tags = $this->taghelper->getTags();
+        if (!$tags && $isNotExistingBlog) $tags = $this->_split_tags($this->getConf('default_tags'));
+
+        $allowed_tags = $this->_get_allowed_tags();
         if (count($allowed_tags) > 0) {
-            $event->data->insertElement($pos++, form_makeOpenTag('div'));
+            $event->data->insertElement($pos++, form_makeOpenTag('div', array('class' => 'blogtng__tags_checkboxes')));
             foreach($this->_get_allowed_tags() as $val) {
                 $data = array('style' => 'margin-top: 0.3em;');
                 if (in_array($val, $tags)) $data['checked'] = 'checked';
@@ -76,10 +81,10 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
             $pos += 1;
         }
 
-        $commentstatus = $this->entryhelper->entry['commentstatus'];
-        if($commentstatus === null) {
-            $commentstatus = $this->getConf('default_commentstatus') ;
-        }
+        $commentstatus = $this->tools->getParam('post/commentstatus');
+        if(!$commentstatus) $commentstatus = $this->entryhelper->entry['commentstatus'];
+        if(!$commentstatus) $commentstatus = $this->getConf('default_commentstatus');
+
 
         $event->data->insertElement($pos, form_makeMenuField('btng[post][commentstatus]', array('enabled', 'closed', 'disabled'), $commentstatus, $this->getLang('commentstatus'), 'blogtng__commentstatus', 'edit'));
         $pos += 1;
@@ -207,7 +212,7 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
     }
 
     private function _split_tags($tags) {
-        return array_filter(preg_split('/\s*,\s*/', $tags));
+        return array_filter(preg_split('/\s*,\s*/', trim($tags)));
     }
 
     private function _get_allowed_tags() {

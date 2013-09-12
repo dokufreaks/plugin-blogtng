@@ -1,6 +1,7 @@
 <?php
 $conf['default_commentstatus']     = 'enabled';
 $conf['default_blog']              = '';
+$conf['default_tags']              = '';
 $conf['comments_allow_web']        = 0;
 $conf['comments_subscription']     = 0;
 $conf['comments_gravatar_rating']  = 'R';

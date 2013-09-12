@@ -24,6 +24,10 @@ div.dokuwiki fieldset#blogtng__edit input#blogtng__tags {
     width: 300px;
     margin-right: 0.5em;
 }
+div.dokuwiki fieldset#blogtng__edit div.blogtng__tags_checkboxes {
+    display: inline-block;
+    margin: 0 0.5em;
+}
 
 div.dokuwiki fieldset#blogtng__edit label.btng__date_YY {
     display: inline-block;
