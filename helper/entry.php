@@ -130,7 +130,10 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      */
     private function delete(){
         if(!$this->entry['pid']) return false;
-
+        if(!$this->sqlitehelper->ready()) {
+            msg('BlogTNG plugin: failed to load sqlite helper plugin', -1);
+            return false;
+        }
         // delete comment
         if(!$this->commenthelper) {
             $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
@@ -160,6 +163,10 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     public function save() {
         if(!$this->entry['pid'] || $this->entry['pid'] == md5('')){
             msg('blogtng: no pid, refusing to save',-1);
+            return false;
+        }
+        if (!$this->sqlitehelper->ready()) {
+            msg('BlogTNG: no sqlite helper plugin available', -1);
             return false;
         }
 
@@ -250,6 +257,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * @author Andreas Gohr <gohr@cosmocode.de>
      */
     public function xhtml_pagination($conf){
+        if(!$this->sqlitehelper->ready()) return '';
+
         $sortkey = ($conf['sortby'] == 'random') ? 'Random()' : $conf['sortby'];
         $blog_query = '(blog = '.
                       $this->sqlitehelper->getDB()->quote_and_join($conf['blog'],
@@ -268,7 +277,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
                     FROM entries A'.$tag_table.'
                    WHERE '.$blog_query.$tag_query;
         $resid = $this->sqlitehelper->getDB()->query($query);
-        if (!$resid) return;
+        if (!$resid) return '';
         $count = $this->sqlitehelper->getDB()->res2count($resid);
         if($count <= $conf['limit']) return '';
 
@@ -519,6 +528,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * @param array       $tags   - additional tags to consider
      */
     public function tpl_related($num=5,$blogs=array('default'),$id=false,$tags=array()){
+        if(!$this->sqlitehelper->ready()) return;
+
         global $INFO;
         if($id === false) $id = $INFO['id']; //sidebar safe
 
@@ -668,6 +679,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * @return array
      */
     public function get_posts($conf) {
+        if(!$this->sqlitehelper->ready()) return array();
+
         $sortkey = ($conf['sortby'] == 'random') ? 'Random()' : $conf['sortby'];
         
         $blog_query = '';
@@ -786,6 +799,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $pid = md5(cleanID($id));
 
         $related = array();
+        if(!$this->sqlitehelper->ready()) return $related;
+
         foreach (array('prev', 'next') as $type) {
             $query = 'SELECT A.page AS page, A.title AS title,
                              A.author AS author, A.created AS created

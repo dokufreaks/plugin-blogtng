@@ -89,22 +89,30 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
      * Count tags for specified pid
      */
     public function count($pid) {
+        if(!$this->sqlitehelper->ready()) {
+            msg('BlogTNG plugin: failed to load tags. (sqlite helper plugin not available)', -1);
+            return 0;
+        }
+
         $pid = trim($pid);
         $query = 'SELECT COUNT(tag) AS tagcount FROM tags WHERE pid = ?';
 
         $resid = $this->sqlitehelper->getDB()->query($query, $pid);
         if ($resid === false) {
-            msg('blogtng plugin: failed to load tags!', -1);
+            msg('BlogTNG plugin: failed to load tags!', -1);
+            return 0;
         }
 
         $tagcount = $this->sqlitehelper->getDB()->res2row($resid, 0);
-        return $tagcount['tagcount'];
+        return (int)$tagcount['tagcount'];
     }
 
     /**
      * Load tags for a specified blog
      */
     public function load_by_blog($blogs) {
+        if(!$this->sqlitehelper->ready()) return false;
+
         $query = 'SELECT tags.tag AS tag, tags.pid AS pid FROM tags, entries WHERE tags.pid = entries.pid AND entries.blog IN ("' . implode('","', $blogs) . '")';
 
         $resid = $this->sqlitehelper->getDB()->query($query);
@@ -159,6 +167,7 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
         if (!$tagquery) {
             return null;
         }
+        if(!$this->sqlitehelper->ready()) return null;
 
         $tags = array_map('trim', explode(' ', $tagquery));
         $tag_clauses = array(

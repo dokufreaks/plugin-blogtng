@@ -28,6 +28,10 @@ class helper_plugin_blogtng_linkback extends DokuWiki_Plugin {
     }
 
     public function saveLinkback($type, $title, $sourceUri, $excerpt, $id) {
+        /** @var helper_plugin_blogtng_sqlite $sqlitehelper */
+        $sqlitehelper = plugin_load('helper', 'blogtng_sqlite');
+        if (!$sqlitehelper->ready()) return false;
+
         $comment = array('source' => $type,
                          'name'   => $title,
                          'web'    => $sourceUri,
@@ -38,8 +42,6 @@ class helper_plugin_blogtng_linkback extends DokuWiki_Plugin {
                          'status' => 'hidden',
                          'ip' => clientIP(true));
 
-        /** @var helper_plugin_blogtng_sqlite $sqlitehelper */
-        $sqlitehelper = plugin_load('helper', 'blogtng_sqlite');
         $query = 'SELECT web, source FROM comments WHERE pid = ?';
 
         $resid = $sqlitehelper->getDB()->query($query, $comment['pid']);

@@ -33,6 +33,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     }
 
     public function comment_by_cid($cid) {
+
         $query = 'SELECT cid, pid, source, name, mail, web, avatar, created, text, status FROM comments WHERE cid = ?';
         $resid = $this->sqlitehelper->getDB()->query($query, $cid);
         if ($resid === false) {
@@ -52,6 +53,8 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      * Get comment count
      */
     public function get_count($types=null, $includehidden=false) {
+        if (!$this->sqlitehelper->ready()) return 0;
+
         $sql = 'SELECT COUNT(pid) as val
                   FROM comments
                  WHERE pid = ?';
@@ -70,13 +73,18 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         }
         $res = $this->sqlitehelper->getDB()->query($sql,$args);
         $res = $this->sqlitehelper->getDB()->res2row($res,0);
-        return $res['val'];
+        return (int) $res['val'];
     }
 
     /**
      * Save comment
      */
     public function save($comment) {
+        if (!$this->sqlitehelper->ready()) {
+            msg('BlogTNG: no sqlite helper plugin available', -1);
+            return;
+        }
+
         if (isset($comment['cid'])) {
             // Doing an update
             $query = 'UPDATE comments SET pid=?, source=?, name=?, mail=?, ' .
@@ -158,14 +166,16 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      * Delete comment
      */
     public function delete($cid) {
+        if (!$this->sqlitehelper->ready()) return false;
         $query = 'DELETE FROM comments WHERE cid = ?';
-        $this->sqlitehelper->getDB()->query($query, $cid);
+        return (bool) $this->sqlitehelper->getDB()->query($query, $cid);
     }
 
     /**
      * Delete all comments for an entry
      */
     public function delete_all($pid) {
+        if (!$this->sqlitehelper->ready()) return false;
         $sql = "DELETE FROM comments WHERE pid = ?";
         return (bool) $this->sqlitehelper->getDB()->query($sql,$pid);
     }
@@ -174,8 +184,9 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      * Moderate comment
      */
     public function moderate($cid, $status) {
+        if (!$this->sqlitehelper->ready()) return false;
         $query = 'UPDATE comments SET status = ? WHERE cid = ?';
-        $this->sqlitehelper->getDB()->query($query, $status, $cid);
+        return (bool) $this->sqlitehelper->getDB()->query($query, $status, $cid);
     }
 
     /**
@@ -186,6 +197,8 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      */
     public function send_subscriber_mails($comment){
         global $conf;
+
+        if (!$this->sqlitehelper->ready()) return;
 
         // get general article info
         $sql = "SELECT title, page, mail
@@ -271,6 +284,11 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      * @param int $optin - set to 1 for immediate optin
      */
     public function subscribe($pid, $mail, $optin = -3) {
+        if (!$this->sqlitehelper->ready()) {
+            msg('BlogTNG: subscribe fails. (sqlite helper plugin not available)',-1);
+            return;
+        }
+
         // add to subscription list
         $sql = "INSERT OR IGNORE INTO subscriptions
                       (pid, mail) VALUES (?,?)";
@@ -301,6 +319,10 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     }
 
     public function unsubscribe_by_key($pid, $key) {
+        if (!$this->sqlitehelper->ready()) {
+            msg('BlogTNG: unsubscribe by key fails. (sqlite helper plugin not available)',-1);
+            return;
+        }
         $sql = 'SELECT mail FROM optin WHERE key = ?';
         $res = $this->sqlitehelper->getDB()->query($sql, $key);
         $row = $this->sqlitehelper->getDB()->res2row($res);
@@ -316,6 +338,10 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      * Unsubscribe entry
      */
     public function unsubscribe($pid, $mail) {
+        if (!$this->sqlitehelper->ready()) {
+            msg($this->getlang('unsubscribe_err_other') . ' (sqlite helper plugin not available)', -1);
+            return;
+        }
         $sql = 'DELETE FROM subscriptions WHERE pid = ? AND mail = ?';
         $res = $this->sqlitehelper->getDB()->query($sql, $pid, $mail);
         $upd = $this->sqlitehelper->getDB()->countChanges($res);
@@ -331,6 +357,11 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      * Opt in
      */
     public function optin($key) {
+        if (!$this->sqlitehelper->ready()) {
+            msg($this->getlang('optin_err') . ' (sqlite helper plugin not available)', -1);
+            return;
+        }
+
         $sql = 'UPDATE optin SET optin = 1 WHERE key = ?';
         $res = $this->sqlitehelper->getDB()->query($sql,$key);
         $upd = $this->sqlitehelper->getDB()->countChanges($res);
@@ -466,11 +497,13 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     }
 
     /**
-     * Print the comemnts
+     * Print the comments
      */
     public function tpl_comments($name,$types=null) {
         $pid = $this->pid;
         if(!$pid) return;
+
+        if (!$this->sqlitehelper->ready()) return;
 
         $sql = 'SELECT *
                   FROM comments
@@ -518,6 +551,8 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         if($tpl === false){
             return false;
         }
+
+        if(!$this->sqlitehelper->ready()) return false;
 
         // prepare and execute query
         if(count($types)){
