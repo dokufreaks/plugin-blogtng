@@ -367,10 +367,20 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             $form->addElement(form_makeCloseTag('h3'));
         }
         if (isset($conf['select'])) {
-            $form->addElement(form_makeMenuField('btng[new][title]', array_filter(preg_split('/\s*,\s*/', $conf['select'])), '', $this->getLang('title'), 'btng__nt', 'edit'));
+            $form->addElement(form_makeMenuField('btng[new][title]', helper_plugin_blogtng_tools::filterExplodeCSVinput($conf['select']), '', $this->getLang('title'), 'btng__nt', 'edit'));
         } else {
             $form->addElement(form_makeTextField('btng[new][title]', '', $this->getLang('title'), 'btng__nt', 'edit'));
         }
+        if ($conf['tags']) {
+            if($conf['tags'][0] == '?') $conf['tags'] = helper_plugin_blogtng_tools::filterExplodeCSVinput($this->getConf('default_tags'));
+            $form->addElement(form_makeTextField('btng[post][tags]', implode(', ', $conf['tags']), $this->getLang('tags'), 'btng__ntags', 'edit'));
+        }
+        if ($conf['type']) {
+            if($conf['type'][0] == '?') $conf['type'] = $this->getConf('default_commentstatus');
+            $form->addElement(form_makeMenuField('btng[post][commentstatus]', array('enabled', 'closed', 'disabled'), $conf['type'], $this->getLang('commentstatus'), 'blogtng__ncommentstatus', 'edit'));
+        }
+
+
         $form->addElement(form_makeButton('submit', null, $this->getLang('create')));
         $form->addHidden('btng[new][format]', hsc($conf['format']));
         $form->addHidden('btng[post][blog]', hsc($conf['blog'][0]));

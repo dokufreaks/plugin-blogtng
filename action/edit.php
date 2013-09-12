@@ -65,7 +65,7 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
 
         $tags = $this->_get_post_tags();
         if ($tags === false) $tags = $this->taghelper->getTags();
-        if (!$tags && $isNotExistingBlog) $tags = $this->_split_tags($this->getConf('default_tags'));
+        if (!$tags && $isNotExistingBlog) $tags = helper_plugin_blogtng_tools::filterExplodeCSVinput($this->getConf('default_tags'));
 
         $allowed_tags = $this->_get_allowed_tags();
         if (count($allowed_tags) > 0) {
@@ -211,19 +211,15 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
         }
     }
 
-    private function _split_tags($tags) {
-        return array_filter(preg_split('/\s*,\s*/', trim($tags)));
-    }
-
     private function _get_allowed_tags() {
-        return $this->_split_tags($this->getConf('tags'));
+        return helper_plugin_blogtng_tools::filterExplodeCSVinput($this->getConf('tags'));
     }
 
     private function _get_post_tags() {
         $tags = $this->tools->getParam('post/tags');
         if ($tags === false) return $tags;
         if (!is_array($tags)) {
-            $tags = $this->_split_tags($tags);
+            $tags = helper_plugin_blogtng_tools::filterExplodeCSVinput($tags);
         }
         return $tags;
     }

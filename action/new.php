@@ -52,7 +52,15 @@ class action_plugin_blogtng_new extends DokuWiki_Action_Plugin{
         $event->preventDefault();
         $new = $tools->mkpostid($tools->getParam('new/format'),$tools->getParam('new/title'));
         if ($ID != $new) {
-            send_redirect(wl($new,array('do'=>'btngnew','btng[post][blog]'=>$tools->getParam('post/blog'), 'btng[new][format]'=>$tools->getParam('new/format'), 'btng[new][title]' => $tools->getParam('new/title')),true,'&'));
+            $urlparams = array(
+                'do' => 'btngnew',
+                'btng[post][blog]' => $tools->getParam('post/blog'),
+                'btng[post][tags]' => $tools->getParam('post/tags'),
+                'btng[post][commentstatus]' => $tools->getParam('post/commentstatus'),
+                'btng[new][format]' => $tools->getParam('new/format'),
+                'btng[new][title]' => $tools->getParam('new/title')
+            );
+            send_redirect(wl($new,$urlparams,true,'&'));
             return false; //never reached
         } else {
             $TEXT = $this->_prepare_template($new, $tools->getParam('new/title'));
