@@ -11,6 +11,9 @@
  * @license GPL 2 (http://www.gnu.org/licenses/gpl.html)
  */
 
+$lang['default_commentstatus']     = 'Default comment status choice in edit window';
+$lang['default_blog']              = 'Default blog choice in edit window for new pages';
+$lang['default_tags']              = 'Tags that are default prefilled in edit window';
 $lang['comments_allow_web']        = 'Allow users to link to their website with comments?';
 $lang['comments_subscription']     = 'Allow users to subscribe to new comments via email?';
 $lang['comments_gravatar_rating']  = 'Minimum rating for gravatars.';
@@ -20,5 +23,4 @@ $lang['comments_forbid_syntax']    = 'Syntax plugins to be completely forbidden 
 $lang['editform_set_date']         = 'Allow to set the creation date of a blog entry via the edit form.';
 $lang['tags']                      = 'A comma-separated list of allowed tags. If empty, all tags are allowed.';
 $lang['receive_linkbacks']         = 'Receive notices about incoming links to your blogposts (receive linkbacks)?';
-$lang['subscribe_noconfirm']       = 'Do not send confirm email when users subscribe to comments';
 $lang['send_linkbacks']            = 'Inform pages you linked in your blogposts (send linkbacks)?';

@@ -25,7 +25,12 @@ class action_plugin_blogtng_ajax extends DokuWiki_Action_Plugin{
         $controller->register_hook('AJAX_CALL_UNKNOWN', 'BEFORE', $this, 'handle_ajax_call', array());
     }
 
+    /**
+     * @param Doku_Event $event  event object by reference
+     * @param array      $param  empty array as passed to register_hook()
+     */
     function handle_ajax_call(&$event, $param) {
+        /** @var DokuWiki_Auth_Plugin $auth */
         global $auth;
 
         if($event->data != 'blogtng__comment_preview') return;
@@ -44,17 +49,13 @@ class action_plugin_blogtng_ajax extends DokuWiki_Action_Plugin{
         $comment->data['status']  = 'visible';
 
         if(!$comment->data['name'] && $_SERVER['REMOTE_USER']){
-            if($auth) {
-                $info = $auth->getUserData($_SERVER['REMOTE_USER']);
+            if($auth AND $info = $auth->getUserData($_SERVER['REMOTE_USER'])) {
                 $comment->data['name'] = $info['name'];
                 $comment->data['mail'] = $info['mail'];
             }
-            // FIXME ???
-            $comment->data['name'] = $_SERVER['REMOTE_USER'];
         }
 
-        // FIXME this has to be the template of the used blog
-        $comment->output('default');
+        $comment->output($_REQUEST['tplname']);
     }
 }
 // vim:ts=4:sw=4:et:

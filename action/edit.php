@@ -15,7 +15,12 @@ require_once(DOKU_PLUGIN.'action.php');
 
 class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
 
+    /** @var helper_plugin_blogtng_entry */
     var $entryhelper = null;
+    /** @var  helper_plugin_blogtng_tags */
+    var $taghelper;
+    /** @var  helper_plugin_blogtng_tools */
+    var $tools;
 
     var $preact = null;
 
@@ -35,7 +40,7 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
      * Adds additional fields of used by the BlogTNG plugin to the editor.
      */
     function handle_editform_output(&$event, $param) {
-        global $ID;
+        global $ID, $INFO;
 
         $pos = $event->data->findElementByAttribute('type','submit');
         if(!$pos) return; // no submit button found, source view
@@ -43,8 +48,11 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
 
         $pid = md5($ID);
         $this->entryhelper->load_by_pid($pid);
+        $isNotExistingBlog = $this->entryhelper->entry['blog'] === null;
+
         $blog = $this->tools->getParam('post/blog');
         if (!$blog) $blog = $this->entryhelper->get_blog();
+        if (!$blog && !$INFO['exists']) $blog = $this->getConf('default_blog');
         $blogs = $this->entryhelper->get_blogs();
 
         $event->data->insertElement($pos, form_openfieldset(array('_legend' => 'BlogTNG', 'class' => 'edit', 'id' => 'blogtng__edit')));
@@ -54,11 +62,14 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
         $pos += 1;
 
         $this->taghelper->load($pid);
-        $allowed_tags = $this->_get_allowed_tags();
+
         $tags = $this->_get_post_tags();
-        if ($tags === false) $tags = $this->taghelper->tags;
+        if ($tags === false) $tags = $this->taghelper->getTags();
+        if (!$tags && $isNotExistingBlog) $tags = helper_plugin_blogtng_tools::filterExplodeCSVinput($this->getConf('default_tags'));
+
+        $allowed_tags = $this->_get_allowed_tags();
         if (count($allowed_tags) > 0) {
-            $event->data->insertElement($pos++, form_makeOpenTag('div'));
+            $event->data->insertElement($pos++, form_makeOpenTag('div', array('class' => 'blogtng__tags_checkboxes')));
             foreach($this->_get_allowed_tags() as $val) {
                 $data = array('style' => 'margin-top: 0.3em;');
                 if (in_array($val, $tags)) $data['checked'] = 'checked';
@@ -69,6 +80,14 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
             $event->data->insertElement($pos, form_makeTextField('btng[post][tags]', join(', ', $tags), 'Tags', 'blogtng__tags', 'edit'));
             $pos += 1;
         }
+
+        $commentstatus = $this->tools->getParam('post/commentstatus');
+        if(!$commentstatus) $commentstatus = $this->entryhelper->entry['commentstatus'];
+        if(!$commentstatus) $commentstatus = $this->getConf('default_commentstatus');
+
+
+        $event->data->insertElement($pos, form_makeMenuField('btng[post][commentstatus]', array('enabled', 'closed', 'disabled'), $commentstatus, $this->getLang('commentstatus'), 'blogtng__commentstatus', 'edit'));
+        $pos += 1;
 
         if($this->getConf('editform_set_date')) {
             $postdate = $this->tools->getParam('post/date');
@@ -96,20 +115,17 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
                 }
             }
 
-            $event->data->insertElement($pos, form_makeTextField('btng[post][date][YY]', $YY, 'YYYY', 'blogtng__date_YY', 'edit', array('maxlength'=>4)));
+            $event->data->insertElement($pos, form_makeTextField('btng[post][date][YY]', $YY, 'YYYY', 'blogtng__date_YY', 'edit btng__date_YY', array('maxlength'=>4)));
             $pos += 1;
-            $event->data->insertElement($pos, form_makeTextField('btng[post][date][MM]', $MM, 'MM', 'blogtng__date_MM', 'edit', array('maxlength'=>2)));
+            $event->data->insertElement($pos, form_makeTextField('btng[post][date][MM]', $MM, 'MM', 'blogtng__date_MM', 'edit btng__date', array('maxlength'=>2)));
             $pos += 1;
-            $event->data->insertElement($pos, form_makeTextField('btng[post][date][DD]', $DD, 'DD', 'blogtng__date_DD', 'edit', array('maxlength'=>2)));
+            $event->data->insertElement($pos, form_makeTextField('btng[post][date][DD]', $DD, 'DD', 'blogtng__date_DD', 'edit btng__date', array('maxlength'=>2)));
             $pos += 1;
-            $event->data->insertElement($pos, form_makeTextField('btng[post][date][hh]', $hh, 'hh', 'blogtng__date_hh', 'edit', array('maxlength'=>2)));
+            $event->data->insertElement($pos, form_makeTextField('btng[post][date][hh]', $hh, 'hh', 'blogtng__date_hh', 'edit btng__date', array('maxlength'=>2)));
             $pos += 1;
-            $event->data->insertElement($pos, form_makeTextField('btng[post][date][mm]', $mm, 'mm', 'blogtng__date_mm', 'edit', array('maxlength'=>2)));
+            $event->data->insertElement($pos, form_makeTextField('btng[post][date][mm]', $mm, 'mm', 'blogtng__date_mm', 'edit btng__date', array('maxlength'=>2)));
             $pos += 1;
         }
-
-        $event->data->insertElement($pos, form_makeMenuField('btng[post][commentstatus]', array('enabled', 'closed', 'disabled'), $this->entryhelper->entry['commentstatus'], $this->getLang('commentstatus'), 'blogtng__commentstatus', 'edit'));
-        $pos += 1;
 
         $event->data->insertElement($pos, form_closefieldset());
     }
@@ -130,7 +146,6 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
 
             case 'after':
                 global $ID;
-                global $ACT;
 
                 if ($this->preact != 'save' || $event->data != 'show') {
                     return;
@@ -143,67 +158,110 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
                 $blogs = $this->entryhelper->get_blogs();
                 if (!in_array($blog, $blogs)) $blog = null;
 
-                $pid = md5($ID);
+                if($blog === null) {
+                    $this->entryhelper->poke();
+                } else {
+                    $pid = md5($ID);
 
-                $this->entryhelper->load_by_pid($pid);
-                $this->entryhelper->entry['blog'] = $blog;
-                $this->entryhelper->entry['commentstatus'] = $this->tools->getParam('post/commentstatus');
+                    $this->entryhelper->load_by_pid($pid);
 
-                if (empty($this->entryhelper->entry['page'])) {
+                    $entry = $this->_collectInfoForEntry();
+                    $this->entryhelper->set($entry);
 
-                    $this->entryhelper->entry['page'] = $ID;
+                    $this->entryhelper->entry['blog'] = $blog;
+                    $this->entryhelper->entry['commentstatus'] = $this->tools->getParam('post/commentstatus');
 
-                }
+                    if (empty($this->entryhelper->entry['page'])) {
 
-                // allow to override created date
-                if($this->tools->getParam('post/date') && $this->getConf('editform_set_date')) {
-                    foreach(array('hh', 'mm', 'MM', 'DD') as $key) {
-                        $_REQUEST['btng']['post']['date'][$key] = ($_REQUEST['btng']['post']['date'][$key]{0} == 0) ? $_REQUEST['btng']['post']['date'][$key]{1} : $_REQUEST['btng']['post']['date'][$key];
+                        $this->entryhelper->entry['page'] = $ID;
+
                     }
-                    $time = mktime($this->tools->getParam('post/date/hh'),
-                                   $this->tools->getParam('post/date/mm'),
-                                   0,
-                                   $this->tools->getParam('post/date/MM'),
-                                   $this->tools->getParam('post/date/DD'),
-                                   $this->tools->getParam('post/date/YY'));
-                    $this->entryhelper->entry['created'] = $time;
-                }
 
-                $this->entryhelper->save();
+                    // allow to override created date
+                    if($this->tools->getParam('post/date') && $this->getConf('editform_set_date')) {
+                        foreach(array('hh', 'mm', 'MM', 'DD') as $key) {
+                            $_REQUEST['btng']['post']['date'][$key] = ($_REQUEST['btng']['post']['date'][$key]{0} == 0) ? $_REQUEST['btng']['post']['date'][$key]{1} : $_REQUEST['btng']['post']['date'][$key];
+                        }
+                        $time = mktime($this->tools->getParam('post/date/hh'),
+                                       $this->tools->getParam('post/date/mm'),
+                                       0,
+                                       $this->tools->getParam('post/date/MM'),
+                                       $this->tools->getParam('post/date/DD'),
+                                       $this->tools->getParam('post/date/YY'));
+                        $this->entryhelper->entry['created'] = $time;
+                    }
 
-                $tags = $this->_get_post_tags();
-                if ($tags === false) $tags = array();
-                $allowed_tags = $this->_get_allowed_tags();
-                if (count($allowed_tags) > 0) {
-                    foreach($tags as $n => $tag) {
-                        if (!in_array($tag, $allowed_tags)) {
-                            unset($tags[$n]);
+                    $this->entryhelper->save();
+
+                    $tags = $this->_get_post_tags();
+                    if ($tags === false) $tags = array();
+                    $allowed_tags = $this->_get_allowed_tags();
+                    if (count($allowed_tags) > 0) {
+                        foreach($tags as $n => $tag) {
+                            if (!in_array($tag, $allowed_tags)) {
+                                unset($tags[$n]);
+                            }
                         }
                     }
+                    $this->taghelper->load($pid);
+                    $this->taghelper->setTags($tags);
+                    $this->taghelper->save();
                 }
-                $this->taghelper->load($pid);
-                $this->taghelper->set($tags);
-                $this->taghelper->save();
-
                 break;
         }
     }
 
-    function _split_tags($tags) {
-        return array_filter(preg_split('/\s*,\s*/', $tags));
+    private function _get_allowed_tags() {
+        return helper_plugin_blogtng_tools::filterExplodeCSVinput($this->getConf('tags'));
     }
 
-    function _get_allowed_tags() {
-        return $this->_split_tags($this->getConf('tags'));
-    }
-
-    function _get_post_tags() {
+    private function _get_post_tags() {
         $tags = $this->tools->getParam('post/tags');
         if ($tags === false) return $tags;
         if (!is_array($tags)) {
-            $tags = $this->_split_tags($tags);
+            $tags = helper_plugin_blogtng_tools::filterExplodeCSVinput($tags);
         }
         return $tags;
+    }
+
+    /**
+     * Gather general info for a blogentry
+     *
+     * @return array
+     */
+    protected function _collectInfoForEntry() {
+        /** @var DokuWiki_Auth_Plugin $auth */
+        global $auth;
+        global $ID;
+
+        // fetch author info
+        $login = $this->entryhelper->entry['login'];
+        if(!$login) $login = p_get_metadata($ID, 'user');
+        if(!$login) $login = $_SERVER['REMOTE_USER'];
+
+        $userdata = false;
+        if($login) {
+            if($auth != null) {
+                $userdata = $auth->getUserData($login);
+            }
+        }
+
+        // fetch dates
+        $date_created = p_get_metadata($ID, 'date created');
+        $date_modified = p_get_metadata($ID, 'date modified');
+
+        // prepare entry ...
+        $entry = array(
+            'page' => $ID,
+            'title' => p_get_metadata($ID, 'title'),
+            'image' => p_get_metadata($ID, 'relation firstimage'),
+            'created' => $date_created,
+            'lastmod' => (!$date_modified) ? $date_created : $date_modified,
+            'login' => $login,
+            'author' => ($userdata) ? $userdata['name'] : $login,
+            'mail' => ($userdata) ? $userdata['mail'] : '',
+        );
+        return $entry;
     }
 }
 

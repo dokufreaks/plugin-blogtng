@@ -5,11 +5,19 @@
  * This template is called from $entry->tpl_comments to display
  * comments. It is used to display a single comment in
  * the list and is called multiple times (once for each shown comment)
+ *
+ * @var blogtng_comment $comment
  */
 ?>
 <div class="blogtng_comment blogtng_comment_status_<?php $comment->tpl_status()?>" id="comment_<?php $comment->tpl_cid()?>">
-    <img src="<?php $comment->tpl_avatar(60,60)?>" class="avatar" width="60" height="60" alt="" align="left" />
+    <img src="<?php $comment->tpl_avatar(48,48)?>" class="avatar" width="48" height="48" alt="" align="left" />
 
-    <?php $comment->tpl_hcard()?><?php $comment->tpl_created()?> <?php echo '<a href="#comment_'.$comment->data["cid"].'" class="blogtng_num">'.$comment->getLang('comment_reply').'</a>'?>
+
     <?php $comment->tpl_comment()?>
+    <div class="blogtng__commentmetadatarow">
+        <?php $comment->tpl_number()?> |
+        <?php $comment->tpl_hcard()?> |
+        <?php $comment->tpl_created()?> |
+        <?php $comment->tpl_number(true, '%d', $comment->getLang('comment_reply'))?>
+    </div>
 </div>

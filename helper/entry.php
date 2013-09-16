@@ -18,22 +18,25 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     const RET_ERR_DEL     = -4;
     const RET_ERR_RES     = -5;
 
-
-    var $entry = null;
-
-    var $sqlitehelper  = null;
-    var $commenthelper = null;
-    var $taghelper     = null;
-    var $toolshelper   = null;
-
-    var $renderer      = null;
+    /** @var array|null */
+    public $entry = null;
+    /** @var helper_plugin_blogtng_sqlite */
+    private $sqlitehelper  = null;
+    /** @var helper_plugin_blogtng_comments */
+    private $commenthelper = null;
+    /** @var helper_plugin_blogtng_tags */
+    private $taghelper     = null;
+    /** @var helper_plugin_blogtng_tools */
+    private $toolshelper   = null;
+    /** @var Doku_Renderer_xhtml */
+    private $renderer      = null;
 
     /**
      * Constructor, loads the sqlite helper plugin
      *
      * @author Michael Klier <chi@chimeric.de>
      */
-    function helper_plugin_blogtng_entry() {
+    public function helper_plugin_blogtng_entry() {
         $this->sqlitehelper =& plugin_load('helper', 'blogtng_sqlite');
         $this->entry = $this->prototype();
     }
@@ -41,32 +44,33 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
     //~~ data access methods
 
-    function load_by_pid($pid) {
+    public function load_by_pid($pid) {
         $this->entry = $this->prototype();
         $this->taghelper = null;
         $this->commenthelper = null;
 
         $pid = trim($pid);
         if (!$this->is_valid_pid($pid)) {
-            // FIXME we got an invalid pid, shout at the user accordingly
-            msg('blogtng plugin: "'.$pid.'" is not a valid pid!', -1);
+            msg('BlogTNG plugin: "'.$pid.'" is not a valid pid!', -1);
             return self::RET_ERR_BADPID;
         }
 
-        $query = 'SELECT pid, page, title, blog, image, created, lastmod, author, login, mail, commentstatus FROM entries WHERE pid = ?';
-        $resid = $this->sqlitehelper->query($query, $pid);
-        if ($resid === false) {
-            msg('blogtng plugin: failed to load entry!', -1);
-            $this->entry = $this->prototype();
+        if(!$this->sqlitehelper->ready()) {
+            msg('BlogTNG plugin: failed to load sqlite helper plugin', -1);
             return self::RET_ERR_DB;
         }
-        if (sqlite_num_rows($resid) == 0) {
-            $this->entry = $this->prototype();
+        $query = 'SELECT pid, page, title, blog, image, created, lastmod, author, login, mail, commentstatus FROM entries WHERE pid = ?';
+        $resid = $this->sqlitehelper->getDB()->query($query, $pid);
+        if ($resid === false) {
+            msg('BlogTNG plugin: failed to load entry!', -1);
+            return self::RET_ERR_DB;
+        }
+        if ($this->sqlitehelper->getDB()->res2count($resid) == 0) {
             $this->entry['pid'] = $pid;
             return self::RET_ERR_NOENTRY;
         }
 
-        $result = $this->sqlitehelper->res2arr($resid);
+        $result = $this->sqlitehelper->getDB()->res2arr($resid);
         $this->entry = $result[0];
         $this->entry['pid'] = $pid;
         if($this->poke()){
@@ -76,31 +80,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
     }
 
-    /**
-     * FIXME: Is this deprecated?
-     *
-     * @param $resid
-     * @param $index
-     * @return unknown_type
-     */
-    function load_by_res($resid, $index) {
-        $this->entry = $this->prototype();
-        $this->taghelper = null;
-        $this->commenthelper = null;
-
-        // FIXME validate resid and index
-        if($resid === false) {
-            msg('blogtng plugin: failed to load entry, did not get a valid resource id!', -1);
-            $this->entry = $this->prototype();
-            // FIXME undefined constant
-            return self::RET_ERR_BADRES;
-        }
-
-        $result = $this->sqlitehelper->res2row($resid, $index);
-        $this->load_by_row($result);
-    }
-
-    function load_by_row($row) {
+    public function load_by_row($row) {
         $this->entry = $row;
         if($this->poke()){
             return self::RET_OK;
@@ -109,7 +89,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
     }
 
-    function set($entry) {
+    public function set($entry) {
         foreach (array_keys($entry) as $key) {
             if (!in_array($key, array('pid', 'page', 'created', 'login')) || empty($this->entry[$key])) {
                 $this->entry[$key] = $entry[$key];
@@ -117,7 +97,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
     }
 
-    function prototype() {
+    private function prototype() {
         return array(
             'pid' => null,
             'page' => null,
@@ -135,10 +115,10 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     /**
      * Poke the entry with a stick and see if it is alive
      *
-     * If page does not exist, delete DB entry
+     * If page does not exist or is not a blog, delete DB entry
      */
-    function poke(){
-        if(!$this->entry['page'] or !page_exists($this->entry['page'])){
+    public function poke(){
+        if(!$this->entry['page'] or !page_exists($this->entry['page']) OR !$this->entry['blog']){
             $this->delete();
             return false;
         }
@@ -148,18 +128,29 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     /**
      * delete the current entry
      */
-    function delete(){
+    private function delete(){
         if(!$this->entry['pid']) return false;
-
+        if(!$this->sqlitehelper->ready()) {
+            msg('BlogTNG plugin: failed to load sqlite helper plugin', -1);
+            return false;
+        }
         // delete comment
         if(!$this->commenthelper) {
             $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
         }
         $this->commenthelper->delete_all($this->entry['pid']);
 
+        // delete tags
+        if(!$this->taghelper) {
+            $this->taghelper =& plugin_load('helper', 'blogtng_tags');
+        }
+        $this->taghelper->setPid($this->entry['pid']);
+        $this->taghelper->setTags(array()); //empty tag set
+        $this->taghelper->save();
+
         // delete entry
         $sql = "DELETE FROM entries WHERE pid = ?";
-        $ret = $this->sqlitehelper->query($sql,$this->entry['pid']);
+        $ret = $this->sqlitehelper->getDB()->query($sql,$this->entry['pid']);
         $this->entry = $this->prototype();
 
 
@@ -169,14 +160,18 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     /**
      * Save an entry into the database
      */
-    function save() {
+    public function save() {
         if(!$this->entry['pid'] || $this->entry['pid'] == md5('')){
             msg('blogtng: no pid, refusing to save',-1);
             return false;
         }
+        if (!$this->sqlitehelper->ready()) {
+            msg('BlogTNG: no sqlite helper plugin available', -1);
+            return false;
+        }
 
         $query = 'INSERT OR IGNORE INTO entries (pid, page, title, blog, image, created, lastmod, author, login, mail, commentstatus) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-        $result = $this->sqlitehelper->query(
+        $result = $this->sqlitehelper->getDB()->query(
             $query,
             $this->entry['pid'],
             $this->entry['page'],
@@ -191,7 +186,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             $this->entry['commentstatus']
         );
         $query = 'UPDATE entries SET page = ?, title=?, blog=?, image=?, created = ?, lastmod=?, login = ?, author=?, mail=?, commentstatus=? WHERE pid=?';
-        $result = $this->sqlitehelper->query(
+        $result = $this->sqlitehelper->getDB()->query(
             $query,
             $this->entry['page'],
             $this->entry['title'],
@@ -220,22 +215,24 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      *
      * Calls the *_list template for each entry in the result set
      */
-    function xhtml_list($conf, &$renderer=null){
+    public function xhtml_list($conf, &$renderer=null, $templatetype='list'){
         $posts = $this->get_posts($conf);
         if (!$posts) return '';
+
         $rendererBackup =& $this->renderer;
         $this->renderer =& $renderer;
-
         $entryBackup = $this->entry;
+
         ob_start();
-        if($conf['listwrap']) echo '<ul class="blogtng_list">';
+        if($conf['listwrap']) echo "<ul class=\"blogtng_$templatetype\">";
         foreach ($posts as $row) {
             $this->load_by_row($row);
-            $this->tpl_content($conf['tpl'], 'list');
+            $this->tpl_content($conf['tpl'], $templatetype);
         }
         if($conf['listwrap']) echo '</ul>';
         $output = ob_get_contents();
         ob_end_clean();
+
         $this->entry = $entryBackup; // restore previous entry in order to allow nesting
         $this->renderer =& $rendererBackup; // clean up again
         return $output;
@@ -246,30 +243,12 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      *
      * Calls the *_tagsearch template for each entry in the result set
      */
-    function xhtml_tagsearch($conf, &$renderer=null){
+    public function xhtml_tagsearch($conf, &$renderer=null){
         if (count($conf['tags']) == 0) {
-            
             return '';
-            
         };
-        $posts = $this->get_posts($conf);
-        if (!$posts) return '';
-        $rendererBackup =& $this->renderer;
-        $this->renderer =& $renderer;
 
-        $entryBackup = $this->entry;
-        ob_start();
-        if(!$conf['nolist']) echo '<ul class="blogtng_tagsearch">';
-        foreach ($posts as $row) {
-            $this->load_by_row($row);
-            $this->tpl_content($conf['tpl'], 'tagsearch');
-        }
-        if(!$conf['nolist']) echo '</ul>';
-        $output = ob_get_contents();
-        ob_end_clean();
-        $this->entry = $entryBackup; // restore previous entry in order to allow nesting
-        $this->renderer =& $rendererBackup; // clean up again
-        return $output;
+        return $this->xhtml_list($conf, $renderer, $templatetype='tagsearch');
     }
 
     /**
@@ -277,15 +256,17 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      *
      * @author Andreas Gohr <gohr@cosmocode.de>
      */
-    function xhtml_pagination($conf){
+    public function xhtml_pagination($conf){
+        if(!$this->sqlitehelper->ready()) return '';
+
         $sortkey = ($conf['sortby'] == 'random') ? 'Random()' : $conf['sortby'];
         $blog_query = '(blog = '.
-                      $this->sqlitehelper->quote_and_join($conf['blog'],
+                      $this->sqlitehelper->getDB()->quote_and_join($conf['blog'],
                                                           ' OR blog = ').')';
         $tag_query = $tag_table = "";
         if(count($conf['tags'])){
             $tag_query  = ' AND (tag = '.
-                          $this->sqlitehelper->quote_and_join($conf['tags'],
+                          $this->sqlitehelper->getDB()->quote_and_join($conf['tags'],
                                                               ' OR tag = ').
                           ') AND A.pid = B.pid GROUP BY A.pid';
             $tag_table  = ', tags B';
@@ -295,9 +276,9 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $query = 'SELECT A.pid
                     FROM entries A'.$tag_table.'
                    WHERE '.$blog_query.$tag_query;
-        $resid = $this->sqlitehelper->query($query);
-        if (!$resid) return;
-        $count = sqlite_num_rows($resid);
+        $resid = $this->sqlitehelper->getDB()->query($query);
+        if (!$resid) return '';
+        $count = $this->sqlitehelper->getDB()->res2count($resid);
         if($count <= $conf['limit']) return '';
 
         // we now prepare an array of pages to show
@@ -367,7 +348,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     /**
      * Displays a list of related blog entries
      */
-    function xhtml_related($conf){
+    public function xhtml_related($conf){
         ob_start();
         $this->tpl_related($conf['limit'],$conf['blog'],$conf['page'],$conf['tags']);
         $output = ob_get_contents();
@@ -378,7 +359,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     /**
      * Displays a form to create new entries
      */
-    function xhtml_newform($conf){
+    public function xhtml_newform($conf){
         global $ID;
 
         // allowed to create?
@@ -395,10 +376,20 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             $form->addElement(form_makeCloseTag('h3'));
         }
         if (isset($conf['select'])) {
-            $form->addElement(form_makeMenuField('btng[new][title]', array_filter(preg_split('/\s*,\s*/', $conf['select'])), '', $this->getLang('title'), 'btng__nt', 'edit'));
+            $form->addElement(form_makeMenuField('btng[new][title]', helper_plugin_blogtng_tools::filterExplodeCSVinput($conf['select']), '', $this->getLang('title'), 'btng__nt', 'edit'));
         } else {
             $form->addElement(form_makeTextField('btng[new][title]', '', $this->getLang('title'), 'btng__nt', 'edit'));
         }
+        if ($conf['tags']) {
+            if($conf['tags'][0] == '?') $conf['tags'] = helper_plugin_blogtng_tools::filterExplodeCSVinput($this->getConf('default_tags'));
+            $form->addElement(form_makeTextField('btng[post][tags]', implode(', ', $conf['tags']), $this->getLang('tags'), 'btng__ntags', 'edit'));
+        }
+        if ($conf['type']) {
+            if($conf['type'][0] == '?') $conf['type'] = $this->getConf('default_commentstatus');
+            $form->addElement(form_makeMenuField('btng[post][commentstatus]', array('enabled', 'closed', 'disabled'), $conf['type'], $this->getLang('commentstatus'), 'blogtng__ncommentstatus', 'edit'));
+        }
+
+
         $form->addElement(form_makeButton('submit', null, $this->getLang('create')));
         $form->addHidden('btng[new][format]', hsc($conf['format']));
         $form->addHidden('btng[post][blog]', hsc($conf['blog'][0]));
@@ -408,9 +399,9 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
     //~~ template methods
 
-    function tpl_content($name, $type) {
+    public function tpl_content($name, $type) {
         $whitelist = array('list', 'entry', 'feed', 'tagsearch');
-        if(!in_array($type, $whitelist)) return false;
+        if(!in_array($type, $whitelist)) return;
 
         $tpl = helper_plugin_blogtng_tools::getTplFile($name, $type);
         if($tpl !== false) {
@@ -423,13 +414,12 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * Print the whole entry, reformat it or cut it when needed
      *
      * @param bool   $included   - set true if you want content to be reformated
-     * @param string $readmore   - where to cut the entry valid: 'syntax', FIXME
-     * @param bool   $inc_level  - FIXME
+     * @param string $readmore   - where to cut the entry valid: 'syntax', FIXME -->add 'firstsection'??
+     * @param bool   $inc_level  - FIXME --> this attribute is always set to false
      * @param bool   $skipheader - Remove the first header
      * @return bool false if a recursion was detected and the entry could not be printed, true otherwise
      */
-    function tpl_entry($included=true, $readmore='syntax',
-                       $inc_level=true, $skipheader=false) {
+    public function tpl_entry($included=true, $readmore='syntax', $inc_level=true, $skipheader=false) {
         $content = $this->get_entrycontent($readmore, $inc_level, $skipheader);
 
         if ($included) {
@@ -443,15 +433,15 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         return true;
     }
 
-    function tpl_link($anchor=''){
+    public function tpl_link($anchor=''){
         echo wl($this->entry['page']).(!empty($anchor) ? '#'.$anchor : '');
     }
 
-    function tpl_permalink($str) {
+    public function tpl_permalink($str) {
         echo '<a href="' . wl ($this->entry['page']) . '" title="' . hsc($this->entry['title']) . '">' . $str . '</a>';
     }
 
-    function tpl_abstract($len=0) {
+    public function tpl_abstract($len=0) {
         $this->_load_abstract();
         if($len){
             $abstract = utf8_substr($this->entry['abstract'], 0, $len).'…';
@@ -461,21 +451,21 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         echo hsc($abstract);
     }
 
-    function tpl_title() {
+    public function tpl_title() {
         print hsc($this->entry['title']);
     }
 
-    function tpl_created($format='') {
+    public function tpl_created($format='') {
         if(!$this->entry['created']) return; // uh oh, something went wrong
         print dformat($this->entry['created'],$format);
     }
 
-    function tpl_lastmodified($format='') {
+    public function tpl_lastmodified($format='') {
         if(!$this->entry['lastmod']) return; // uh oh, something went wrong
         print dformat($this->entry['lastmod'], $format);
     }
 
-    function tpl_author() {
+    public function tpl_author() {
         if(empty($this->entry['author'])) return;
         print hsc($this->entry['author']);
     }
@@ -485,7 +475,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      *
      * @author Michael Klier <chi@chimeric.de>
      */
-    function tpl_hcard() {
+    public function tpl_hcard() {
         if(empty($this->entry['author'])) return;
 
         // FIXME
@@ -505,12 +495,12 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      *
      * Wrapper around commenthelper->tpl_comments()
      */
-    function tpl_comments($name,$types=null) {
+    public function tpl_comments($name,$types=null) {
         if ($this->entry['commentstatus'] == 'disabled') return;
         if(!$this->commenthelper) {
             $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
         }
-        $this->commenthelper->load($this->entry['pid']);
+        $this->commenthelper->setPid($this->entry['pid']);
         $this->commenthelper->tpl_comments($name,$types);
     }
 
@@ -519,26 +509,27 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      *
      * Wrapper around commenthelper->tpl_commentcount()
      */
-    function tpl_commentcount($fmt_zero_comments='', $fmt_one_comment='', $fmt_comments='',$types=null) {
+    public function tpl_commentcount($fmt_zero_comments='', $fmt_one_comment='', $fmt_comments='',$types=null) {
         if(!$this->commenthelper) {
             $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
         }
-        $this->commenthelper->load($this->entry['pid']);
+        $this->commenthelper->setPid($this->entry['pid']);
         $this->commenthelper->tpl_count($fmt_zero_comments, $fmt_one_comment, $fmt_comments);
     }
-
 
     /**
      * Print a list of related posts
      *
      * Can be called statically. Also exported as syntax <blog related>
      *
-     * @param int    $num    - maximum number of links
-     * @param array  $blogs  - blogs to search
-     * @param string $id     - reference page (false for current)
-     * @param array  $tags   - additional tags to consider
+     * @param int         $num    - maximum number of links
+     * @param array       $blogs  - blogs to search
+     * @param bool|string $id     - reference page (false for current)
+     * @param array       $tags   - additional tags to consider
      */
-    function tpl_related($num=5,$blogs=array('default'),$id=false,$tags=array()){
+    public function tpl_related($num=5,$blogs=array('default'),$id=false,$tags=array()){
+        if(!$this->sqlitehelper->ready()) return;
+
         global $INFO;
         if($id === false) $id = $INFO['id']; //sidebar safe
 
@@ -547,8 +538,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $query = "SELECT tag
                     FROM tags
                    WHERE pid = '$pid'";
-        $res = $this->sqlitehelper->query($query);
-        $res = $this->sqlitehelper->res2arr($res);
+        $res = $this->sqlitehelper->getDB()->query($query);
+        $res = $this->sqlitehelper->getDB()->res2arr($res);
         foreach($res as $row){
             $tags[] = $row['tag'];
         }
@@ -556,9 +547,9 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $tags = array_filter($tags);
         if(!count($tags)) return; // no tags for comparison
 
-        $tags  = $this->sqlitehelper->quote_and_join($tags,',');
+        $tags  = $this->sqlitehelper->getDB()->quote_and_join($tags,',');
         $blog_query = '(A.blog = '.
-                       $this->sqlitehelper->quote_and_join($blogs,
+                       $this->sqlitehelper->getDB()->quote_and_join($blogs,
                                                            ' OR A.blog = ').')';
 
         $query = "SELECT page, title, COUNT(B.pid) AS cnt
@@ -570,9 +561,9 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
                 GROUP BY B.pid HAVING cnt > 0
                 ORDER BY cnt DESC, created DESC
                    LIMIT ".(int) $num;
-        $res = $this->sqlitehelper->query($query);
-        if(!sqlite_num_rows($res)) return; // no results found
-        $res = $this->sqlitehelper->res2arr($res);
+        $res = $this->sqlitehelper->getDB()->query($query);
+        if(!$this->sqlitehelper->getDB()->res2count($res)) return; // no results found
+        $res = $this->sqlitehelper->getDB()->res2arr($res);
 
         // now do the output
         echo '<ul class="related">';
@@ -589,22 +580,22 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      *
      * Wrapper around commenthelper->tpl_form()
      */
-    function tpl_commentform() {
+    public function tpl_commentform() {
         if ($this->entry['commentstatus'] == 'closed' || $this->entry['commentstatus'] == 'disabled') return;
         if(!$this->commenthelper) {
             $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
         }
-        $this->commenthelper->tpl_form($this->entry['page'], $this->entry['pid']);
+        $this->commenthelper->tpl_form($this->entry['page'], $this->entry['pid'], $this->entry['blog']);
     }
 
-    function tpl_linkbacks() {}
+    public function tpl_linkbacks() {}
 
     /**
      * Print a list of tags associated with the entry
      *
      * @param string $target - tag links will point to this page, tag is passed as parameter
      */
-    function tpl_tags($target) {
+    public function tpl_tags($target) {
         if (!$this->taghelper) {
             $this->taghelper =& plugin_load('helper', 'blogtng_tags');
         }
@@ -612,7 +603,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $this->taghelper->tpl_tags($target);
     }
 
-    function tpl_tagstring($target, $separator=', ') {
+    public function tpl_tagstring($target, $separator=', ') {
         if (!$this->taghelper) {
             $this->taghelper =& plugin_load('helper', 'blogtng_tags');
         }
@@ -623,14 +614,14 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     /**
      * Renders the link to the previous blog post using the given template.
      *
-     * @param $tpl    string a template specifing the link text. May contain placeholders
-     *                       for title, author and creation date of post
-     * @param $id     string page id of blog post for which to generate the adjacent link
-     * @param $return bool   whether to return the link or print it, defaults to print
-     * @param bool/string if there is no such link, false. otherwise, if $return is true,
-     *                    a string containing the generated HTML link, otherwise true.
+     * @param string      $tpl     a template specifing the link text. May contain placeholders
+     *                             for title, author and creation date of post
+     * @param bool|string $id      string page id of blog post for which to generate the adjacent link
+     * @param bool        $return  whether to return the link or print it, defaults to print
+     * @return bool/string if there is no such link, false. otherwise, if $return is true,
+     *                     a string containing the generated HTML link, otherwise true.
      */
-    function tpl_previouslink($tpl, $id=false, $return=false) {
+    public function tpl_previouslink($tpl, $id=false, $return=false) {
         $out =  $this->_navi_link($tpl, 'prev', $id);
         if ($return) {
             return $out;
@@ -644,14 +635,14 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     /**
      * Renders the link to the next blog post using the given template.
      *
-     * @param $tpl    string a template specifing the link text. May contain placeholders
-     *                       for title, author and creation date of post
-     * @param $id     string page id of blog post for which to generate the adjacent link
-     * @param $return bool   whether to return the link or print it, defaults to print
-     * @param bool/string if there is no such link, false. otherwise, if $return is true,
-     *                    a string containing the generated HTML link, otherwise true.
+     * @param string $tpl   a template specifing the link text. May contain placeholders
+     *                      for title, author and creation date of post
+     * @param bool|string   $id       page id of blog post for which to generate the adjacent link
+     * @param bool          $return   whether to return the link or print it, defaults to print
+     * @return bool/string if there is no such link, false. otherwise, if $return is true,
+     *                      a string containing the generated HTML link, otherwise true.
      */
-    function tpl_nextlink($tpl, $id=false, $return=false) {
+    public function tpl_nextlink($tpl, $id=false, $return=false) {
         $out =  $this->_navi_link($tpl, 'next', $id);
         if ($return) {
             return $out;
@@ -664,7 +655,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
     //~~ utility methods
 
-    function get_blogs() {
+    public static function get_blogs() {
         $pattern = DOKU_PLUGIN . 'blogtng/tpl/*{_,/}entry.php';
         $files = glob($pattern, GLOB_BRACE);
         $blogs = array('');
@@ -674,7 +665,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         return $blogs;
     }
 
-    function get_blog() {
+    public function get_blog() {
         if ($this->entry != null) {
             return $this->entry['blog'];
         } else {
@@ -682,38 +673,35 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
     }
 
-    function get_posts($conf) {
+    /**
+     * FIXME parsing of tags by using taghelper->parse_tag_query
+     * @param $conf
+     * @return array
+     */
+    public function get_posts($conf) {
+        if(!$this->sqlitehelper->ready()) return array();
+
         $sortkey = ($conf['sortby'] == 'random') ? 'Random()' : $conf['sortby'];
         
         $blog_query = '';
-        
-        if (count($conf['blog']) > 0) {
-        
-            $blog_query = '(blog = '.
-                          $this->sqlitehelper->quote_and_join($conf['blog'],
-                                                              ' OR blog = ').')';
-                                                              
-        }                                                             
-                                                              
+        if(count($conf['blog']) > 0) {
+            $blog_query = '(blog = ' . $this->sqlitehelper->getDB()->quote_and_join($conf['blog'], ' OR blog = ') . ')';
+        }
+
         $tag_query = $tag_table = "";
-        if(count($conf['tags'])){
-            
+        if(count($conf['tags'])) {
             $tag_query = '';
-            
-            if (count($conf['blog']) > 0){
-                
-                $tag_query = ' AND';
-                
+            if(count($conf['blog']) > 0) {
+                $tag_query .= ' AND';
             }
-            
-            $tag_query  .= ' (tag = '.
-                          $this->sqlitehelper->quote_and_join($conf['tags'],
-                                                              ' OR tag = ').') AND A.pid = B.pid';
-            $tag_table  = ', tags B';
+            $tag_query .= ' (tag = ' . $this->sqlitehelper->getDB()->quote_and_join($conf['tags'], ' OR tag = ') . ')';
+            $tag_query .= ' AND A.pid = B.pid';
+
+            $tag_table = ', tags B';
         }
 
         $query = 'SELECT A.pid as pid, page, title, blog, image, created,
-                         lastmod, login, author, mail
+                         lastmod, login, author, mail, commentstatus
                     FROM entries A'.$tag_table.'
                    WHERE '.$blog_query.$tag_query.'
                 GROUP BY A.pid
@@ -721,8 +709,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
                  ' LIMIT '.$conf['limit'].
                 ' OFFSET '.$conf['offset'];
 
-        $resid = $this->sqlitehelper->query($query);
-        return $this->sqlitehelper->res2arr($resid);
+        $resid = $this->sqlitehelper->getDB()->query($query);
+        return $this->sqlitehelper->getDB()->res2arr($resid);
     }
 
     /**
@@ -730,9 +718,9 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * @param $readmore
      * @param $inc_level
      * @param $skipheader
-     * @return unknown_type
+     * @return bool|string html of content
      */
-    function get_entrycontent($readmore='syntax', $inc_level=true, $skipheader=false) {
+    public function get_entrycontent($readmore='syntax', $inc_level=true, $skipheader=false) {
         static $recursion = array();
 
         $id = $this->entry['page'];
@@ -744,7 +732,11 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
         $recursion[] = $id;
 
-        // FIXME do some caching here!
+        /*
+         * FIXME do some caching here!
+         * - of the converted instructions
+         * - of p_render
+         */
         global $ID, $TOC, $conf;
         $info = array();
 
@@ -783,11 +775,11 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         return $content;
     }
 
-    function is_valid_pid($pid) {
+    public function is_valid_pid($pid) {
         return (preg_match('/^[0-9a-f]{32}$/', trim($pid)));
     }
 
-    function has_tags() {
+    public function has_tags() {
         if (!$this->taghelper) {
             $this->taghelper =& plugin_load('helper', 'blogtng_tags');
         }
@@ -797,16 +789,18 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     /**
      * Gets the adjacent (previous and next) links of a blog entry.
      *
-     * @param $id string page id of the entry for which to get said links
-     * @param array 2d assoziative array containing page id, title, author and creation date
+     * @param bool|string $id page id of the entry for which to get said links
+     * @return array 2d assoziative array containing page id, title, author and creation date
      *              for both prev and next link
      */
-    function getAdjacentLinks($id = false) {
+    public function getAdjacentLinks($id = false) {
         global $INFO;
         if($id === false) $id = $INFO['id']; //sidebar safe
         $pid = md5(cleanID($id));
 
         $related = array();
+        if(!$this->sqlitehelper->ready()) return $related;
+
         foreach (array('prev', 'next') as $type) {
             $query = 'SELECT A.page AS page, A.title AS title,
                              A.author AS author, A.created AS created
@@ -817,10 +811,10 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
                          AND A.blog = B.blog
                     ORDER BY A.created ' . (($type == 'prev') ? 'DESC' : 'ASC') . '
                        LIMIT 1';
-            $res = $this->sqlitehelper->query($query, $pid);
-            if (sqlite_num_rows($res) > 0) {
-                $row = $this->sqlitehelper->res2row($res, 0);
-                $related[$type] = $row;
+            $res = $this->sqlitehelper->getDB()->query($query, $pid);
+            if ($this->sqlitehelper->getDB()->res2count($res) > 0) {
+                $result = $this->sqlitehelper->getDB()->res2arr($res);
+                $related[$type] = $result[0];
             }
         }
         return $related;
@@ -830,10 +824,10 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * Returns a reference to the comment helper plugin preloaded with
      * the current entry
      */
-    function &getCommentHelper(){
+    public function &getCommentHelper(){
         if(!$this->commenthelper) {
             $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
-            $this->commenthelper->load($this->entry['pid']);
+            $this->commenthelper->setPid($this->entry['pid']);
         }
         return $this->commenthelper;
     }
@@ -842,7 +836,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * Returns a reference to the tag helper plugin preloaded with
      * the current entry
      */
-    function &getTagHelper(){
+    public function &getTagHelper(){
         if (!$this->taghelper) {
             $this->taghelper =& plugin_load('helper', 'blogtng_tags');
             $this->taghelper->load($this->entry['pid']);
@@ -854,14 +848,14 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
     //~~ private methods
 
-    function _load_abstract(){
+    private function _load_abstract(){
         if(isset($this->entry['abstract'])) return;
         $id = $this->entry['page'];
 
         $this->entry['abstract'] = p_get_metadata($id,'description abstract',true);
     }
 
-    function _convert_instructions(&$ins, $inc_level, $readmore, $skipheader) {
+    private function _convert_instructions(&$ins, $inc_level, $readmore, $skipheader) {
         global $ID;
 
         $id = $this->entry['page'];
@@ -872,76 +866,106 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $convert = (getNS($ID) == $ns) ? false : true;
 
         $first_header = true;
-        $open_sections = 0;
+        $open_wraps = array(
+            'section' => 0,
+            'p' => 0,
+            'list' => 0,
+            'table' => 0,
+            'tablecell' => 0,
+            'tableheader' => 0
+        );
+
         $n = count($ins);
         for ($i = 0; $i < $n; $i++) {
             $current = $ins[$i][0];
             if ($convert && (substr($current, 0, 8) == 'internal')) {
                 // convert internal links and media from relative to absolute
                 $ins[$i][1][0] = $this->_convert_internal_link($ins[$i][1][0], $ns);
-            } elseif ($current == 'header') {
-                // convert header levels and convert first header to permalink
-                $text = $ins[$i][1][0];
-                $level = $ins[$i][1][1];
+            } else {
+                switch($current) {
+                    case 'header':
+                        // convert header levels and convert first header to permalink
+                        $text = $ins[$i][1][0];
+                        $level = $ins[$i][1][1];
 
-                // change first header to permalink
-                if ($first_header) {
-                    if($skipheader){
-                        unset($ins[$i]);
-                    }else{
-                        $ins[$i] = array('plugin',
-                            array(
-                                'blogtng_header',
-                                array(
-                                    $text,
-                                    $level
-                                ),
-                            ),
-                            $ins[$i][1][2]
-                        );
-                    }
-                }
-                $first_header = false;
+                        // change first header to permalink
+                        if ($first_header) {
+                            if($skipheader){
+                                unset($ins[$i]);
+                            }else{
+                                $ins[$i] = array('plugin',
+                                                 array(
+                                                     'blogtng_header',
+                                                     array(
+                                                         $text,
+                                                         $level
+                                                     ),
+                                                 ),
+                                                 $ins[$i][1][2]
+                                );
+                            }
+                        }
+                        $first_header = false;
 
-                // increase level of header
-                if ($inc_level) {
-                    $level = $level + 1;
-                    if ($level > 5) $level = 5;
-                    if (is_array($ins[$i][1][1])) {
-                        // permalink header
-                        $ins[$i][1][1][1] = $level;
-                    } else {
-                        // normal header
-                        $ins[$i][1][1] = $level;
-                    }
+                        // increase level of header
+                        if ($inc_level) {
+                            $level = $level + 1;
+                            if ($level > 5) $level = 5;
+                            if (is_array($ins[$i][1][1])) {
+                                // permalink header
+                                $ins[$i][1][1][1] = $level;
+                            } else {
+                                // normal header
+                                $ins[$i][1][1] = $level;
+                            }
+                        }
+                        break;
+
+                    //fallthroughs for counting tags
+                    case 'section_open';
+                        // the same for sections
+                        $level = $ins[$i][1][0];
+                        if ($inc_level) $level = $level + 1;
+                        if ($level > 5) $level = 5;
+                        $ins[$i][1][0] = $level;
+                        /* fallthrough */
+                    case 'section_close':
+                    case 'p_open':
+                    case 'p_close':
+                    case 'listu_open':
+                    case 'listu_close':
+                    case 'table_open':
+                    case 'table_close':
+                    case 'tablecell_open':
+                    case 'tableheader_open':
+                    case 'tablecell_close':
+                    case 'tableheader_close':
+                        list($item,$action) = explode('_', $current, 2);
+                        $open_wraps[$item] += ($action == 'open' ? 1 : -1);
+                        break;
+
+                    case 'plugin':
+                        if(($ins[$i][1][0] == 'blogtng_readmore') && $readmore) {
+                            // cut off the instructions here
+                            $this->_read_more($ins, $i, $open_wraps, $inc_level);
+                            $open_wraps['sections'] = 0;
+                        }
+                        break 2;
                 }
-            } elseif ($current == 'section_open') {
-                // the same for sections
-                if ($inc_level) $level = $ins[$i][1][0] + 1;
-                if ($level > 5) $level = 5;
-                $ins[$i][1][0] = $level;
-                $open_sections++;
-            } elseif ($current == 'section_close') {
-                $open_sections--;
-            } elseif (($current == 'plugin') && ($ins[$i][1][0] == 'blogtng_readmore') && $readmore) {
-                // cut off the instructions here
-                $this->_read_more($ins, $i, $open_sections, $inc_level);
-                $open_sections = 0;
-                break;
             }
         }
-        $this->_finish_convert($ins, $open_sections);
+        $this->_finish_convert($ins, $open_wraps['sections']);
         return true;
     }
 
     /**
      * Convert relative internal links and media
      *
-     * @param    integer $i: counter for current instruction
+     * @param    string  $link: internal links or media
      * @param    string  $ns: namespace of included page
-     * @return   string  $link: converted, now absolute link
+     * @return   string  $link converted, now absolute link
      */
-    function _convert_internal_link($link, $ns) {
+    private function _convert_internal_link($link, $ns) {
         if ($link{0} == '.') {
             // relative subnamespace
             if ($link{1} == '.') {
@@ -963,14 +987,41 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
     }
 
-    function _read_more(&$ins, $i, $open_sections, $inc_level) {
+    private function _read_more(&$ins, $i, $open_wraps, $inc_level) {
         $append_link = (is_array($ins[$i+1]) && $ins[$i+1][0] != 'document_end');
+
+        //iterate to the end of a tablerow
+        if($append_link && $open_wraps['table'] && ($open_wraps['tablecell'] || $open_wraps['tableheader'])) {
+            for(; $i < count($ins); $i++) {
+                if($ins[$i][0] == 'tablerow_close') {
+                    $i++; //include tablerow_close instruction
+                    break;
+                }
+            }
+        }
         $ins = array_slice($ins, 0, $i);
+
         if ($append_link) {
             $last = $ins[$i-1];
-            for ($i = 0; $i < $open_sections; $i++) {
+
+            //close open wrappers
+            if($open_wraps['p']) {
+                $ins[] = array('p_close', array(), $last[2]);
+            }
+            for ($i = 0; $i < $open_wraps['listu']; $i++) {
+                if($i === 0) {
+                    $ins[] = array('listcontent_close', array(), $last[2]);
+                }
+                $ins[] = array('listitem_close', array(), $last[2]);
+                $ins[] = array('listu_close', array(), $last[2]);
+            }
+            if($open_wraps['table']) {
+                $ins[] = array('table_close', array(), $last[2]);
+            }
+            for ($i = 0; $i < $open_wraps['section']; $i++) {
                 $ins[] = array('section_close', array(), $last[2]);
             }
+
             $ins[] = array('section_open', array(($inc_level ? 2 : 1)), $last[2]);
             $ins[] = array('p_open', array(), $last[2]);
             $ins[] = array('internallink',array($this->entry['page'].'#readmore_'.str_replace(':', '_', $this->entry['page']), $this->getLang('readmore')),$last[2]);
@@ -982,7 +1033,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     /**
      * Adds 'document_start' and 'document_end' instructions if not already there
      */
-    function _finish_convert(&$ins, $open_sections) {
+    private function _finish_convert(&$ins, $open_sections) {
         if ($ins[0][0] != 'document_start')
             @array_unshift($ins, array('document_start', array(), 0));
         $c = array_pop(array_keys($ins)); // we can't use count here, instructions are not even indexed
@@ -990,7 +1041,13 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             $ins[] = array('document_end', array(), 0);
     }
 
-    function _convert_footnotes($html) {
+    /**
+     * Converts footnotes
+     *
+     * @param string $html content of wikipage
+     * @return string html with converted footnotes
+     */
+    private function _convert_footnotes($html) {
         $id = str_replace(':', '_', $this->entry['page']);
         $replace = array(
             '!<a href="#fn__(\d+)" name="fnt__(\d+)" id="fnt__(\d+)" class="fn_top">!' =>
@@ -1005,7 +1062,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     /**
      * Display an edit button for the included page
      */
-    function _edit_button() {
+    private function _edit_button() {
         global $ID;
         $id = $this->entry['page'];
         $perm = auth_quickaclcheck($id);
@@ -1018,6 +1075,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             }
         } elseif ($perm >= AUTH_CREATE) {
             $action = 'create';
+        } else {
+            return '';
         }
 
         $params = array('do' => 'edit');
@@ -1031,14 +1090,14 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * Generates the HTML output of the link to the previous or to the next blog
      * entry in respect to the given page id using the specified template.
      *
-     * @param $tpl string  a template specifing the link text. May contain placeholders
-     *                     for title, author and creation date of post
-     * @param $type string type of link to generate, may be 'prev' or 'next'
-     * @param $id   string page id of blog post for which to generate the adjacent link
-     * @return string a string containing the prepared HTML anchor tag, or false if there
+     * @param string      $tpl  a template specifing the link text. May contain placeholders
+     *                          for title, author and creation date of post
+     * @param string      $type type of link to generate, may be 'prev' or 'next'
+     * @param bool|string $id   page id of blog post for which to generate the adjacent link
+     * @return bool|string a string containing the prepared HTML anchor tag, or false if there
      *                is no fitting post to link to
      */
-    function _navi_link($tpl, $type, $id = false) {
+    private function _navi_link($tpl, $type, $id = false) {
         $related = $this->getAdjacentLinks($id);
         if (isset($related[$type])) {
             $replace = array(

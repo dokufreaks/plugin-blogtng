@@ -64,6 +64,14 @@ class helper_plugin_blogtng_tools extends DokuWiki_Plugin {
         return $elem;
     }
 
+    /**
+     * @param string $string comma separated values
+     * @return array cleaned splited values
+     */
+    public static function filterExplodeCSVinput($string) {
+        return array_filter(array_map('trim', explode(',', $string)));
+    }
+
     static public function cleanConf(&$conf) {
         if (!in_array($conf['sortorder'], self::$data_whitelist['sortorder'])) {
             unset($conf['sortorder']);

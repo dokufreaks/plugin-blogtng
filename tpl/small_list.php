@@ -7,6 +7,8 @@
  * the list and is called multiple times (once for each shown entry)
  *
  * This example shows only entry abstracts with comment numbers
+ *
+ * @var $entry helper_plugin_blogtng_entry
  */
 ?>
 <h1>
