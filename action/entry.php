@@ -15,7 +15,9 @@ require_once(DOKU_PLUGIN.'action.php');
 
 class action_plugin_blogtng_entry extends DokuWiki_Action_Plugin{
 
+    /** @var helper_plugin_blogtng_entry */
     var $entryhelper = null;
+    /** @var helper_plugin_blogtng_comments */
     var $commenthelper = null;
 
     function action_plugin_blogtng_entry() {
@@ -31,6 +33,10 @@ class action_plugin_blogtng_entry extends DokuWiki_Action_Plugin{
     /**
      * Intercept the usual page display and replace it with a
      * blog template controlled one.
+     *
+     * @param Doku_Event $event  event object by reference
+     * @param array      $param  empty array as passed to register_hook()
+     * @return void|bool
      */
     function handle_tpl_act_render(&$event, $param) {
         global $ID;
@@ -38,18 +44,22 @@ class action_plugin_blogtng_entry extends DokuWiki_Action_Plugin{
 
         $pid = md5($ID);
         $this->entryhelper->load_by_pid($pid);
-        if($this->entryhelper->get_blog($pid) == '') return true;
+        if($this->entryhelper->get_blog() == '') return true;
 
         // we can handle it
         $event->preventDefault();
 
-        $this->commenthelper->load($pid);
+        $this->commenthelper->setPid($pid);
         $this->entryhelper->tpl_content($this->entryhelper->entry['blog'], 'entry');
     }
 
     /**
      * Add next and prev meta headers for navigating through
      * blog posts
+     *
+     * @param Doku_Event $event  event object by reference
+     * @param array      $param  empty array as passed to register_hook()
+     * @return void|bool
      */
     function handle_metaheader_output(&$event, $param) {
         global $ACT, $ID;

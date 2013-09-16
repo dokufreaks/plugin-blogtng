@@ -27,13 +27,18 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         'page'      => false,
         'cache'     => false,
         'title'     => '',
-        'format'    => ':blog:%Y:%m:%{title}', #FIXME
+        'format'    => ':blog:%Y:%m:%{title}',
         'listwrap'  => 0, //default depends on syntax type
     );
 
+    /** @var helper_plugin_blogtng_entry */
     var $entryhelper  = null;
+    /** @var helper_plugin_blogtng_tools */
     var $tools = null;
+    /** @var helper_plugin_blogtng_comments */
     var $commenthelper  = null;
+    /** @var helper_plugin_blogtng_tags */
+    var $taghelper;
 
     /**
      * Types we accept in our syntax
@@ -87,12 +92,6 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
             $conf['blog'] = array('default');
             
         }
-        
-        if (array_key_exists('nolist', $conf)) {
-            
-            $conf['nolist'] = false;
-            
-        }
 
         // higher default limit for tag cloud
         if($type == 'tagcloud' && !$conf['limit']) {
@@ -100,7 +99,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         }
 
         // default to listwrap for recent comments
-        if($type == 'recentcomments' && !isset($conf['listwrap'])){
+        if(($type == 'recentcomments' || $type == 'tagsearch') && !isset($conf['listwrap'])){
             $conf['listwrap'] = 1;
         }
 
@@ -108,6 +107,11 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         if($conf['nolistwrap']) {
             $conf['listwrap'] = 0;
             unset($conf['nolistwrap']);
+        }
+        // reversed nolist to listwrap syntax (backward compatibility)
+        if($conf['nolist']) {
+            $conf['listwrap'] = 0;
+            unset($conf['nolist']);
         }
 
         // merge with default config
@@ -122,8 +126,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
     function render($mode, &$renderer, $data) {
         if($mode != 'xhtml') return false;
 
-        $this->entryhelper =& plugin_load('helper', 'blogtng_entry');
-        $this->tools =& plugin_load('helper', 'blogtng_tools');
+        $this->loadHelpers();
 
         // set target if not set yet
         global $ID;
@@ -158,12 +161,10 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
                 break;
             case 'recentcomments':
                 // FIXME to cache or not to cache?
-                $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
                 $renderer->doc .= $this->commenthelper->xhtml_recentcomments($data['conf']);
                 break;
             case 'tagcloud':
-                $renderer->inf['cache'] = false; // never cache this
-                $this->taghelper =& plugin_load('helper', 'blogtng_tags');
+                $renderer->info['cache'] = false; // never cache this
                 $renderer->doc .= $this->taghelper->xhtml_tagcloud($data['conf']);
                 break;
             case 'tagsearch':
@@ -199,6 +200,13 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
             default;
                 continue;
         }
+    }
+
+    private function loadHelpers() {
+        $this->entryhelper =& plugin_load('helper', 'blogtng_entry');
+        $this->tools = & plugin_load('helper', 'blogtng_tools');
+        $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
+        $this->taghelper =& plugin_load('helper', 'blogtng_tags');
     }
 }
 // vim:ts=4:sw=4:et:

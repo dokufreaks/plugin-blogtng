@@ -15,7 +15,7 @@ require_once(DOKU_PLUGIN.'action.php');
 
 class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
 
-    /** @var helper_plugin_blogtng_entry $entryhelper */
+    /** @var helper_plugin_blogtng_entry */
     var $entryhelper;
     var $entry;
 
@@ -32,6 +32,7 @@ class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
      */
     function update_data(&$event, $params) {
         global $ID;
+        /** @var DokuWiki_Auth_Plugin $auth */
         global $auth;
 
         $data = $event->result; //newly rendered data is here.
@@ -39,37 +40,42 @@ class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
         $pid = md5($ID);
         $this->entryhelper->load_by_pid($pid);
 
-        // fetch author info
-        $login = $this->entryhelper->entry['login'];
-        if(!$login) $login = $data['current']['user'];
-        if(!$login) $login = $_SERVER['REMOTE_USER'];
+        //only refreshing for blog entries
+        if($this->entryhelper->entry['blog']) {
 
-        $userdata = false;
-        if($login){
-            if ($auth != null){
-                $userdata = $auth->getUserData($login);
+            // fetch author info
+            $login = $this->entryhelper->entry['login'];
+            if(!$login) $login = $data['current']['user'];
+            if(!$login) $login = $_SERVER['REMOTE_USER'];
+
+            $userdata = false;
+            if($login){
+                if ($auth != null){
+                    $userdata = $auth->getUserData($login);
+                }
             }
+
+
+            // fetch dates
+            $date_created = $data['current']['date']['created'];
+            $date_modified = $data['current']['date']['modified'];
+
+            // prepare entry ...
+            $entry = array(
+                'page' => $ID,
+                'title' => $data['current']['title'],
+                'image' => $data['current']['relation']['firstimage'],
+                'created' => $date_created,
+                'lastmod' => (!$date_modified) ? $date_created : $date_modified,
+                'login' => $login,
+                'author' => ($userdata) ? $userdata['name'] : $login,
+                'mail' => ($userdata) ? $userdata['mail'] : '',
+            );
+            $this->entryhelper->set($entry);
+
+            // ... and save it
+            $this->entryhelper->save();
         }
-
-        // fetch dates
-        $date_created = $data['current']['date']['created'];
-        $date_modified = $data['current']['date']['modified'];
-
-        // prepare entry ...
-        $entry = array(
-            'page' => $ID,
-            'title' => $data['current']['title'],
-            'image' => $data['current']['relation']['firstimage'],
-            'created' => $date_created,
-            'lastmod' => (!$date_modified) ? $date_created : $date_modified,
-            'login' => $login,
-            'author' => ($userdata) ? $userdata['name'] : $login,
-            'mail' => ($userdata) ? $userdata['mail'] : '',
-        );
-        $this->entryhelper->set($entry);
-
-        // ... and save it
-        $this->entryhelper->save();
 
         // unset old persistent tag data
         if (isset($data['persistent']['subject'])) {
@@ -83,9 +89,9 @@ class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
         // save blogtng tags to the metadata of the page
         $taghelper = $this->entryhelper->getTagHelper();
         if (isset($data['current']['subject'])) {
-            $event->result['current']['subject'] = array_unique(array_merge((array)$data['current']['subject'], $taghelper->tags));
+            $event->result['current']['subject'] = array_unique(array_merge((array)$data['current']['subject'], $taghelper->getTags()));
         } else {
-            $event->result['current']['subject'] = $taghelper->tags;
+            $event->result['current']['subject'] = $taghelper->getTags();
         }
     }
 

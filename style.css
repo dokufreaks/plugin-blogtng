@@ -7,13 +7,12 @@
 
 /*____________ edit mode ____________*/
 div.dokuwiki fieldset#blogtng__edit {
-    margin: 0 0 0.5em 0;
+    margin: 1.5em 0 0.5em 0;
     text-align: left;
-    width: 99%;
+    width: auto;
 }
 
 div.dokuwiki fieldset#blogtng__edit label {
-    float: left;
     margin-right: 0.2em;
 }
 
@@ -25,29 +24,34 @@ div.dokuwiki fieldset#blogtng__edit input#blogtng__tags {
     width: 300px;
     margin-right: 0.5em;
 }
-
-div.dokuwiki fieldset#blogtng__edit input#blogtng__date_YY {
-    width: 38px;
-    float: left;
+div.dokuwiki fieldset#blogtng__edit div.blogtng__tags_checkboxes {
+    display: inline-block;
+    margin: 0 0.5em;
 }
 
-div.dokuwiki fieldset#blogtng__edit input#blogtng__date_MM,
-div.dokuwiki fieldset#blogtng__edit input#blogtng__date_DD,
-div.dokuwiki fieldset#blogtng__edit input#blogtng__date_hh,
-div.dokuwiki fieldset#blogtng__edit input#blogtng__date_mm {
+div.dokuwiki fieldset#blogtng__edit label.btng__date_YY {
+    display: inline-block;
+    width: 38px;
+    margin-left: 1em;
+}
+div.dokuwiki fieldset#blogtng__edit label.btng__date_YY  input {
+    width: 38px;
+}
+
+div.dokuwiki fieldset#blogtng__edit label.btng__date {
+    display: inline-block;
     width: 24px;
-    float: left;
+}
+div.dokuwiki fieldset#blogtng__edit label.btng__date  input {
+    width: 24px;
 }
 
 /*____________ admin interface ____________*/
 /* search form*/
-div.dokuwiki div#blogtng__admin form#blogtng__search_form label {
-    font-weight: bold;
-}
-
 div.dokuwiki div#blogtng__admin form#blogtng__search_form fieldset {
     float: left;
     width: auto;
+    margin-bottom: 0.5em;
 }
 
 div.dokuwiki div#blogtng__admin form#blogtng__search_form label {
@@ -58,11 +62,12 @@ div.dokuwiki div#blogtng__admin form#blogtng__search_form label {
 div.dokuwiki div#blogtng__admin form#blogtng__comment_batch_edit_form {
     clear: both;
     display: block;
-    margin-bottom: 0.8em;
+    margin-bottom: 1.6em;
 }
 
 div.dokuwiki div#blogtng__admin table {
-  width: 100%;
+    width: 100%;
+    margin-bottom: 0.4em;
 }
 
 div.dokuwiki div#blogtng__admin table td {
@@ -86,25 +91,24 @@ div.dokuwiki div#blogtng__admin table td.entry_edit {
   width: 1em;
 }
 
-div.dokuwiki div#blogtng__admin table td span.comment_created,
-div.dokuwiki div#blogtng__admin table td span.comment_ip,
-div.dokuwiki div#blogtng__admin table td span.comment_name,
-div.dokuwiki div#blogtng__admin table td span.comment_web,
-div.dokuwiki div#blogtng__admin table td span.comment_status,
-div.dokuwiki div#blogtng__admin table td span.comment_source,
-div.dokuwiki div#blogtng__admin table td span.entry_created {
-  width: 12%;
-  padding-right: 10px;
-  border-right: 2px solid #ccc;
+div.dokuwiki div#blogtng__admin table td span {
+    padding: 0.2em 0.5em 0.2em 0.5em;
+    border-left: 2px solid #ccc;
+    line-height: 1.5em;
+}
+div.dokuwiki div#blogtng__admin table td span:first-child {
+    border-left-width: 0;
+    padding-left: 0;
 }
 
-div.dokuwiki div#blogtng__admin table td div.comment_text {
-  padding: 0.5em;
-  font-weight: bold;
+div.dokuwiki div#blogtng__admin table td span img {
+    width: 1.5em;
+    height: 1.5em;
+    text-align: center;
 }
 
 div.dokuwiki div#blogtng__admin table td div.comment_metadata {
-  padding: 0.5em;
+  padding: 0.7em 0 0 0;
 }
 
 div.dokuwiki div#blogtng__admin table td.entry_comments {
@@ -123,6 +127,7 @@ div.dokuwiki div#blogtng__admin table td.comment_source {
 /*____________ blog list ____________*/
 /* create new post form */
 div.dokuwiki div.blogtng_newform {
+    clear: both;
     margin: 1em;
 }
 
@@ -174,18 +179,33 @@ div.dokuwiki div.blogtng_comment {
     margin-bottom: 2em;
 }
 
+div.dokuwiki div.blogtng_comment p {
+    min-height: 45px;
+    margin-bottom: 0.8em;
+}
+
+div.dokuwiki div.blogtng__commentmetadatarow {
+    color: __text_alt__;
+}
 div.dokuwiki div.blogtng_comment img.avatar,
 div#insitu__comment img.avatar {
     padding: 0 0.5em 0.5em 0;
 }
 
+div.dokuwiki div.blogtng_comment div.vcard {
+    display: inline;
+}
+
 /*____________ comment form ____________*/
 div.dokuwiki form#blogtng__comment_edit_form fieldset {
-  float: left;
   width: auto;
-  padding-right: 1em;
-  text-align: right;
-  margin-bottom: 2em;
+  padding: 1em;
+  text-align: left;
+}
+
+div.dokuwiki form#blogtng__comment_edit_form label>span {
+    width: 15%;
+    display: inline-block;
 }
 
 div.dokuwiki form#blogtng__comment_edit_form input,
@@ -203,7 +223,6 @@ div.dokuwiki div.blogtng_comment_status_hidden {
 div.dokuwiki form#blogtng__comment_form,
 div.dokuwiki form#blogtng__comment_edit_form {
     padding: 2em;
-    /*width: 500px;*/
     display: block;
 }
 
@@ -253,7 +272,7 @@ div.dokuwiki ul.blogtng_tags {
 
 div.dokuwiki ul.blogtng_tags li {
     display: inline;
-    margin: 0px;
+    margin: 0;
 }
 
 div.dokuwiki ul.blogtng_tags li div.li {

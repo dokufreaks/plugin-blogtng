@@ -15,7 +15,9 @@ require_once(DOKU_PLUGIN.'action.php');
 
 class action_plugin_blogtng_feed extends DokuWiki_Action_Plugin{
 
+    /** @var helper_plugin_blogtng_entry */
     var $entryhelper = null;
+    /** @var helper_plugin_blogtng_tools */
     var $tools = null;
 
     var $defaultConf = array(
@@ -37,8 +39,8 @@ class action_plugin_blogtng_feed extends DokuWiki_Action_Plugin{
     /**
      * Parses blogtng specific feed parameters if the feed mode is 'blogtng'.
      *
-     * @param $event
-     * @param $param
+     * @param Doku_Event $event  event object by reference
+     * @param array      $param  empty array as passed to register_hook()
      * @return void
      */
     function handle_opts_postprocess(&$event, $param) {
@@ -56,8 +58,8 @@ class action_plugin_blogtng_feed extends DokuWiki_Action_Plugin{
      * Retrieves all blog posts as defined by blog and tags parameters, orders
      * and limits them as requested and returns them inside the event.
      *
-     * @param $event the event as triggered in feed.php
-     * @param $param empty
+     * @param Doku_Event   $event the event as triggered in feed.php
+     * @param array        $param empty
      * @return void
      */
     function handle_mode_unknown(&$event, $param) {
@@ -92,8 +94,8 @@ class action_plugin_blogtng_feed extends DokuWiki_Action_Plugin{
      * remove the first header from the text (otherwise it would be doubled)
      * and takes care of presentation as configured via template.
      *
-     * @param $event the event as triggered in feed.php
-     * @param $param empty
+     * @param Doku_Event $event the event as triggered in feed.php
+     * @param array      $param empty
      * @return void
      */
     function handle_item_add(&$event, $param) {
@@ -132,6 +134,11 @@ class action_plugin_blogtng_feed extends DokuWiki_Action_Plugin{
         // strip first heading and replace item title
         $event->data['item']->description = preg_replace('#[^\n]*?>\s*?' . preg_quote(hsc($firstheading), '#') . '\s*?<.*\n#', '', $output, 1);
         $event->data['item']->title = $ditem['entry']['title'];
+
+        //only supported by RSS 0.91 and RSS 2.0
+        if($ditem['entry']['commentstatus'] !== 'disabled') {
+            $event->data['item']->comments = $event->data['item']->link.'#the__comments';
+        }
     }
 
     /**

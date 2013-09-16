@@ -15,7 +15,9 @@ require_once(DOKU_PLUGIN.'action.php');
 
 class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
 
+    /** @var helper_plugin_blogtng_comments */
     var $commenthelper = null;
+    /** @var helper_plugin_blogtng_tools */
     var $tools = null;
 
     function action_plugin_blogtng_comments() {
@@ -33,6 +35,10 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
      * Takes care of handling all the post input from creating
      * comments and saves them. Also handles optin and unsubscribe
      * actions.
+     *
+     * @param Doku_Event $event  event object by reference
+     * @param array      $param  empty array as passed to register_hook()
+     * @return bool
      */
     function handle_act_preprocess(&$event, $param) {
         global $INFO, $ID;
@@ -56,7 +62,7 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
         $comment['name']   = (($commentname = $this->tools->getParam('comment/name'))) ? $commentname : $INFO['userinfo']['name'];
         $comment['mail']   = (($commentmail = $this->tools->getParam('comment/mail'))) ? $commentmail : $INFO['userinfo']['mail'];
         $comment['web']    = (($commentweb = $this->tools->getParam('comment/web'))) ? $commentweb : '';
-        $comment['text']   = isset($_REQUEST['wikitext']) ? $_REQUEST['wikitext'] : null; // FIXME clean text
+        $comment['text']   = isset($_REQUEST['wikitext']) ? cleanText($_REQUEST['wikitext']) : null;
         $comment['pid']    = isset($_REQUEST['pid'])      ? $_REQUEST['pid']      : null;
         $comment['page']   = isset($_REQUEST['id'])       ? $_REQUEST['id']       : null;
         $comment['subscribe'] = isset($_REQUEST['blogtng']['subscribe']) ? $_REQUEST['blogtng']['subscribe'] : null;
@@ -85,6 +91,7 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
             // check CAPTCHA if available (on submit only)
             $captchaok = true;
             if($BLOGTNG['comment_action'] == 'submit'){
+                /** @var helper_plugin_captcha $helper */
                 $helper = null;
                 if(@is_dir(DOKU_PLUGIN.'captcha')) $helper = plugin_load('helper','captcha');
                 if(!is_null($helper) && $helper->isEnabled()){
@@ -95,7 +102,7 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
             // return on errors
             if(!empty($BLOGTNG['comment_submit_errors']) || !$captchaok) {
                 $event->data = 'show';
-                $_SERVER['REQUEST_METHOD'] = 'get'; //FIXME hack to avoid redirect
+                $_SERVER['REQUEST_METHOD'] = 'get'; //hack to avoid redirect
                 return false;
             }
 
@@ -105,7 +112,7 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
                 act_redirect($comment['page'], 'show');
             } elseif($BLOGTNG['comment_action'] == 'preview') {
                 $event->data = 'show';
-                $_SERVER['REQUEST_METHOD'] = 'get'; //FIXME hack to avoid redirect
+                $_SERVER['REQUEST_METHOD'] = 'get'; // hack to avoid redirect
                 return false;
             }
         } else {

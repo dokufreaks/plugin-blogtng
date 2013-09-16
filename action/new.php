@@ -15,6 +15,7 @@ require_once(DOKU_PLUGIN.'action.php');
 
 class action_plugin_blogtng_new extends DokuWiki_Action_Plugin{
 
+    /** @var helper_plugin_blogtng_comments */
     var $commenthelper = null;
 
     function __construct() {
@@ -30,12 +31,17 @@ class action_plugin_blogtng_new extends DokuWiki_Action_Plugin{
      *
      * @author Andreas Gohr <gohr@cosmocode.de>
      * @author Gina Haeussge <osd@foosel.net>
+     *
+     * @param Doku_Event $event  event object by reference
+     * @param array      $param  empty array as passed to register_hook()
+     * @return bool
      */
     function handle_act_preprocess(&$event, $param) {
         global $TEXT;
         global $ID;
 
         if($event->data != 'btngnew') return true;
+        /** @var helper_plugin_blogtng_tools $tools */
         $tools =& plugin_load('helper', 'blogtng_tools');
         if(!$tools->getParam('new/title')){
             msg($this->getLang('err_notitle'),-1);
@@ -46,7 +52,15 @@ class action_plugin_blogtng_new extends DokuWiki_Action_Plugin{
         $event->preventDefault();
         $new = $tools->mkpostid($tools->getParam('new/format'),$tools->getParam('new/title'));
         if ($ID != $new) {
-            send_redirect(wl($new,array('do'=>'btngnew','btng[post][blog]'=>$tools->getParam('post/blog'), 'btng[new][format]'=>$tools->getParam('new/format'), 'btng[new][title]' => $tools->getParam('new/title')),true,'&'));
+            $urlparams = array(
+                'do' => 'btngnew',
+                'btng[post][blog]' => $tools->getParam('post/blog'),
+                'btng[post][tags]' => $tools->getParam('post/tags'),
+                'btng[post][commentstatus]' => $tools->getParam('post/commentstatus'),
+                'btng[new][format]' => $tools->getParam('new/format'),
+                'btng[new][title]' => $tools->getParam('new/title')
+            );
+            send_redirect(wl($new,$urlparams,true,'&'));
             return false; //never reached
         } else {
             $TEXT = $this->_prepare_template($new, $tools->getParam('new/title'));
@@ -61,7 +75,9 @@ class action_plugin_blogtng_new extends DokuWiki_Action_Plugin{
      * @author Gina Haeussge <osd@foosel.net>
      */
     function _prepare_template($id, $title) {
-        $tpl = io_readFile(DOKU_PLUGIN . 'blogtng/tpl/newentry.txt');
+        $tpl = pageTemplate($id);
+        if(!$tpl) $tpl = io_readFile(DOKU_PLUGIN . 'blogtng/tpl/newentry.txt');
+
         $replace = array(
             '@TITLE@' => $title,
         );

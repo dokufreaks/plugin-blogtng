@@ -5,113 +5,169 @@
  */
 // must be run within Dokuwiki
 if(!defined('DOKU_INC')) die();
-if(!defined('DOKU_TAB')) define('DOKU_TAB', "\t");
 
-if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
-
+/**
+ * Delivers tag related functions
+ */
 class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
 
-    var $sqlitehelper = null;
+    /** @var helper_plugin_blogtng_sqlite */
+    private $sqlitehelper = null;
 
-    var $tags = array();
+    private $tags = array();
 
-    var $pid = null;
+    private $pid = null;
 
     /**
      * Constructor, loads the sqlite helper plugin
      */
-    function helper_plugin_blogtng_tags() {
+    public function helper_plugin_blogtng_tags() {
         $this->sqlitehelper =& plugin_load('helper', 'blogtng_sqlite');
     }
 
     /**
-     * Count tags for specified pid
+     * Set pid of page
+     *
+     * @param string $pid
      */
-    function count($pid) {
-        $pid = trim($pid);
-        $query = 'SELECT COUNT(tag) AS tagcount FROM tags WHERE pid = ?';
+    public function setPid($pid) {
+        $this->pid = trim($pid);
+    }
 
-        $resid = $this->sqlitehelper->query($query, $pid);
-        if ($resid === false) {
-            msg('blogtng plugin: failed to load tags!', -1);
-        }
+    /**
+     * Set tags, filtered and unique
+     *
+     * @param array $tags
+     */
+    public function setTags($tags) {
+        $this->tags = array_unique(array_filter(array_map('trim', $tags)));
+    }
 
-        $tagcount = $this->sqlitehelper->res2row($resid, 0);
-        return $tagcount['tagcount'];
+    /**
+     * Return the tag array
+     *
+     * @return array tags
+     */
+    public function getTags() {
+        return $this->tags;
     }
 
     /**
      * Load tags for specified pid
      */
-    function load($pid) {
-        $this->pid = trim($pid);
-        $query = 'SELECT tag FROM tags WHERE pid = ? ORDER BY tag ASC';
+    public function load($pid) {
+        $this->setPid($pid);
 
-        $resid = $this->sqlitehelper->query($query, $this->pid);
+        if(!$this->sqlitehelper->ready()) {
+            msg('blogtng plugin: failed to load sqlite helper plugin!', -1);
+            $this->tags = array();
+            return false;
+        }
+        $query = 'SELECT tag FROM tags WHERE pid = ? ORDER BY tag ASC';
+        $resid = $this->sqlitehelper->getDB()->query($query, $this->pid);
         if ($resid === false) {
             msg('blogtng plugin: failed to load tags!', -1);
             $this->tags = array();
+            return false;
         }
-        if (sqlite_num_rows($resid) == 0) {
+        if ($this->sqlitehelper->getDB()->res2count($resid) == 0) {
             $this->tags = array();
+            return true;
         }
 
-        $tags_from_db = $this->sqlitehelper->res2arr($resid);
+        $tags_from_db = $this->sqlitehelper->getDB()->res2arr($resid);
         $tags = array();
         foreach ($tags_from_db as $tag_from_db) {
             array_push($tags, $tag_from_db['tag']);
         }
         $this->tags = $tags;
+        return true;
+    }
+
+
+    /**
+     * Count tags for specified pid
+     */
+    public function count($pid) {
+        if(!$this->sqlitehelper->ready()) {
+            msg('BlogTNG plugin: failed to load tags. (sqlite helper plugin not available)', -1);
+            return 0;
+        }
+
+        $pid = trim($pid);
+        $query = 'SELECT COUNT(tag) AS tagcount FROM tags WHERE pid = ?';
+
+        $resid = $this->sqlitehelper->getDB()->query($query, $pid);
+        if ($resid === false) {
+            msg('BlogTNG plugin: failed to load tags!', -1);
+            return 0;
+        }
+
+        $tagcount = $this->sqlitehelper->getDB()->res2row($resid, 0);
+        return (int)$tagcount['tagcount'];
     }
 
     /**
      * Load tags for a specified blog
      */
-    function load_by_blog($blogs) {
-        $query = 'SELECT DISTINCT tag, A.pid as pid FROM tags A LEFT JOIN entries B ON B.blog IN ("' . implode('","', $blogs) . '")';
-        $resid = $this->sqlitehelper->query($query);
+    public function load_by_blog($blogs) {
+        if(!$this->sqlitehelper->ready()) return false;
+
+        $query = 'SELECT tags.tag AS tag, tags.pid AS pid FROM tags, entries WHERE tags.pid = entries.pid AND entries.blog IN ("' . implode('","', $blogs) . '")';
+
+        $resid = $this->sqlitehelper->getDB()->query($query);
         if($resid) {
-            return $this->sqlitehelper->res2arr($resid);
+            return $this->sqlitehelper->getDB()->res2arr($resid);
         }
+        return false;
     }
 
     /**
      * Save tags
      */
-    function save() {
-        //FIXME $sqlite undefined
+    public function save() {
+        if (!$this->sqlitehelper->ready()) return;
+
         $query = 'BEGIN TRANSACTION';
-        if (!$this->sqlitehelper->query($query)) {
-            $sqlite->query('ROLLBACK TRANSACTION');
+        if (!$this->sqlitehelper->getDB()->query($query)) {
+            $this->sqlitehelper->getDB()->query('ROLLBACK TRANSACTION');
             return;
         }
         $query = 'DELETE FROM tags WHERE pid = ?';
-        if (!$this->sqlitehelper->query($query, $this->pid)) {
-            $sqlite->query('ROLLBACK TRANSACTION');
+        if (!$this->sqlitehelper->getDB()->query($query, $this->pid)) {
+            $this->sqlitehelper->getDB()->query('ROLLBACK TRANSACTION');
             return;
         }
         foreach ($this->tags as $tag) {
             $query = 'INSERT INTO tags (pid, tag) VALUES (?, ?)';
-            if (!$this->sqlitehelper->query($query, $this->pid, $tag)) {
-                $sqlite->query('ROLLBACK TRANSACTION');
+            if (!$this->sqlitehelper->getDB()->query($query, $this->pid, $tag)) {
+                $this->sqlitehelper->getDB()->query('ROLLBACK TRANSACTION');
                 return;
             }
         }
         $query = 'END TRANSACTION';
-        if (!$this->sqlitehelper->query($query)) {
-            $sqlite->query('ROLLBACK TRANSACTION');
+        if (!$this->sqlitehelper->getDB()->query($query)) {
+            $this->sqlitehelper->getDB()->query('ROLLBACK TRANSACTION');
             return;
         }
     }
 
-    function set($tags) {
-        $this->tags = array_unique(array_filter(array_map('trim', $tags)));
-    }
-
-    function join_tag_query($tagquery) {
+    /**
+     * Parses query string to a where clause for use in a query
+     * in the query string:
+     *  - tags are space separated
+     *  - prefix + is AND
+     *  - prefix - is NOT
+     *  - no prefix is OR
+     *
+     * @param string $tagquery query string to be parsed
+     * @return null|string
+     */
+    public function parse_tag_query($tagquery) {
         if (!$tagquery) {
             return null;
         }
+        if(!$this->sqlitehelper->ready()) return null;
 
         $tags = array_map('trim', explode(' ', $tagquery));
         $tag_clauses = array(
@@ -121,11 +177,20 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
         );
         foreach ($tags as $tag) {
             if ($tag{0} == '+') {
-                array_push($tag_clauses['AND'], 'tag = \'' . sqlite_escape_string(substr($tag, 1)) . '\'');
+                array_push(
+                    $tag_clauses['AND'],
+                    'tag = '. $this->sqlitehelper->getDB()->quote_string(substr($tag, 1))
+                );
             } else if ($tag{0} == '-') {
-                array_push($tag_clauses['NOT'], 'tag != \'' . sqlite_escape_string(substr($tag, 1)) . '\'');
+                array_push(
+                    $tag_clauses['NOT'],
+                    'tag != '.$this->sqlitehelper->getDB()->quote_string(substr($tag, 1))
+                );
             } else {
-                array_push($tag_clauses['OR'], 'tag = \'' . sqlite_escape_string($tag) . '\'');
+                array_push(
+                    $tag_clauses['OR'],
+                    'tag = '.$this->sqlitehelper->getDB()->quote_string($tag)
+                );
             }
         }
         $tag_clauses = array_map('array_unique', $tag_clauses);
@@ -143,17 +208,27 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
         return $where;
     }
 
-    function tpl_tags($target){
-        $count = count($this->tags);
+    /**
+     * Print a list of tags
+     *
+     * @param string $target - tag links will point to this page, tag is passed as parameter
+     */
+    public function tpl_tags($target){
         $prepared = array();
         foreach ($this->tags as $tag) {
-            array_push($prepared, DOKU_TAB.'<li><div class="li"><a href="'.wl($target,array('btng[post][tags]'=>$tag)).'" class="tag">'.hsc($tag).'</a></div></li>');
+            array_push($prepared, DOKU_TAB.'<li><div class="li">'.$this->_format_tag_link($tag, $target).'</div></li>');
         }
         $html = '<ul class="blogtng_tags">'.DOKU_LF.join(DOKU_LF, $prepared).'</ul>'.DOKU_LF;
         echo $html;
     }
 
-    function tpl_tagstring($target, $separator) {
+    /**
+     * Print the joined tags as a string
+     *
+     * @param string $target - tag links will point to this page
+     * @param string $separator
+     */
+    public function tpl_tagstring($target, $separator) {
         echo join($separator, array_map(array($this, '_format_tag_link'), $this->tags, array_fill(0, count($this->tags), $target)));
     }
 
@@ -162,9 +237,9 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
      *
      * @author Michael Klier <chi@chimeric.de>
      */
-    function xhtml_tagcloud($conf) {
+    public function xhtml_tagcloud($conf) {
         $tags = $this->load_by_blog($conf['blog']);
-        if(!$tags) return;
+        if(!$tags) return '';
         $cloud = array();
         foreach($tags as $tag) {
             if(!isset($cloud[$tag['tag']])) {
@@ -192,7 +267,7 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
      *
      * http://www.splitbrain.org/blog/2007-01/03-tagging_splitbrain
      */
-    function _cloud_weight(&$tags,$min,$max,$levels){
+    private function _cloud_weight(&$tags,$min,$max,$levels){
         // calculate tresholds
         $tresholds = array();
         $tresholds[0]= $min; // lowest treshold should always be min
@@ -212,7 +287,14 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
         }
     }
 
-    function _format_tag_link($tag, $target) {
+    /**
+     * Create html of url to target page for given tag
+     *
+     * @param string $tag
+     * @param string $target pageid
+     * @return string html of url
+     */
+    private function _format_tag_link($tag, $target) {
         return '<a href="'.wl($target,array('btng[post][tags]'=>$tag)).'" class="tag">'.hsc($tag).'</a>';
     }
 }

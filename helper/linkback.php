@@ -21,12 +21,17 @@ class helper_plugin_blogtng_linkback extends DokuWiki_Plugin {
 
     private function getPost() {
         global $ID;
+        /** @var helper_plugin_blogtng_entry $ehelper */
         $ehelper = plugin_load('helper', 'blogtng_entry');
         $ehelper->load_by_pid(md5($ID));
         return $ehelper->entry;
     }
 
     public function saveLinkback($type, $title, $sourceUri, $excerpt, $id) {
+        /** @var helper_plugin_blogtng_sqlite $sqlitehelper */
+        $sqlitehelper = plugin_load('helper', 'blogtng_sqlite');
+        if (!$sqlitehelper->ready()) return false;
+
         $comment = array('source' => $type,
                          'name'   => $title,
                          'web'    => $sourceUri,
@@ -37,15 +42,14 @@ class helper_plugin_blogtng_linkback extends DokuWiki_Plugin {
                          'status' => 'hidden',
                          'ip' => clientIP(true));
 
-        $sqlitehelper = plugin_load('helper', 'blogtng_sqlite');
         $query = 'SELECT web, source FROM comments WHERE pid = ?';
 
-        $resid = $sqlitehelper->query($query, $comment['pid']);
+        $resid = $sqlitehelper->getDB()->query($query, $comment['pid']);
         if ($resid === false) {
             return false;
         }
 
-        $comments = $sqlitehelper->res2arr($resid);
+        $comments = $sqlitehelper->getDB()->res2arr($resid);
 
         foreach($comments as $c) {
             if ($c['web'] === $comment['web'] && $c['source'] === $comment['source']) {
@@ -53,6 +57,7 @@ class helper_plugin_blogtng_linkback extends DokuWiki_Plugin {
             }
         }
 
+        /** @var helper_plugin_blogtng_comments $chelper */
         $chelper = plugin_load('helper', 'blogtng_comments');
         $chelper->save($comment);
         return true;

@@ -33,10 +33,14 @@ define('PINGBACK_ERROR_NO_UPSTREAM', 50);
 
 class PingbackServer extends IXR_Server {
 
+    /** @var  helper_plugin_blogtng_linkback */
+    var $tools;
+
     /**
      * Register service and construct helper
      */
     function PingbackServer() {
+        /** @var helper_plugin_blogtng_linkback tools */
         $this->tools =& plugin_load('helper', 'blogtng_linkback');
         parent::__construct(array('pingback.ping' => 'this:ping'));
     }
