@@ -121,8 +121,8 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
         $query = 'SELECT tags.tag AS tag, tags.pid AS pid
                     FROM tags, entries
                    WHERE tags.pid = entries.pid
-                     AND CHECKACL(page) >= '.AUTH_READ.'
-                     AND entries.blog IN ("' . implode('","', $blogs) . '")';
+                     AND entries.blog IN ("' . implode('","', $blogs) . '")
+                     AND HASREADACCESS(page)';
 
         $resid = $this->sqlitehelper->getDB()->query($query);
         if($resid) {

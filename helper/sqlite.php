@@ -40,20 +40,22 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
                 $this->db = null;
                 return false;
             }
-            $this->db->create_function('CHECKACL', array($this, '_checkACL'), 1);
+            $this->db->create_function('HASREADACCESS', array($this, '_hasReadAccess'), 1);
         }
         return $this->db;
     }
 
     /**
-     * This checks the permissions for the current user
+     * This checks the permissions for the current user and whether the page is hidden
      *
      * This function is registered as a SQL function named CHECKACL
      *
      * @param  string $pageid  page ID (needs to be resolved and cleaned)
      * @return int             permission level
      */
-    public function _checkACL($pageid) {
-        return auth_quickaclcheck($pageid);
+    public function _hasReadAccess($pageid) {
+        if(isHiddenPage($pageid)) return false;
+
+        return auth_quickaclcheck($pageid) >= AUTH_READ;
     }
 }

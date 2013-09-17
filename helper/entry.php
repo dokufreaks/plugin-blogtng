@@ -277,7 +277,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $query = 'SELECT A.pid, A.page
                     FROM entries A'.$tag_table.'
                    WHERE '.$blog_query.$tag_query.'
-                   AND CHECKACL(page) >= '.AUTH_READ;
+                   AND HASREADACCESS(page)';
         $resid = $this->sqlitehelper->getDB()->query($query);
         if (!$resid) return '';
         $count = $this->sqlitehelper->getDB()->res2count($resid);
@@ -560,7 +560,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
                      AND A.pid != '$pid'
                      AND A.pid = B.pid
                      AND B.tag IN ($tags)
-                     AND CHECKACL(page) >= ".AUTH_READ."
+                     AND HASREADACCESS(page)
                 GROUP BY B.pid HAVING cnt > 0
                 ORDER BY cnt DESC, created DESC
                    LIMIT ".(int) $num;
@@ -813,7 +813,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
                          AND A.pid != B.pid
                          AND A.created ' . (($type == 'prev') ? '<' : '>') . ' B.created
                          AND A.blog = B.blog
-                         AND CHECKACL(A.page) >= ".AUTH_READ."
+                         AND HASREADACCESS(A.page)
                     ORDER BY A.created ' . (($type == 'prev') ? 'DESC' : 'ASC') . '
                        LIMIT 1';
             $res = $this->sqlitehelper->getDB()->query($query, $pid);
