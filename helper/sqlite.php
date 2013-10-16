@@ -31,7 +31,7 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
      */
     public function getDB() {
         if($this->db === null) {
-            $this->db =& plugin_load('helper', 'sqlite');
+            $this->db = plugin_load('helper', 'sqlite');
             if($this->db === null) {
                 msg('The BlogTNG plugin needs the <a href="https://www.dokuwiki.org/plugin:sqlite">sqlite plugin</a>. Please install and enable this plugin.', -1);
                 return false;

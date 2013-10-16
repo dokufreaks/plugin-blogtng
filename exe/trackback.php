@@ -29,7 +29,7 @@ class TrackbackServer {
      * Construct helper and process request.
      */
     function TrackbackServer() {
-        $this->tools =& plugin_load('helper', 'blogtng_linkback');
+        $this->tools = plugin_load('helper', 'blogtng_linkback');
         $this->_process();
     }
 

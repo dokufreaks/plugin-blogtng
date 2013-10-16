@@ -22,7 +22,7 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
      * Constructor, loads the sqlite helper plugin
      */
     public function helper_plugin_blogtng_tags() {
-        $this->sqlitehelper =& plugin_load('helper', 'blogtng_sqlite');
+        $this->sqlitehelper = plugin_load('helper', 'blogtng_sqlite');
     }
 
     /**

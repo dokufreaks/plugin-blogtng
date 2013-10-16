@@ -21,7 +21,7 @@ class syntax_plugin_blogtng_commentreply extends DokuWiki_Syntax_Plugin {
         $this->Lexer->addSpecialPattern('@#\d+:', $mode, 'plugin_blogtng_commentreply');
     }
 
-    function handle($match, $state, $pos, &$handler) {
+    function handle($match, $state, $pos, Doku_Handler &$handler) {
         $cid = substr($match, 2, -1);
         return array($cid);
     }
@@ -29,11 +29,11 @@ class syntax_plugin_blogtng_commentreply extends DokuWiki_Syntax_Plugin {
     /**
      * Renders a simple anchor in XHTML code for the readmore jump point.
      */
-    function render($mode, &$renderer, $indata) {
+    function render($mode, Doku_Renderer &$renderer, $indata) {
         if ($mode == 'blogtng_comment') {
             list($cid) = $indata;
             /** @var helper_plugin_blogtng_comments $commenthelper */
-            $commenthelper =& plugin_load('helper', 'blogtng_comments');
+            $commenthelper = plugin_load('helper', 'blogtng_comments');
             $comment = $commenthelper->comment_by_cid($cid);
             if (!is_object($comment)) return false; // comment does not exist, cid is invalid
 

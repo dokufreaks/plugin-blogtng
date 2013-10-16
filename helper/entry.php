@@ -37,7 +37,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * @author Michael Klier <chi@chimeric.de>
      */
     public function helper_plugin_blogtng_entry() {
-        $this->sqlitehelper =& plugin_load('helper', 'blogtng_sqlite');
+        $this->sqlitehelper = plugin_load('helper', 'blogtng_sqlite');
         $this->entry = $this->prototype();
     }
 
@@ -136,13 +136,13 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
         // delete comment
         if(!$this->commenthelper) {
-            $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
+            $this->commenthelper = plugin_load('helper', 'blogtng_comments');
         }
         $this->commenthelper->delete_all($this->entry['pid']);
 
         // delete tags
         if(!$this->taghelper) {
-            $this->taghelper =& plugin_load('helper', 'blogtng_tags');
+            $this->taghelper = plugin_load('helper', 'blogtng_tags');
         }
         $this->taghelper->setPid($this->entry['pid']);
         $this->taghelper->setTags(array()); //empty tag set
@@ -364,7 +364,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
         // allowed to create?
         if(!$this->toolshelper) {
-            $this->toolshelper =& plugin_load('helper', 'blogtng_tools');
+            $this->toolshelper = plugin_load('helper', 'blogtng_tools');
         }
         $new = $this->toolshelper->mkpostid($conf['format'],'dummy');
         if(auth_quickaclcheck($new) < AUTH_CREATE) return '';
@@ -498,7 +498,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     public function tpl_comments($name,$types=null) {
         if ($this->entry['commentstatus'] == 'disabled') return;
         if(!$this->commenthelper) {
-            $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
+            $this->commenthelper = plugin_load('helper', 'blogtng_comments');
         }
         $this->commenthelper->setPid($this->entry['pid']);
         $this->commenthelper->tpl_comments($name,$types);
@@ -511,7 +511,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      */
     public function tpl_commentcount($fmt_zero_comments='', $fmt_one_comment='', $fmt_comments='',$types=null) {
         if(!$this->commenthelper) {
-            $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
+            $this->commenthelper = plugin_load('helper', 'blogtng_comments');
         }
         $this->commenthelper->setPid($this->entry['pid']);
         $this->commenthelper->tpl_count($fmt_zero_comments, $fmt_one_comment, $fmt_comments);
@@ -583,7 +583,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     public function tpl_commentform() {
         if ($this->entry['commentstatus'] == 'closed' || $this->entry['commentstatus'] == 'disabled') return;
         if(!$this->commenthelper) {
-            $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
+            $this->commenthelper = plugin_load('helper', 'blogtng_comments');
         }
         $this->commenthelper->tpl_form($this->entry['page'], $this->entry['pid'], $this->entry['blog']);
     }
@@ -597,7 +597,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      */
     public function tpl_tags($target) {
         if (!$this->taghelper) {
-            $this->taghelper =& plugin_load('helper', 'blogtng_tags');
+            $this->taghelper = plugin_load('helper', 'blogtng_tags');
         }
         $this->taghelper->load($this->entry['pid']);
         $this->taghelper->tpl_tags($target);
@@ -605,7 +605,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
     public function tpl_tagstring($target, $separator=', ') {
         if (!$this->taghelper) {
-            $this->taghelper =& plugin_load('helper', 'blogtng_tags');
+            $this->taghelper = plugin_load('helper', 'blogtng_tags');
         }
         $this->taghelper->load($this->entry['pid']);
         $this->taghelper->tpl_tagstring($target, $separator);
@@ -781,7 +781,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
     public function has_tags() {
         if (!$this->taghelper) {
-            $this->taghelper =& plugin_load('helper', 'blogtng_tags');
+            $this->taghelper = plugin_load('helper', 'blogtng_tags');
         }
         return ($this->taghelper->count($this->entry['pid']) > 0);
     }
@@ -826,7 +826,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      */
     public function &getCommentHelper(){
         if(!$this->commenthelper) {
-            $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
+            $this->commenthelper = plugin_load('helper', 'blogtng_comments');
             $this->commenthelper->setPid($this->entry['pid']);
         }
         return $this->commenthelper;
@@ -838,7 +838,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      */
     public function &getTagHelper(){
         if (!$this->taghelper) {
-            $this->taghelper =& plugin_load('helper', 'blogtng_tags');
+            $this->taghelper = plugin_load('helper', 'blogtng_tags');
             $this->taghelper->load($this->entry['pid']);
         }
         return $this->taghelper;
@@ -1036,7 +1036,9 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     private function _finish_convert(&$ins, $open_sections) {
         if ($ins[0][0] != 'document_start')
             @array_unshift($ins, array('document_start', array(), 0));
-        $c = array_pop(array_keys($ins)); // we can't use count here, instructions are not even indexed
+        // we can't use count here, instructions are not even indexed
+        $keys = array_keys($ins);
+        $c = array_pop($keys);
         if ($ins[$c][0] != 'document_end')
             $ins[] = array('document_end', array(), 0);
     }

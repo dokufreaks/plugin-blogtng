@@ -21,11 +21,11 @@ class action_plugin_blogtng_entry extends DokuWiki_Action_Plugin{
     var $commenthelper = null;
 
     function action_plugin_blogtng_entry() {
-        $this->entryhelper =& plugin_load('helper', 'blogtng_entry');
-        $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
+        $this->entryhelper = plugin_load('helper', 'blogtng_entry');
+        $this->commenthelper = plugin_load('helper', 'blogtng_comments');
     }
 
-    function register(&$controller) {
+    function register(Doku_Event_Handler $controller) {
         $controller->register_hook('TPL_ACT_RENDER', 'BEFORE', $this, 'handle_tpl_act_render', array());
         $controller->register_hook('TPL_METAHEADER_OUTPUT', 'BEFORE', $this, 'handle_metaheader_output', array ());
     }

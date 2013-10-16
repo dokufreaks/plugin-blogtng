@@ -24,7 +24,7 @@ class syntax_plugin_blogtng_readmore extends DokuWiki_Syntax_Plugin {
         $this->Lexer->addSpecialPattern('~~READMORE~~', $mode, 'plugin_blogtng_readmore');
     }
 
-    function handle($match, $state, $pos, &$handler) {
+    function handle($match, $state, $pos, Doku_Handler &$handler) {
         // we only return an empty array here, the only purpose is to place
         // an instruction in the instruction list
         return array();
@@ -33,7 +33,7 @@ class syntax_plugin_blogtng_readmore extends DokuWiki_Syntax_Plugin {
     /**
      * Renders a simple anchor in XHTML code for the readmore jump point.
      */
-    function render($mode, &$renderer, $indata) {
+    function render($mode, Doku_Renderer &$renderer, $indata) {
         if ($mode == 'xhtml') {
             global $ID;
             // render a simple anchor

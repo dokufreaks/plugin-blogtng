@@ -19,10 +19,10 @@ class action_plugin_blogtng_new extends DokuWiki_Action_Plugin{
     var $commenthelper = null;
 
     function __construct() {
-        $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
+        $this->commenthelper = plugin_load('helper', 'blogtng_comments');
     }
 
-    function register(&$controller) {
+    function register(Doku_Event_Handler $controller) {
         $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handle_act_preprocess', array());
     }
 
@@ -42,7 +42,7 @@ class action_plugin_blogtng_new extends DokuWiki_Action_Plugin{
 
         if($event->data != 'btngnew') return true;
         /** @var helper_plugin_blogtng_tools $tools */
-        $tools =& plugin_load('helper', 'blogtng_tools');
+        $tools = plugin_load('helper', 'blogtng_tools');
         if(!$tools->getParam('new/title')){
             msg($this->getLang('err_notitle'),-1);
             $event->data = 'show';

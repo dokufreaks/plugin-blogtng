@@ -23,7 +23,7 @@ class syntax_plugin_blogtng_header extends DokuWiki_Syntax_Plugin {
         return 50;
     }
 
-    function handle($match, $state, $pos, &$handler) {
+    function handle($match, $state, $pos, Doku_Handler &$handler) {
         // this is a syntax plugin that doesn't offer any syntax, so there's nothing to handle by the parser
     }
 
@@ -34,15 +34,16 @@ class syntax_plugin_blogtng_header extends DokuWiki_Syntax_Plugin {
      * added an href parameter to the anchor tag linking to the wikilink.
      *
      * @param   $mode     string              output format being rendered
-     * @param   $renderer Doku_Renderer_xhtml reference to the current renderer object
+     * @param   $renderer Doku_Renderer reference to the current renderer object
      * @param   $indata   array               data created by handler()
      * @return  boolean                       rendered correctly?
      */
-    function render($mode, &$renderer, $indata) {
+    function render($mode, Doku_Renderer &$renderer, $indata) {
         global $ID;
         list($text, $level) = $indata;
 
         if ($mode == 'xhtml') {
+            /** @var $renderer Doku_Renderer_xhtml */
             $hid = $renderer->_headerToLink($text,true);
 
             //only add items within configured levels
