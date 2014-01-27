@@ -106,7 +106,7 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
                     $hh = strftime('%H', $created);
                     $mm = strftime('%M', $created);
                 } else {
-                    $time = mktime();
+                    $time = time();
                     $YY = strftime('%Y', $time);
                     $MM = strftime('%m', $time);
                     $DD = strftime('%d', $time);
