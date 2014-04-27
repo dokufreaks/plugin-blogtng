@@ -29,6 +29,4 @@ $lang['comment_preview']   = 'Vorschau';
 $lang['comment_submit']    = 'Kommentieren';
 $lang['comment_subscribe'] = 'Neue Kommentare abbonieren';
 
-
 $lang['err_notitle'] = 'Kein Beitragstitel angegeben!';
-
