@@ -122,7 +122,7 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
                     FROM tags, entries
                    WHERE tags.pid = entries.pid
                      AND entries.blog IN ("' . implode('","', $blogs) . '")
-                     AND HASREADACCESS(page)';
+                     AND GETACCESSLEVEL(page) >= '.AUTH_READ;
 
         $resid = $this->sqlitehelper->getDB()->query($query);
         if($resid) {

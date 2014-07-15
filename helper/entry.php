@@ -277,7 +277,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $query = 'SELECT A.pid, A.page
                     FROM entries A'.$tag_table.'
                    WHERE '.$blog_query.$tag_query.'
-                   AND HASREADACCESS(page)';
+                   AND GETACCESSLEVEL(page) >= '.AUTH_READ;
         $resid = $this->sqlitehelper->getDB()->query($query);
         if (!$resid) return '';
         $count = $this->sqlitehelper->getDB()->res2count($resid);
@@ -560,7 +560,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
                      AND A.pid != '$pid'
                      AND A.pid = B.pid
                      AND B.tag IN ($tags)
-                     AND HASREADACCESS(page)
+                     AND GETACCESSLEVEL(page) >= ".AUTH_READ."
                 GROUP BY B.pid HAVING cnt > 0
                 ORDER BY cnt DESC, created DESC
                    LIMIT ".(int) $num;
@@ -707,7 +707,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
                          lastmod, login, author, mail, commentstatus
                     FROM entries A'.$tag_table.'
                    WHERE '.$blog_query.$tag_query.'
-                     AND CHECKACL(page) >= '.AUTH_READ.'
+                     AND GETACCESSLEVEL(page) >= '.AUTH_READ.'
                 GROUP BY A.pid
                 ORDER BY '.$sortkey.' '.$conf['sortorder'].
                  ' LIMIT '.$conf['limit'].
@@ -813,7 +813,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
                          AND A.pid != B.pid
                          AND A.created ' . (($type == 'prev') ? '<' : '>') . ' B.created
                          AND A.blog = B.blog
-                         AND HASREADACCESS(A.page)
+                         AND GETACCESSLEVEL(A.page) >= '.AUTH_READ.'
                     ORDER BY A.created ' . (($type == 'prev') ? 'DESC' : 'ASC') . '
                        LIMIT 1';
             $res = $this->sqlitehelper->getDB()->query($query, $pid);
