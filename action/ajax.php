@@ -7,20 +7,18 @@
 // must be run within Dokuwiki
 if (!defined('DOKU_INC')) die();
 
-if (!defined('DOKU_LF')) define('DOKU_LF', "\n");
-if (!defined('DOKU_TAB')) define('DOKU_TAB', "\t");
-if (!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
-
 require_once(DOKU_PLUGIN.'action.php');
 
+/**
+ * Class action_plugin_blogtng_ajax
+ */
 class action_plugin_blogtng_ajax extends DokuWiki_Action_Plugin{
 
-    var $commenthelper = null;
-
-    function action_plugin_blogtng_comments() {
-        $this->commenthelper = plugin_load('helper', 'blogtng_comments');
-    }
-
+    /**
+     * Registers a callback function for a given event
+     *
+     * @param Doku_Event_Handler $controller
+     */
     function register(Doku_Event_Handler $controller) {
         $controller->register_hook('AJAX_CALL_UNKNOWN', 'BEFORE', $this, 'handle_ajax_call', array());
     }
@@ -29,7 +27,7 @@ class action_plugin_blogtng_ajax extends DokuWiki_Action_Plugin{
      * @param Doku_Event $event  event object by reference
      * @param array      $param  empty array as passed to register_hook()
      */
-    function handle_ajax_call(&$event, $param) {
+    function handle_ajax_call(Doku_Event $event, $param) {
         /** @var DokuWiki_Auth_Plugin $auth */
         global $auth;
 
