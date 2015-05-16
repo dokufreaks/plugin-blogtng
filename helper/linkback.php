@@ -15,7 +15,7 @@ class helper_plugin_blogtng_linkback extends DokuWiki_Plugin {
         $entry = $this->getPost();
         return !plugin_isdisabled('blogtng') &&
                $this->getConf('receive_linkbacks') &&
-               $entry['blog'] !== '' &&
+               $entry['blog'] !== '' && $entry['blog'] !== null &&
                $entry['commentstatus'] === 'enabled';
     }
 

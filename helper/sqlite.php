@@ -43,5 +43,4 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
         }
         return $this->db;
     }
-
 }
