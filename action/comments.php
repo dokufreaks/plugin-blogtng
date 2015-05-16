@@ -7,12 +7,9 @@
 // must be run within Dokuwiki
 if (!defined('DOKU_INC')) die();
 
-if (!defined('DOKU_LF')) define('DOKU_LF', "\n");
-if (!defined('DOKU_TAB')) define('DOKU_TAB', "\t");
-if (!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
-
-require_once(DOKU_PLUGIN.'action.php');
-
+/**
+ * Class action_plugin_blogtng_comments
+ */
 class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
 
     /** @var helper_plugin_blogtng_comments */
@@ -20,11 +17,20 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
     /** @var helper_plugin_blogtng_tools */
     var $tools = null;
 
-    function action_plugin_blogtng_comments() {
+    /**
+     * Constructor
+     */
+    function __construct() {
         $this->commenthelper = plugin_load('helper', 'blogtng_comments');
         $this->tools = plugin_load('helper', 'blogtng_tools');
+
     }
 
+    /**
+     * Registers a callback function for a given event
+     *
+     * @param Doku_Event_Handler $controller
+     */
     function register(Doku_Event_Handler $controller) {
         $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handle_act_preprocess', array());
     }
@@ -40,7 +46,7 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
      * @param array      $param  empty array as passed to register_hook()
      * @return bool
      */
-    function handle_act_preprocess(&$event, $param) {
+    function handle_act_preprocess(Doku_Event $event, $param) {
         global $INFO, $ID;
 
         // optin
@@ -67,7 +73,7 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
         $comment['page']   = isset($_REQUEST['id'])       ? $_REQUEST['id']       : null;
         $comment['subscribe'] = isset($_REQUEST['blogtng']['subscribe']) ? $_REQUEST['blogtng']['subscribe'] : null;
         $comment['ip'] = clientIP(true);
-        
+
         //add "http(s)://" to website
         if (!preg_match('/^http/',$comment['web']) && $comment['web'] != '') {
             $comment['web'] = 'http://'.$comment['web'];
