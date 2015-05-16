@@ -20,6 +20,9 @@ require_once (DOKU_INC . 'inc/events.php');
 require_once (DOKU_INC . 'inc/pluginutils.php');
 require_once (DOKU_INC . 'inc/HTTPClient.php');
 
+/**
+ * Class TrackbackServer
+ */
 class TrackbackServer {
 
     /** @var  helper_plugin_blogtng_linkback */
@@ -28,7 +31,7 @@ class TrackbackServer {
     /**
      * Construct helper and process request.
      */
-    function TrackbackServer() {
+    function __construct() {
         $this->tools = plugin_load('helper', 'blogtng_linkback');
         $this->_process();
     }
@@ -87,6 +90,8 @@ class TrackbackServer {
 
     /**
      * Print trackback error xml.
+     *
+     * @param string $reason
      */
     function _printTrackbackError($reason = '') {
         echo '<?xml version="1.0" encoding="iso-8859-1"?>' . NL .

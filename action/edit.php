@@ -137,8 +137,11 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
 
     /**
      * Save the blog related meta data of a page to the sqlite DB
+     *
+     * @param Doku_Event $event
+     * @param $param
      */
-    function handle_action_act_preprocess(&$event, $param) {
+    function handle_action_act_preprocess(Doku_Event $event, $param) {
         list($type) = $param;
         switch($type) {
             case 'before':

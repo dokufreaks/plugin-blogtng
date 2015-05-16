@@ -7,21 +7,26 @@
 // must be run within Dokuwiki
 if (!defined('DOKU_INC')) die();
 
-if (!defined('DOKU_LF')) define('DOKU_LF', "\n");
-if (!defined('DOKU_TAB')) define('DOKU_TAB', "\t");
-if (!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
-
-require_once(DOKU_PLUGIN.'action.php');
-
+/**
+ * Class action_plugin_blogtng_new
+ */
 class action_plugin_blogtng_new extends DokuWiki_Action_Plugin{
 
     /** @var helper_plugin_blogtng_comments */
     var $commenthelper = null;
 
+    /**
+     * Constructor
+     */
     function __construct() {
         $this->commenthelper = plugin_load('helper', 'blogtng_comments');
     }
 
+    /**
+     * Registers a callback function for a given event
+     *
+     * @param Doku_Event_Handler $controller
+     */
     function register(Doku_Event_Handler $controller) {
         $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handle_act_preprocess', array());
     }
@@ -36,7 +41,7 @@ class action_plugin_blogtng_new extends DokuWiki_Action_Plugin{
      * @param array      $param  empty array as passed to register_hook()
      * @return bool
      */
-    function handle_act_preprocess(&$event, $param) {
+    function handle_act_preprocess(Doku_Event $event, $param) {
         global $TEXT;
         global $ID;
 
@@ -73,6 +78,10 @@ class action_plugin_blogtng_new extends DokuWiki_Action_Plugin{
      * Loads the template for a new blog post and does some text replacements
      *
      * @author Gina Haeussge <osd@foosel.net>
+     *
+     * @param $id
+     * @param $title
+     * @return bool|mixed|string
      */
     function _prepare_template($id, $title) {
         $tpl = pageTemplate($id);

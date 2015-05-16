@@ -7,23 +7,41 @@
  * @author  Michael Klier <chi@chimeric.de>
  */
 
-if (!defined('DOKU_INC'))
-    define('DOKU_INC', realpath(dirname(__FILE__) . '/../../') . '/');
-if (!defined('DOKU_PLUGIN'))
-    define('DOKU_PLUGIN', DOKU_INC . 'lib/plugins/');
-require_once (DOKU_PLUGIN . 'syntax.php');
+if (!defined('DOKU_INC')) die();
 
+/**
+ * Class syntax_plugin_blogtng_header
+ */
 class syntax_plugin_blogtng_header extends DokuWiki_Syntax_Plugin {
 
+    /**
+     * Syntax Type
+     *
+     * @return string
+     */
     function getType() {
         return 'formatting';
     }
 
+    /**
+     * Sort for applying this mode
+     *
+     * @return int
+     */
     function getSort() {
         return 50;
     }
 
-    function handle($match, $state, $pos, Doku_Handler &$handler) {
+    /**
+     * Handler to prepare matched data for the rendering process
+     *
+     * @param   string       $match   The text matched by the patterns
+     * @param   int          $state   The lexer state for the match
+     * @param   int          $pos     The character position of the matched text
+     * @param   Doku_Handler $handler The Doku_Handler object
+     * @return  bool|array Return an array with all data you want to use in render, false don't add an instruction
+     */
+    function handle($match, $state, $pos, Doku_Handler $handler) {
         // this is a syntax plugin that doesn't offer any syntax, so there's nothing to handle by the parser
     }
 
@@ -38,7 +56,7 @@ class syntax_plugin_blogtng_header extends DokuWiki_Syntax_Plugin {
      * @param   $indata   array               data created by handler()
      * @return  boolean                       rendered correctly?
      */
-    function render($mode, Doku_Renderer &$renderer, $indata) {
+    function render($mode, Doku_Renderer $renderer, $indata) {
         global $ID;
         list($text, $level) = $indata;
 

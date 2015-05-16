@@ -7,10 +7,9 @@
 // must be run within Dokuwiki
 if (!defined('DOKU_INC')) die();
 
-if (!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
-
-require_once(DOKU_PLUGIN.'admin.php');
-
+/**
+ * Class admin_plugin_blogtng
+ */
 class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
 
     /** @var helper_plugin_blogtng_comments */
@@ -22,10 +21,25 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
     /** @var helper_plugin_blogtng_tags */
     protected $taghelper     = null;
 
+    /**
+     * Determine position in list in admin window
+     * Lower values are sorted up
+     *
+     * @return int
+     */
     public function getMenuSort() { return 200; }
+
+    /**
+     * Return true for access only by admins (config:superuser) or false if managers are allowed as well
+     *
+     * @return bool
+     */
     public function forAdminOnly() { return false; }
 
-    public function admin_plugin_blogtng() {
+    /**
+     * Constructor
+     */
+    public function __construct() {
         $this->commenthelper = plugin_load('helper', 'blogtng_comments');
         $this->entryhelper   = plugin_load('helper', 'blogtng_entry');
         $this->sqlitehelper  = plugin_load('helper', 'blogtng_sqlite');
@@ -75,7 +89,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
                             // FIXME messages
                             case 'delete':
                                 $this->commenthelper->delete($cid);
-                                msg($this->getLang('msg_comment_delete', 1));
+                                msg($this->getLang('msg_comment_delete'), 1);
                                 break;
                             case 'status_hidden':
                                 $this->commenthelper->moderate($cid, 'hidden');
@@ -428,6 +442,8 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      *
      * @author Michael Klier <chi@chimeric.de>
      * @author hArpanet <dokuwiki-blogtng@harpanet.com>
+     *
+     * @param $query
      */
     private function xhtml_latest_items($query) {
         $resultset = $query['resultset'];
@@ -476,6 +492,9 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      * Displays a list of entries, as callback of xhtml_search_results()
      *
      * @author Michael Klier <chi@chimeric.de>
+     *
+     * @param $entries
+     * @param $query
      */
     private function xhtml_entry_list($entries, $query) {
         ptln('<div class="level2">');
@@ -500,6 +519,9 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      * Displays a single entry and related actions
      *
      * @author Michael Klier <chi@chimeric.de>
+     *
+     * @param $entry
+     * @param $query
      */
     private function xhtml_entry_item($entry, $query) {
         global $lang;
@@ -564,6 +586,9 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      *
      * @author Michael Klier <chi@chimeric.de>
      * @author hArpanet <dokuwiki-blogtng@harpanet.com>
+     *
+     * @param $comments
+     * @param $query
      */
     private function xhtml_comment_list($comments, $query) {
         global $lang;
@@ -604,6 +629,8 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      *
      * @author Michael Klier <chi@chimeric.de>
      * @author hArpanet <dokuwiki-blogtng@harpanet.com>
+     *
+     * @param $comment
      */
     private function xhtml_comment_item($comment) {
         global $lang;
@@ -682,6 +709,11 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      *
      * @author Michael Klier <chi@chimeric.de>
      * @author hArpanet <dokuwiki-blogtng@harpanet.com>
+     *
+     * @param $entry
+     * @param $query
+     * @param string $field
+     * @return Doku_Form|string
      */
     private function xhtml_entry_edit_form($entry, $query, $field = 'commentstatus') {
         global $lang;
@@ -714,6 +746,8 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      * Displays the comment edit form
      *
      * @author Michael Klier <chi@chimeric.de>
+     *
+     * @param $comment
      */
     private function xhtml_comment_edit_form($comment) {
         global $lang;
@@ -779,6 +813,8 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      * Displays the limit selection form
      *
      * @author hArpanet <dokuwiki-blogtng@harpanet.com>
+     *
+     * @param string $query
      */
     private function xhtml_limit_form($query='') {
         global $lang;

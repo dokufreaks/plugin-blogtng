@@ -6,11 +6,15 @@
 // must be run within Dokuwiki
 if(!defined('DOKU_INC')) die();
 
-if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
-
 if(!defined('BLOGTNG_DIR')) define('BLOGTNG_DIR',DOKU_PLUGIN.'blogtng/');
 
+/**
+ * Class helper_plugin_blogtng_linkback
+ */
 class helper_plugin_blogtng_linkback extends DokuWiki_Plugin {
+    /**
+     * @return bool
+     */
     public function linkbackAllowed() {
         $entry = $this->getPost();
         return !plugin_isdisabled('blogtng') &&
@@ -19,6 +23,9 @@ class helper_plugin_blogtng_linkback extends DokuWiki_Plugin {
                $entry['commentstatus'] === 'enabled';
     }
 
+    /**
+     * @return array|null
+     */
     private function getPost() {
         global $ID;
         /** @var helper_plugin_blogtng_entry $ehelper */
@@ -27,6 +34,14 @@ class helper_plugin_blogtng_linkback extends DokuWiki_Plugin {
         return $ehelper->entry;
     }
 
+    /**
+     * @param $type
+     * @param $title
+     * @param $sourceUri
+     * @param $excerpt
+     * @param $id
+     * @return bool
+     */
     public function saveLinkback($type, $title, $sourceUri, $excerpt, $id) {
         /** @var helper_plugin_blogtng_sqlite $sqlitehelper */
         $sqlitehelper = plugin_load('helper', 'blogtng_sqlite');

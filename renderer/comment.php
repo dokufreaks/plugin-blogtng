@@ -7,9 +7,6 @@
 // must be run within Dokuwiki
 if(!defined('DOKU_INC')) die();
 
-// we inherit from the XHTML renderer instead directly of the base renderer
-require_once DOKU_INC.'inc/parser/xhtml.php';
-
 /**
  * The Renderer
  */
@@ -29,25 +26,68 @@ class renderer_plugin_blogtng_comment extends Doku_Renderer_xhtml {
     function notoc() {}
     function document_end() {}
 
+    /**
+     * Render a heading
+     *
+     * @param string $text  the text to display
+     * @param int    $level header level
+     * @param int    $pos   byte position in the original source
+     */
     function header($text, $level, $pos) {
         $this->cdata($text);
     }
 
     function section_edit() {}
+
+    /**
+     * Open a new section
+     *
+     * @param int $level section level (as determined by the previous header)
+     */
     function section_open($level) {}
     function section_close() {}
     function footnote_open() {}
     function footnote_close() {}
 
+    /**
+     * Execute PHP code if allowed
+     *
+     * @param  string $text      PHP code that is either executed or printed
+     * @param  string $wrapper   html element to wrap result if $conf['phpok'] is okff
+     *
+     * @author Andreas Gohr <andi@splitbrain.org>
+     */
     function php($text, $wrapper='code') {
         $this->doc .= p_xhtml_cached_geshi($text, 'php', $wrapper);
     }
+
+    /**
+     * Insert HTML if allowed
+     *
+     * @param  string $text      html text
+     * @param  string $wrapper   html element to wrap result if $conf['htmlok'] is okff
+     *
+     * @author Andreas Gohr <andi@splitbrain.org>
+     */
     function html($text, $wrapper='code') {
         $this->doc .= p_xhtml_cached_geshi($text, 'html4strict', $wrapper);
     }
 
+    /**
+     * Renders an RSS feed
+     *
+     * @author Andreas Gohr <andi@splitbrain.org>
+     *
+     * @param string $url
+     * @param array $params
+     */
     function rss($url, $params) {}
 
+    /**
+     * @param string $name
+     * @param mixed $data
+     * @return bool
+     */
     function plugin($name, $data) {
         $comments_xhtml_renderer = array_map('trim', explode(',', $this->getConf('comments_xhtml_renderer')));
         $comments_forbid_syntax = array_map('trim', explode(',', $this->getConf('comments_forbid_syntax')));
@@ -62,6 +102,7 @@ class renderer_plugin_blogtng_comment extends Doku_Renderer_xhtml {
                 $plugin->render($this->getFormat(), $this, $data);
             }
         }
+        return true;
     }
 }
 

@@ -7,12 +7,9 @@
 // must be run within Dokuwiki
 if (!defined('DOKU_INC')) die();
 
-if (!defined('DOKU_LF')) define('DOKU_LF', "\n");
-if (!defined('DOKU_TAB')) define('DOKU_TAB', "\t");
-if (!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
-
-require_once(DOKU_PLUGIN.'action.php');
-
+/**
+ * Class action_plugin_blogtng_feed
+ */
 class action_plugin_blogtng_feed extends DokuWiki_Action_Plugin{
 
     /** @var helper_plugin_blogtng_entry */
@@ -25,11 +22,16 @@ class action_plugin_blogtng_feed extends DokuWiki_Action_Plugin{
         'sortorder' => 'DESC',
     );
 
-    function action_plugin_blogtng_feed() {
+    function __construct() {
         $this->entryhelper = plugin_load('helper', 'blogtng_entry');
         $this->tools = plugin_load('helper', 'blogtng_tools');
     }
 
+    /**
+     * Registers a callback function for a given event
+     *
+     * @param Doku_Event_Handler $controller
+     */
     function register(Doku_Event_Handler $controller) {
         $controller->register_hook('FEED_OPTS_POSTPROCESS', 'AFTER', $this, 'handle_opts_postprocess', array());
         $controller->register_hook('FEED_MODE_UNKNOWN', 'BEFORE', $this, 'handle_mode_unknown', array ());
@@ -43,7 +45,7 @@ class action_plugin_blogtng_feed extends DokuWiki_Action_Plugin{
      * @param array      $param  empty array as passed to register_hook()
      * @return void
      */
-    function handle_opts_postprocess(&$event, $param) {
+    function handle_opts_postprocess(Doku_Event $event, $param) {
         $opt =& $event->data['opt'];
         if ($opt['feed_mode'] != 'blogtng') return;
 
@@ -62,7 +64,7 @@ class action_plugin_blogtng_feed extends DokuWiki_Action_Plugin{
      * @param array        $param empty
      * @return void
      */
-    function handle_mode_unknown(&$event, $param) {
+    function handle_mode_unknown(Doku_Event $event, $param) {
         $opt = $event->data['opt'];
         if ($opt['feed_mode'] != 'blogtng') return;
 
@@ -98,7 +100,7 @@ class action_plugin_blogtng_feed extends DokuWiki_Action_Plugin{
      * @param array      $param empty
      * @return void
      */
-    function handle_item_add(&$event, $param) {
+    function handle_item_add(Doku_Event $event, $param) {
         $opt = $event->data['opt'];
         $ditem = $event->data['ditem'];
         if ($opt['feed_mode'] !== 'blogtng') return;
@@ -119,7 +121,6 @@ class action_plugin_blogtng_feed extends DokuWiki_Action_Plugin{
 
         $this->entryhelper->load_by_row($ditem['entry']);
 
-        $output = '';
         ob_start();
         $this->entryhelper->tpl_content($ditem['entry']['blog'], 'feed');
         $output = ob_get_contents();
@@ -145,6 +146,9 @@ class action_plugin_blogtng_feed extends DokuWiki_Action_Plugin{
      * Returns true if $entry is a valid header instruction, false otherwise.
      *
      * @author Gina Häußge <osd@foosel.net>
+     *
+     * @param $entry
+     * @return bool
      */
     function _filterHeaders($entry) {
         // normal headers

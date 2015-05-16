@@ -17,7 +17,7 @@ class action_plugin_blogtng_entry extends DokuWiki_Action_Plugin{
     /** @var helper_plugin_blogtng_comments */
     var $commenthelper = null;
 
-    function action_plugin_blogtng_entry() {
+    function __construct() {
         $this->entryhelper = plugin_load('helper', 'blogtng_entry');
         $this->commenthelper = plugin_load('helper', 'blogtng_comments');
     }
@@ -42,7 +42,7 @@ class action_plugin_blogtng_entry extends DokuWiki_Action_Plugin{
      */
     function handle_tpl_act_render(Doku_Event $event, $param) {
         global $ID;
-        if($event->data != 'show') return;
+        if($event->data != 'show') return false;
 
         $pid = md5($ID);
         $this->entryhelper->load_by_pid($pid);
@@ -53,6 +53,7 @@ class action_plugin_blogtng_entry extends DokuWiki_Action_Plugin{
 
         $this->commenthelper->setPid($pid);
         $this->entryhelper->tpl_content($this->entryhelper->entry['blog'], 'entry');
+        return true;
     }
 
     /**
@@ -63,15 +64,15 @@ class action_plugin_blogtng_entry extends DokuWiki_Action_Plugin{
      * @param array      $param  empty array as passed to register_hook()
      * @return void|bool
      */
-    function handle_metaheader_output(&$event, $param) {
+    function handle_metaheader_output(Doku_Event $event, $param) {
         global $ACT, $ID;
 
         if ($ACT != 'show')
-            return;
+            return false;
 
         $pid = md5($ID);
         $this->entryhelper->load_by_pid($pid);
-        if($this->entryhelper->get_blog($pid) == '') return true;
+        if($this->entryhelper->get_blog() == '') return true;
 
         $relatedentries = $this->entryhelper->getAdjacentLinks($ID);
         if (isset ($relatedentries['prev'])) {

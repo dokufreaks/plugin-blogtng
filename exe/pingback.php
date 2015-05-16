@@ -31,6 +31,9 @@ define('PINGBACK_ERROR_PINGBACK_ALREADY_MADE', 48);
 define('PINGBACK_ERROR_ACCESS_DENIED', 49);
 define('PINGBACK_ERROR_NO_UPSTREAM', 50);
 
+/**
+ * Class PingbackServer
+ */
 class PingbackServer extends IXR_Server {
 
     /** @var  helper_plugin_blogtng_linkback */
@@ -39,12 +42,17 @@ class PingbackServer extends IXR_Server {
     /**
      * Register service and construct helper
      */
-    function PingbackServer() {
+    function __construct() {
         /** @var helper_plugin_blogtng_linkback tools */
         $this->tools = plugin_load('helper', 'blogtng_linkback');
         parent::__construct(array('pingback.ping' => 'this:ping'));
     }
 
+    /**
+     * @param $sourceUri
+     * @param $targetUri
+     * @return IXR_Error
+     */
     function ping($sourceUri, $targetUri) {
         global $ID;
         $ID = substr($_SERVER['PATH_INFO'], 1);
@@ -84,6 +92,11 @@ class PingbackServer extends IXR_Server {
 
     /**
      * Constructs linkback data and checks if source contains a link to target and a title.
+     *
+     * @param $sourceUri
+     * @param $targetUri
+     * @param $page
+     * @return array|bool
      */
     function _getTrackbackData($sourceUri, $targetUri, $page) {
         $linkback = array ();

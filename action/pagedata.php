@@ -7,30 +7,35 @@
 // must be run within Dokuwiki
 if (!defined('DOKU_INC')) die();
 
-if (!defined('DOKU_LF')) define('DOKU_LF', "\n");
-if (!defined('DOKU_TAB')) define('DOKU_TAB', "\t");
-if (!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
-
-require_once(DOKU_PLUGIN.'action.php');
-
+/**
+ * Class action_plugin_blogtng_pagedata
+ */
 class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
 
     /** @var helper_plugin_blogtng_entry */
     var $entryhelper;
     var $entry;
 
-    function action_plugin_blogtng_pagedata() {
+    function __construct() {
         $this->entryhelper = plugin_load('helper', 'blogtng_entry');
     }
 
+    /**
+     * Registers a callback function for a given event
+     *
+     * @param Doku_Event_Handler $controller
+     */
     function register(Doku_Event_Handler $controller) {
         $controller->register_hook('PARSER_METADATA_RENDER', 'AFTER', $this, 'update_data', array());
     }
 
     /**
      * Updates the metadata in the blogtng database.
+     *
+     * @param Doku_Event $event
+     * @param $params
      */
-    function update_data(&$event, $params) {
+    function update_data(Doku_Event $event, $params) {
         global $ID;
         /** @var DokuWiki_Auth_Plugin $auth */
         global $auth;

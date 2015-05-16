@@ -21,7 +21,7 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
     /**
      * Constructor, loads the sqlite helper plugin
      */
-    public function helper_plugin_blogtng_tags() {
+    public function __construct() {
         $this->sqlitehelper = plugin_load('helper', 'blogtng_sqlite');
     }
 
@@ -54,6 +54,9 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
 
     /**
      * Load tags for specified pid
+     *
+     * @param $pid
+     * @return bool
      */
     public function load($pid) {
         $this->setPid($pid);
@@ -87,9 +90,11 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
         return true;
     }
 
-
     /**
      * Count tags for specified pid
+     *
+     * @param $pid
+     * @return int
      */
     public function count($pid) {
         if(!$this->sqlitehelper->ready()) {
@@ -114,6 +119,9 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
 
     /**
      * Load tags for a specified blog
+     *
+     * @param $blogs
+     * @return array|bool
      */
     public function load_by_blog($blogs) {
         if(!$this->sqlitehelper->ready()) return false;
@@ -245,6 +253,9 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
      * Displays a tag cloud
      *
      * @author Michael Klier <chi@chimeric.de>
+     *
+     * @param $conf
+     * @return string
      */
     public function xhtml_tagcloud($conf) {
         $tags = $this->load_by_blog($conf['blog']);
@@ -275,6 +286,11 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
      * Happily stolen (and slightly modified) from
      *
      * http://www.splitbrain.org/blog/2007-01/03-tagging_splitbrain
+     *
+     * @param $tags
+     * @param $min
+     * @param $max
+     * @param $levels
      */
     private function _cloud_weight(&$tags,$min,$max,$levels){
         // calculate tresholds

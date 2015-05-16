@@ -5,10 +5,10 @@
  */
 // must be run within Dokuwiki
 if(!defined('DOKU_INC')) die();
-if(!defined('DOKU_TAB')) define('DOKU_TAB', "\t");
 
-if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
-
+/**
+ * Class helper_plugin_blogtng_comments
+ */
 class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
 
     /**
@@ -21,17 +21,23 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     /**
      * Constructor, loads the sqlite helper plugin
      */
-    public function helper_plugin_blogtng_comments() {
+    public function __construct() {
         $this->sqlitehelper = plugin_load('helper', 'blogtng_sqlite');
     }
 
     /**
      * Set pid
+     *
+     * @param $pid
      */
     public function setPid($pid) {
         $this->pid = trim($pid);
     }
 
+    /**
+     * @param $cid
+     * @return blogtng_comment|bool|null
+     */
     public function comment_by_cid($cid) {
 
         $query = 'SELECT cid, pid, source, name, mail, web, avatar, created, text, status FROM comments WHERE cid = ?';
@@ -51,6 +57,10 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
 
     /**
      * Get comment count
+     *
+     * @param null $types
+     * @param bool $includehidden
+     * @return int
      */
     public function get_count($types=null, $includehidden=false) {
         if (!$this->sqlitehelper->ready()) return 0;
@@ -78,6 +88,8 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
 
     /**
      * Save comment
+     *
+     * @param $comment
      */
     public function save($comment) {
         if (!$this->sqlitehelper->ready()) {
@@ -164,6 +176,9 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
 
     /**
      * Delete comment
+     *
+     * @param $cid
+     * @return bool
      */
     public function delete($cid) {
         if (!$this->sqlitehelper->ready()) return false;
@@ -173,6 +188,9 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
 
     /**
      * Delete all comments for an entry
+     *
+     * @param $pid
+     * @return bool
      */
     public function delete_all($pid) {
         if (!$this->sqlitehelper->ready()) return false;
@@ -182,6 +200,10 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
 
     /**
      * Moderate comment
+     *
+     * @param $cid
+     * @param $status
+     * @return bool
      */
     public function moderate($cid, $status) {
         if (!$this->sqlitehelper->ready()) return false;
@@ -194,6 +216,8 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      *
      * Mails are sent to the author of the post and
      * all subscribers that opted-in
+     *
+     * @param $comment
      */
     public function send_subscriber_mails($comment){
         global $conf;
@@ -259,6 +283,9 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
 
     /**
      * Send a mail to commenter and let her login
+     *
+     * @param $mail
+     * @param $key
      */
     public function send_optin_mail($mail,$key){
         global $conf;
@@ -318,6 +345,10 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
 
     }
 
+    /**
+     * @param $pid
+     * @param $key
+     */
     public function unsubscribe_by_key($pid, $key) {
         if (!$this->sqlitehelper->ready()) {
             msg('BlogTNG: unsubscribe by key fails. (sqlite helper plugin not available)',-1);
@@ -336,6 +367,9 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
 
     /**
      * Unsubscribe entry
+     *
+     * @param $pid
+     * @param $mail
      */
     public function unsubscribe($pid, $mail) {
         if (!$this->sqlitehelper->ready()) {
@@ -355,6 +389,8 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
 
     /**
      * Opt in
+     *
+     * @param $key
      */
     public function optin($key) {
         if (!$this->sqlitehelper->ready()) {
@@ -373,21 +409,26 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         }
     }
 
-
     /**
      * Enable discussion
+     *
+     * @param $pid
      */
     public function enable($pid) {
     }
 
     /**
      * Disable discussion
+     *
+     * @param $pid
      */
     public function disable($pid) {
     }
 
     /**
      * Close discussion
+     *
+     * @param $pid
      */
     public function close($pid) {
     }
@@ -398,6 +439,10 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      * FIXME
      *  allow comments only for registered users
      *  add toolbar
+     *
+     * @param $page
+     * @param $pid
+     * @param $tplname
      */
     public function tpl_form($page, $pid, $tplname) {
         global $BLOGTNG;
@@ -531,6 +576,9 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
 
     /**
      * Displays a list of recent comments
+     *
+     * @param $conf
+     * @return string
      */
     public function xhtml_recentcomments($conf){
         ob_start();

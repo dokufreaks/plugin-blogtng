@@ -5,8 +5,6 @@
 
 // must be run within Dokuwiki
 if (!defined('DOKU_INC')) die();
-if (!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN', DOKU_INC.'lib/plugins/');
-require_once(DOKU_PLUGIN.'syntax.php');
 
 /**
  * Covers all <blog *> syntax commands
@@ -54,12 +52,31 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
     );
 
     // default plugin functions...
+    /**
+     * Syntax Type
+     *
+     * @return string
+     */
     function getType() { return 'substition'; }
+
+    /**
+     * Paragraph Type
+     *
+     * @return string
+     */
     function getPType() { return 'block'; }
+
+    /**
+     * Sort for applying this mode
+     *
+     * @return int
+     */
     function getSort() { return 300; }
 
     /**
      * Register the <blog *></blog> syntax
+     *
+     * @param string $mode
      */
     function connectTo($mode) {
         $this->Lexer->addSpecialPattern('<blog ?[^>]*>.*?</blog>', $mode, 'plugin_blogtng_blog');
