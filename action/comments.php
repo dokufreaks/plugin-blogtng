@@ -21,11 +21,11 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
     var $tools = null;
 
     function action_plugin_blogtng_comments() {
-        $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
-        $this->tools =& plugin_load('helper', 'blogtng_tools');
+        $this->commenthelper = plugin_load('helper', 'blogtng_comments');
+        $this->tools = plugin_load('helper', 'blogtng_tools');
     }
 
-    function register(&$controller) {
+    function register(Doku_Event_Handler $controller) {
         $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handle_act_preprocess', array());
     }
 

@@ -20,10 +20,10 @@ class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
     var $entry;
 
     function action_plugin_blogtng_pagedata() {
-        $this->entryhelper =& plugin_load('helper', 'blogtng_entry');
+        $this->entryhelper = plugin_load('helper', 'blogtng_entry');
     }
 
-    function register(&$controller) {
+    function register(Doku_Event_Handler $controller) {
         $controller->register_hook('PARSER_METADATA_RENDER', 'AFTER', $this, 'update_data', array());
     }
 

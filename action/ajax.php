@@ -18,10 +18,10 @@ class action_plugin_blogtng_ajax extends DokuWiki_Action_Plugin{
     var $commenthelper = null;
 
     function action_plugin_blogtng_comments() {
-        $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
+        $this->commenthelper = plugin_load('helper', 'blogtng_comments');
     }
 
-    function register(&$controller) {
+    function register(Doku_Event_Handler $controller) {
         $controller->register_hook('AJAX_CALL_UNKNOWN', 'BEFORE', $this, 'handle_ajax_call', array());
     }
 

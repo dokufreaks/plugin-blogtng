@@ -25,12 +25,12 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
     var $preact = null;
 
     function action_plugin_blogtng_edit() {
-        $this->entryhelper =& plugin_load('helper', 'blogtng_entry');
-        $this->taghelper =& plugin_load('helper', 'blogtng_tags');
-        $this->tools =& plugin_load('helper', 'blogtng_tools');
+        $this->entryhelper = plugin_load('helper', 'blogtng_entry');
+        $this->taghelper = plugin_load('helper', 'blogtng_tags');
+        $this->tools = plugin_load('helper', 'blogtng_tools');
     }
 
-    function register(&$controller) {
+    function register(Doku_Event_Handler $controller) {
         $controller->register_hook('HTML_EDITFORM_OUTPUT', 'BEFORE', $this, 'handle_editform_output', array());
         $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handle_action_act_preprocess', array('before'));
         $controller->register_hook('ACTION_ACT_PREPROCESS', 'AFTER', $this, 'handle_action_act_preprocess', array('after'));

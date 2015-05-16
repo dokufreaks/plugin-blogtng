@@ -26,10 +26,10 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
     public function forAdminOnly() { return false; }
 
     public function admin_plugin_blogtng() {
-        $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
-        $this->entryhelper   =& plugin_load('helper', 'blogtng_entry');
-        $this->sqlitehelper  =& plugin_load('helper', 'blogtng_sqlite');
-        $this->taghelper     =& plugin_load('helper', 'blogtng_tags');
+        $this->commenthelper = plugin_load('helper', 'blogtng_comments');
+        $this->entryhelper   = plugin_load('helper', 'blogtng_entry');
+        $this->sqlitehelper  = plugin_load('helper', 'blogtng_sqlite');
+        $this->taghelper     = plugin_load('helper', 'blogtng_tags');
     }
 
     /**

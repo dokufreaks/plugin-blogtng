@@ -68,7 +68,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
     /**
      * Parse the type and configuration data from the syntax
      */
-    function handle($match, $state, $pos, &$handler) {
+    public function handle($match, $state, $pos, Doku_Handler &$handler) {
         $match = substr(trim($match), 5, -7); // strip '<blog' and '</blog>'
         list($type,$conf) = explode('>',$match,2);
         $type = trim($type);
@@ -123,7 +123,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
     /**
      * Render Output
      */
-    function render($mode, &$renderer, $data) {
+    public function render($mode, Doku_Renderer &$renderer, $data) {
         if($mode != 'xhtml') return false;
 
         $this->loadHelpers();
@@ -203,10 +203,10 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
     }
 
     private function loadHelpers() {
-        $this->entryhelper =& plugin_load('helper', 'blogtng_entry');
-        $this->tools = & plugin_load('helper', 'blogtng_tools');
-        $this->commenthelper =& plugin_load('helper', 'blogtng_comments');
-        $this->taghelper =& plugin_load('helper', 'blogtng_tags');
+        $this->entryhelper = plugin_load('helper', 'blogtng_entry');
+        $this->tools = plugin_load('helper', 'blogtng_tools');
+        $this->commenthelper = plugin_load('helper', 'blogtng_comments');
+        $this->taghelper = plugin_load('helper', 'blogtng_tags');
     }
 }
 // vim:ts=4:sw=4:et:

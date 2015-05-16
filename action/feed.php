@@ -26,11 +26,11 @@ class action_plugin_blogtng_feed extends DokuWiki_Action_Plugin{
     );
 
     function action_plugin_blogtng_feed() {
-        $this->entryhelper =& plugin_load('helper', 'blogtng_entry');
-        $this->tools =& plugin_load('helper', 'blogtng_tools');
+        $this->entryhelper = plugin_load('helper', 'blogtng_entry');
+        $this->tools = plugin_load('helper', 'blogtng_tools');
     }
 
-    function register(&$controller) {
+    function register(Doku_Event_Handler $controller) {
         $controller->register_hook('FEED_OPTS_POSTPROCESS', 'AFTER', $this, 'handle_opts_postprocess', array());
         $controller->register_hook('FEED_MODE_UNKNOWN', 'BEFORE', $this, 'handle_mode_unknown', array ());
         $controller->register_hook('FEED_ITEM_ADD', 'BEFORE', $this, 'handle_item_add', array());

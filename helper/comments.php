@@ -22,7 +22,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      * Constructor, loads the sqlite helper plugin
      */
     public function helper_plugin_blogtng_comments() {
-        $this->sqlitehelper =& plugin_load('helper', 'blogtng_sqlite');
+        $this->sqlitehelper = plugin_load('helper', 'blogtng_sqlite');
     }
 
     /**
@@ -582,7 +582,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         // print all hits using the template
         foreach($res as $row){
             /** @var helper_plugin_blogtng_entry $entry */
-            $entry   =& plugin_load('helper', 'blogtng_entry');
+            $entry   = plugin_load('helper', 'blogtng_entry');
             $entry->load_by_pid($row['pid']);
             $comment = $this->comment_by_cid($row['cid']);
             include($tpl);
