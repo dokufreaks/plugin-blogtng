@@ -63,7 +63,10 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
             $this->tags = array();
             return false;
         }
-        $query = 'SELECT tag FROM tags WHERE pid = ? ORDER BY tag ASC';
+        $query = 'SELECT tag
+                    FROM tags
+                   WHERE pid = ?
+                ORDER BY tag ASC';
         $resid = $this->sqlitehelper->getDB()->query($query, $this->pid);
         if ($resid === false) {
             msg('blogtng plugin: failed to load tags!', -1);
@@ -95,7 +98,9 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
         }
 
         $pid = trim($pid);
-        $query = 'SELECT COUNT(tag) AS tagcount FROM tags WHERE pid = ?';
+        $query = 'SELECT COUNT(tag) AS tagcount
+                    FROM tags
+                   WHERE pid = ?';
 
         $resid = $this->sqlitehelper->getDB()->query($query, $pid);
         if ($resid === false) {
@@ -113,7 +118,11 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
     public function load_by_blog($blogs) {
         if(!$this->sqlitehelper->ready()) return false;
 
-        $query = 'SELECT tags.tag AS tag, tags.pid AS pid FROM tags, entries WHERE tags.pid = entries.pid AND entries.blog IN ("' . implode('","', $blogs) . '")';
+        $query = 'SELECT tags.tag AS tag, tags.pid AS pid
+                    FROM tags, entries
+                   WHERE tags.pid = entries.pid
+                     AND entries.blog IN ("' . implode('","', $blogs) . '")
+                     AND GETACCESSLEVEL(page) >= '.AUTH_READ;
 
         $resid = $this->sqlitehelper->getDB()->query($query);
         if($resid) {
