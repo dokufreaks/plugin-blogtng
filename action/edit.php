@@ -7,12 +7,6 @@
 // must be run within Dokuwiki
 if (!defined('DOKU_INC')) die();
 
-if (!defined('DOKU_LF')) define('DOKU_LF', "\n");
-if (!defined('DOKU_TAB')) define('DOKU_TAB', "\t");
-if (!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
-
-require_once(DOKU_PLUGIN.'action.php');
-
 class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
 
     /** @var helper_plugin_blogtng_entry */
@@ -24,12 +18,20 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
 
     var $preact = null;
 
-    function action_plugin_blogtng_edit() {
+    /**
+     * Constructor
+     */
+    function __construct() {
         $this->entryhelper = plugin_load('helper', 'blogtng_entry');
         $this->taghelper = plugin_load('helper', 'blogtng_tags');
         $this->tools = plugin_load('helper', 'blogtng_tools');
     }
 
+    /**
+     * Registers a callback function for a given event
+     *
+     * @param Doku_Event_Handler $controller
+     */
     function register(Doku_Event_Handler $controller) {
         $controller->register_hook('HTML_EDITFORM_OUTPUT', 'BEFORE', $this, 'handle_editform_output', array());
         $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handle_action_act_preprocess', array('before'));
@@ -38,8 +40,11 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
 
     /**
      * Adds additional fields of used by the BlogTNG plugin to the editor.
+     *
+     * @param Doku_Event $event
+     * @param $param
      */
-    function handle_editform_output(&$event, $param) {
+    function handle_editform_output(Doku_Event $event, $param) {
         global $ID, $INFO;
 
         $pos = $event->data->findElementByAttribute('type','submit');
@@ -211,10 +216,16 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
         }
     }
 
+    /**
+     * @return array
+     */
     private function _get_allowed_tags() {
         return helper_plugin_blogtng_tools::filterExplodeCSVinput($this->getConf('tags'));
     }
 
+    /**
+     * @return array|mixed
+     */
     private function _get_post_tags() {
         $tags = $this->tools->getParam('post/tags');
         if ($tags === false) return $tags;

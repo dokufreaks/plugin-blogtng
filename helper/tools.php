@@ -6,10 +6,12 @@
 // must be run within Dokuwiki
 if(!defined('DOKU_INC')) die();
 
-if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
 
 if(!defined('BLOGTNG_DIR')) define('BLOGTNG_DIR',DOKU_PLUGIN.'blogtng/');
 
+/**
+ * Class helper_plugin_blogtng_tools
+ */
 class helper_plugin_blogtng_tools extends DokuWiki_Plugin {
 
     /**
@@ -44,8 +46,8 @@ class helper_plugin_blogtng_tools extends DokuWiki_Plugin {
     /**
      * Return the blogtng request parameter corresponding to the given path.
      *
-     * @param $path string a / separated path to the parameter to return
-     * @return mixed returns the value of the referenced parameter, or false if something went wrong while retrieving it
+     * @param array|string $path array or a / separated path to the parameter to return
+     * @return bool|mixed returns the value of the referenced parameter, or false if something went wrong while retrieving it
      */
     static public function getParam($path) {
         if (!isset($_REQUEST['btng'])) return false;
@@ -72,6 +74,9 @@ class helper_plugin_blogtng_tools extends DokuWiki_Plugin {
         return array_filter(array_map('trim', explode(',', $string)));
     }
 
+    /**
+     * @param array $conf
+     */
     static public function cleanConf(&$conf) {
         if (!in_array($conf['sortorder'], self::$data_whitelist['sortorder'])) {
             unset($conf['sortorder']);
@@ -87,6 +92,11 @@ class helper_plugin_blogtng_tools extends DokuWiki_Plugin {
         }
     }
 
+    /**
+     * @param string $tpl
+     * @param string $type
+     * @return bool|string
+     */
     static public function getTplFile($tpl, $type) {
         $res = false;
         foreach(array('/', '_') as $sep) {

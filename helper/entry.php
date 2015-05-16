@@ -5,10 +5,10 @@
  */
 // must be run within Dokuwiki
 if(!defined('DOKU_INC')) die();
-if(!defined('DOKU_TAB')) define('DOKU_TAB', "\t");
 
-if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
-
+/**
+ * Class helper_plugin_blogtng_entry
+ */
 class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
     const RET_OK          = 1;
@@ -44,6 +44,10 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
     //~~ data access methods
 
+    /**
+     * @param string $pid
+     * @return int
+     */
     public function load_by_pid($pid) {
         $this->entry = $this->prototype();
         $this->taghelper = null;
@@ -82,6 +86,10 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
     }
 
+    /**
+     * @param $row
+     * @return int
+     */
     public function load_by_row($row) {
         $this->entry = $row;
         if($this->poke()){
@@ -91,6 +99,9 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
     }
 
+    /**
+     * @param $entry
+     */
     public function set($entry) {
         foreach (array_keys($entry) as $key) {
             if (!in_array($key, array('pid', 'page', 'created', 'login')) || empty($this->entry[$key])) {
@@ -99,6 +110,9 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
     }
 
+    /**
+     * @return array
+     */
     private function prototype() {
         return array(
             'pid' => null,
@@ -173,7 +187,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
 
         $query = 'INSERT OR IGNORE INTO entries (pid, page, title, blog, image, created, lastmod, author, login, mail, commentstatus) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-        $result = $this->sqlitehelper->getDB()->query(
+        $this->sqlitehelper->getDB()->query(
             $query,
             $this->entry['pid'],
             $this->entry['page'],
@@ -216,6 +230,11 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * List matching blog entries
      *
      * Calls the *_list template for each entry in the result set
+     *
+     * @param $conf
+     * @param null $renderer
+     * @param string $templatetype
+     * @return string
      */
     public function xhtml_list($conf, &$renderer=null, $templatetype='list'){
         $posts = $this->get_posts($conf);
@@ -685,7 +704,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         if(!$this->sqlitehelper->ready()) return array();
 
         $sortkey = ($conf['sortby'] == 'random') ? 'Random()' : $conf['sortby'];
-        
+
         $blog_query = '';
         if(count($conf['blog']) > 0) {
             $blog_query = '(blog = ' . $this->sqlitehelper->getDB()->quote_and_join($conf['blog'], ' OR blog = ') . ')';
@@ -766,7 +785,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             if ($TOC && $backupTOC !== $TOC && $info['toc']){
                 $renderer->toc = array_merge($renderer->toc, $TOC);
                 $TOC = null; // Reset the global toc as it is included in the renderer now
-                             // and if the renderer decides to not to output it the 
+                             // and if the renderer decides to not to output it the
                              // global one should be empty
             }
             $conf['tocminheads'] = $backupTocminheads;

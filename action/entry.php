@@ -7,12 +7,9 @@
 // must be run within Dokuwiki
 if (!defined('DOKU_INC')) die();
 
-if (!defined('DOKU_LF')) define('DOKU_LF', "\n");
-if (!defined('DOKU_TAB')) define('DOKU_TAB', "\t");
-if (!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
-
-require_once(DOKU_PLUGIN.'action.php');
-
+/**
+ * Class action_plugin_blogtng_entry
+ */
 class action_plugin_blogtng_entry extends DokuWiki_Action_Plugin{
 
     /** @var helper_plugin_blogtng_entry */
@@ -25,6 +22,11 @@ class action_plugin_blogtng_entry extends DokuWiki_Action_Plugin{
         $this->commenthelper = plugin_load('helper', 'blogtng_comments');
     }
 
+    /**
+     * Registers a callback function for a given event
+     *
+     * @param Doku_Event_Handler $controller
+     */
     function register(Doku_Event_Handler $controller) {
         $controller->register_hook('TPL_ACT_RENDER', 'BEFORE', $this, 'handle_tpl_act_render', array());
         $controller->register_hook('TPL_METAHEADER_OUTPUT', 'BEFORE', $this, 'handle_metaheader_output', array ());
@@ -38,7 +40,7 @@ class action_plugin_blogtng_entry extends DokuWiki_Action_Plugin{
      * @param array      $param  empty array as passed to register_hook()
      * @return void|bool
      */
-    function handle_tpl_act_render(&$event, $param) {
+    function handle_tpl_act_render(Doku_Event $event, $param) {
         global $ID;
         if($event->data != 'show') return;
 

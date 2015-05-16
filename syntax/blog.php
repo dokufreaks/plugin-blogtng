@@ -67,8 +67,14 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
 
     /**
      * Parse the type and configuration data from the syntax
+     *
+     * @param   string       $match   The text matched by the patterns
+     * @param   int          $state   The lexer state for the match
+     * @param   int          $pos     The character position of the matched text
+     * @param   Doku_Handler $handler The Doku_Handler object
+     * @return  bool|array Return an array with all data you want to use in render, false don't add an instruction
      */
-    public function handle($match, $state, $pos, Doku_Handler &$handler) {
+    public function handle($match, $state, $pos, Doku_Handler $handler) {
         $match = substr(trim($match), 5, -7); // strip '<blog' and '</blog>'
         list($type,$conf) = explode('>',$match,2);
         $type = trim($type);
@@ -90,7 +96,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         if (($type != 'tagsearch') && (!count($conf['blog']))) {
 
             $conf['blog'] = array('default');
-            
+
         }
 
         // higher default limit for tag cloud
@@ -121,9 +127,14 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
     }
 
     /**
-     * Render Output
+     * Handles the actual output creation.
+     *
+     * @param string          $mode     output format being rendered
+     * @param Doku_Renderer   $renderer the current renderer object
+     * @param array           $data     data created by handler()
+     * @return  boolean                 rendered correctly? (however, returned value is not used at the moment)
      */
-    public function render($mode, Doku_Renderer &$renderer, $data) {
+    public function render($mode, Doku_Renderer $renderer, $data) {
         if($mode != 'xhtml') return false;
 
         $this->loadHelpers();
@@ -179,6 +190,8 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
 
     /**
      * Parse options given in the syntax
+     *
+     * @param $opt
      */
     function _parse_opt($opt) {
         switch(true) {
