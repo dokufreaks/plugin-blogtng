@@ -143,79 +143,76 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
      */
     function handle_action_act_preprocess(Doku_Event $event, $param) {
         list($type) = $param;
-        switch($type) {
-            case 'before':
-                if (is_array($event->data)) {
-                    list($this->preact) = array_keys($event->data);
-                } else {
-                    $this->preact = $event->data;
+
+        if (is_array($event->data)) {
+            list($act) = array_keys($event->data);
+        } else {
+            $act = $event->data;
+        }
+
+        if ($type === 'before' && $act === 'save') {
+            $this->preact = 'save';
+        // Before Greebo, intercept the after type where $act is 'show'.
+        // In Greebo and later, the before type is triggered again but with action 'draftdel'.
+        } else if ($this->preact === 'save' && (($act === 'show' && $type === 'after') || ($act === 'draftdel' && $type === 'before'))) {
+            global $ID;
+
+            // does the page still exist? might be a deletion
+            if(!page_exists($ID)) return;
+
+            $blog = $this->tools->getParam('post/blog');
+            $blogs = $this->entryhelper->get_blogs();
+            if (!in_array($blog, $blogs)) $blog = null;
+
+            if($blog === null) {
+                $this->entryhelper->poke();
+            } else {
+                $pid = md5($ID);
+
+                $this->entryhelper->load_by_pid($pid);
+
+                $entry = $this->_collectInfoForEntry();
+                $this->entryhelper->set($entry);
+
+                $this->entryhelper->entry['blog'] = $blog;
+                $this->entryhelper->entry['commentstatus'] = $this->tools->getParam('post/commentstatus');
+
+                if (empty($this->entryhelper->entry['page'])) {
+
+                    $this->entryhelper->entry['page'] = $ID;
+
                 }
-                break;
 
-            case 'after':
-                global $ID;
-
-                if ($this->preact != 'save' || $event->data != 'show') {
-                    return;
+                // allow to override created date
+                if($this->tools->getParam('post/date') && $this->getConf('editform_set_date')) {
+                    foreach(array('hh', 'mm', 'MM', 'DD') as $key) {
+                        $_REQUEST['btng']['post']['date'][$key] = ($_REQUEST['btng']['post']['date'][$key]{0} == 0) ? $_REQUEST['btng']['post']['date'][$key]{1} : $_REQUEST['btng']['post']['date'][$key];
+                    }
+                    $time = mktime($this->tools->getParam('post/date/hh'),
+                                   $this->tools->getParam('post/date/mm'),
+                                   0,
+                                   $this->tools->getParam('post/date/MM'),
+                                   $this->tools->getParam('post/date/DD'),
+                                   $this->tools->getParam('post/date/YY'));
+                    $this->entryhelper->entry['created'] = $time;
                 }
 
-                // does the page still exist? might be a deletion
-                if(!page_exists($ID)) return;
+                $this->entryhelper->save();
 
-                $blog = $this->tools->getParam('post/blog');
-                $blogs = $this->entryhelper->get_blogs();
-                if (!in_array($blog, $blogs)) $blog = null;
-
-                if($blog === null) {
-                    $this->entryhelper->poke();
-                } else {
-                    $pid = md5($ID);
-
-                    $this->entryhelper->load_by_pid($pid);
-
-                    $entry = $this->_collectInfoForEntry();
-                    $this->entryhelper->set($entry);
-
-                    $this->entryhelper->entry['blog'] = $blog;
-                    $this->entryhelper->entry['commentstatus'] = $this->tools->getParam('post/commentstatus');
-
-                    if (empty($this->entryhelper->entry['page'])) {
-
-                        $this->entryhelper->entry['page'] = $ID;
-
-                    }
-
-                    // allow to override created date
-                    if($this->tools->getParam('post/date') && $this->getConf('editform_set_date')) {
-                        foreach(array('hh', 'mm', 'MM', 'DD') as $key) {
-                            $_REQUEST['btng']['post']['date'][$key] = ($_REQUEST['btng']['post']['date'][$key]{0} == 0) ? $_REQUEST['btng']['post']['date'][$key]{1} : $_REQUEST['btng']['post']['date'][$key];
-                        }
-                        $time = mktime($this->tools->getParam('post/date/hh'),
-                                       $this->tools->getParam('post/date/mm'),
-                                       0,
-                                       $this->tools->getParam('post/date/MM'),
-                                       $this->tools->getParam('post/date/DD'),
-                                       $this->tools->getParam('post/date/YY'));
-                        $this->entryhelper->entry['created'] = $time;
-                    }
-
-                    $this->entryhelper->save();
-
-                    $tags = $this->_get_post_tags();
-                    if ($tags === false) $tags = array();
-                    $allowed_tags = $this->_get_allowed_tags();
-                    if (count($allowed_tags) > 0) {
-                        foreach($tags as $n => $tag) {
-                            if (!in_array($tag, $allowed_tags)) {
-                                unset($tags[$n]);
-                            }
+                $tags = $this->_get_post_tags();
+                if ($tags === false) $tags = array();
+                $allowed_tags = $this->_get_allowed_tags();
+                if (count($allowed_tags) > 0) {
+                    foreach($tags as $n => $tag) {
+                        if (!in_array($tag, $allowed_tags)) {
+                            unset($tags[$n]);
                         }
                     }
-                    $this->taghelper->load($pid);
-                    $this->taghelper->setTags($tags);
-                    $this->taghelper->save();
                 }
-                break;
+                $this->taghelper->load($pid);
+                $this->taghelper->setTags($tags);
+                $this->taghelper->save();
+            }
         }
     }
 
