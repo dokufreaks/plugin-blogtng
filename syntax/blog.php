@@ -232,6 +232,9 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         }
     }
 
+    /**
+     * Load required helper plugins.
+     */
     private function loadHelpers() {
         $this->entryhelper = plugin_load('helper', 'blogtng_entry');
         $this->tools = plugin_load('helper', 'blogtng_tools');
