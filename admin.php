@@ -396,11 +396,13 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
     }
 
     /**
-     * @param array $query
-     * @param int $offset    number of previous items
-     * @param int $limit     number of items at this page
-     * @param string $text   text of url
-     * @param string $title  title of url
+     * Print a pagination link.
+     * 
+     * @param array   $query   Query parameters
+     * @param int     $offset  number of previous items
+     * @param int     $limit   number of items at this page
+     * @param string  $text    text of url
+     * @param string  $title   title of url
      * @internal param string $anchor url anchor
      */
     private function xhtml_paginationurl($query, $offset, $limit, $text, $title) {
@@ -410,9 +412,11 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
     }
 
     /**
-     * @param array $query
-     * @param int $offset
-     * @param int $limit
+     * Build URL parameters.
+     * 
+     * @param array  $query   Query parameters
+     * @param int    $offset  number of previous items
+     * @param int    $limit   number of items at this page
      * @return array($params, $anchor)
      */
     private function buildUrlParams($query, $offset, $limit) {
@@ -440,10 +444,10 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
     /**
      * Display the latest comments or entries
      *
+     * @param  $query  Query parameters
+     * 
      * @author Michael Klier <chi@chimeric.de>
      * @author hArpanet <dokuwiki-blogtng@harpanet.com>
-     *
-     * @param $query
      */
     private function xhtml_latest_items($query) {
         $resultset = $query['resultset'];
@@ -491,10 +495,10 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
     /**
      * Displays a list of entries, as callback of xhtml_search_results()
      *
+     * @param $entries Array of entries
+     * @param $query   Query parameters
+     * 
      * @author Michael Klier <chi@chimeric.de>
-     *
-     * @param $entries
-     * @param $query
      */
     private function xhtml_entry_list($entries, $query) {
         ptln('<div class="level2">');
@@ -518,10 +522,10 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
     /**
      * Displays a single entry and related actions
      *
+     * @param $entry Single entry
+     * @param $query Query parameters
+     * 
      * @author Michael Klier <chi@chimeric.de>
-     *
-     * @param $entry
-     * @param $query
      */
     private function xhtml_entry_item($entry, $query) {
         global $lang;
@@ -584,11 +588,11 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
     /**
      * Displays a list of comments, as callback of xhtml_search_results()
      *
+     * @param $comments List of comments
+     * @param $query    Query parameters
+     * 
      * @author Michael Klier <chi@chimeric.de>
      * @author hArpanet <dokuwiki-blogtng@harpanet.com>
-     *
-     * @param $comments
-     * @param $query
      */
     private function xhtml_comment_list($comments, $query) {
         global $lang;
@@ -627,10 +631,10 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
     /**
      * Displays a single comment and related actions
      *
+     * @param $comment A single comment
+     * 
      * @author Michael Klier <chi@chimeric.de>
      * @author hArpanet <dokuwiki-blogtng@harpanet.com>
-     *
-     * @param $comment
      */
     private function xhtml_comment_item($comment) {
         global $lang;
@@ -707,13 +711,13 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
     /**
      * Displays the form to change the comment status of a blog entry
      *
-     * @author Michael Klier <chi@chimeric.de>
-     * @author hArpanet <dokuwiki-blogtng@harpanet.com>
-     *
-     * @param $entry
-     * @param $query
+     * @param $entry Blog entry
+     * @param $query Query parameters
      * @param string $field
      * @return Doku_Form|string
+     * 
+     * @author Michael Klier <chi@chimeric.de>
+     * @author hArpanet <dokuwiki-blogtng@harpanet.com>
      */
     private function xhtml_entry_edit_form($entry, $query, $field = 'commentstatus') {
         global $lang;
@@ -745,9 +749,9 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
     /**
      * Displays the comment edit form
      *
-     * @author Michael Klier <chi@chimeric.de>
-     *
      * @param $comment
+     * 
+     * @author Michael Klier <chi@chimeric.de>
      */
     private function xhtml_comment_edit_form($comment) {
         global $lang;
@@ -812,9 +816,9 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
     /**
      * Displays the limit selection form
      *
-     * @author hArpanet <dokuwiki-blogtng@harpanet.com>
-     *
      * @param string $query
+     * 
+     * @author hArpanet <dokuwiki-blogtng@harpanet.com>
      */
     private function xhtml_limit_form($query='') {
         global $lang;
@@ -857,14 +861,11 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      * Get the offset of the pagination
      *
      * @param array $query    url parameters
-     * @param int    $default  value
+     * @param int   $default  value
      * @return int offset number of items
      */
     public function getOffsetParam($query, $default = 0) {
         return (int) (isset($query['offset']) ? $query['offset'] : $default);
     }
-
-
-
 }
 // vim:ts=4:sw=4:et:
