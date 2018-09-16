@@ -28,6 +28,8 @@ class syntax_plugin_blogtng_commentreply extends DokuWiki_Syntax_Plugin {
     function getSort() { return 300; }
 
     /**
+     * Register the comment reply syntax
+     * 
      * @param string $mode
      */
     function connectTo($mode) {
