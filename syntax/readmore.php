@@ -37,6 +37,8 @@ class syntax_plugin_blogtng_readmore extends DokuWiki_Syntax_Plugin {
     function getSort() { return 300; }
 
     /**
+     * Register the ~~READMORE~~ syntax
+     * 
      * @param string $mode
      */
     function connectTo($mode) {
