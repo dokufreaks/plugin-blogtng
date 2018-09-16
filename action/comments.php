@@ -80,11 +80,15 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
         }
         $BLOGTNG['comment'] = $comment;
 
-        if(is_array($event->data) && (isset($event->data['comment_submit']) || isset($event->data['comment_preview']))) {
+        $action = act_clean($event->data);
+        if($action == 'comment_submit' || $action == 'comment_preview') {
 
-            if(isset($event->data['comment_submit']))  $BLOGTNG['comment_action'] = 'submit';
-            if(isset($event->data['comment_preview'])) $BLOGTNG['comment_action'] = 'preview';
-
+            if($action == 'comment_submit') {
+                $BLOGTNG['comment_action'] = 'submit';
+            }
+            else if($action == 'comment_preview') {
+                $BLOGTNG['comment_action'] = 'preview';
+            }
 
             // check for empty fields
             $BLOGTNG['comment_submit_errors'] = array();
@@ -115,7 +119,8 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
             if($BLOGTNG['comment_action'] == 'submit') {
                 // save comment and redirect FIXME cid
                 $this->commenthelper->save($comment);
-                act_redirect($comment['page'], 'show');
+                $event->data = 'redirect';
+                return false;
             } elseif($BLOGTNG['comment_action'] == 'preview') {
                 $event->data = 'show';
                 $_SERVER['REQUEST_METHOD'] = 'get'; // hack to avoid redirect
