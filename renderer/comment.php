@@ -79,13 +79,16 @@ class renderer_plugin_blogtng_comment extends Doku_Renderer_xhtml {
      * @author Andreas Gohr <andi@splitbrain.org>
      *
      * @param string $url
-     * @param array $params
+     * @param array  $params
      */
     function rss($url, $params) {}
 
     /**
-     * @param string $name
-     * @param mixed $data
+     * Call a syntax plugin's render function if it is allowed
+     * by the actual configuration settings.
+     * 
+     * @param  string $name
+     * @param  mixed  $data
      * @return bool
      */
     function plugin($name, $data) {
