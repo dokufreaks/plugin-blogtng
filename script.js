@@ -129,6 +129,9 @@ var blogtng = {
         }
     },
 
+    /**
+     * Attach and handle the check-all checkbox.
+     */
     insert_checkall_checkbox: function() {
         if(jQuery('#blogtng__admin').length == 0) return;
         var th = jQuery('#blogtng__admin_checkall_th').get(0);
@@ -142,6 +145,9 @@ var blogtng = {
         }
     },
 
+    /**
+     * Set all checkboxes to checked.
+     */
     checkall: function() {
         objs = jQuery('input.comment_cid');
         if(objs) {
