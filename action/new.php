@@ -54,7 +54,6 @@ class action_plugin_blogtng_new extends DokuWiki_Action_Plugin{
             return true;
         }
 
-        $event->preventDefault();
         $new = $tools->mkpostid($tools->getParam('new/format'),$tools->getParam('new/title'));
         if ($ID != $new) {
             $urlparams = array(
