@@ -35,6 +35,8 @@ class action_plugin_blogtng_linkback extends DokuWiki_Action_Plugin {
     }
 
     /**
+     * Set $this->run to true if linkback is allowed.
+     * 
      * @param Doku_Event $event  event object by reference
      * @param array      $params  empty array as passed to register_hook()
      */

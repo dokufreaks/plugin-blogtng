@@ -22,6 +22,8 @@ class action_plugin_blogtng_ajax extends DokuWiki_Action_Plugin{
     }
 
     /**
+     * Callback function for event 'AJAX_CALL_UNKNOWN'.
+     * 
      * @param Doku_Event $event  event object by reference
      * @param array      $param  empty array as passed to register_hook()
      */

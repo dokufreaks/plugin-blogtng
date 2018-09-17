@@ -49,6 +49,9 @@ class PingbackServer extends IXR_Server {
     }
 
     /**
+     * Send a HTTP get request to @$sourceUri and extract linkback
+     * data for @$targetUri from the response.
+     * 
      * @param $sourceUri
      * @param $targetUri
      * @return IXR_Error

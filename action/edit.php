@@ -217,6 +217,8 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
     }
 
     /**
+     * Return the configured allowed tags as an array
+     * 
      * @return array
      */
     private function _get_allowed_tags() {
@@ -224,6 +226,8 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
     }
 
     /**
+     * Return the tags received in the current $_REQUEST
+     * 
      * @return array|mixed
      */
     private function _get_post_tags() {

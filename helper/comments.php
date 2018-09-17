@@ -35,7 +35,11 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     }
 
     /**
-     * @param $cid
+     * Select comment by cid and return it as a blogtng_comment. The
+     * function returns false if the database query fails. It returns
+     * null if the query result is empty.
+     * 
+     * @param  $cid The cid
      * @return blogtng_comment|bool|null
      */
     public function comment_by_cid($cid) {
@@ -346,6 +350,8 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     }
 
     /**
+     * Unsubscribe by key
+     * 
      * @param $pid
      * @param $key
      */
@@ -662,6 +668,8 @@ class blogtng_comment{
     }
 
     /**
+     * Render a comment using the templates comments file.
+     * 
      * @param string $name of template
      * @return bool
      */
@@ -682,6 +690,8 @@ class blogtng_comment{
     }
 
     /**
+     * Get translated string for @$name
+     * 
      * @param   string  $name     id of the string to be retrieved
      * @return  string  string in appropriate language or english if not available
      */
@@ -689,6 +699,12 @@ class blogtng_comment{
         return $this->tools->getLang($name);
     }
 
+    /**
+     * Render the text/content of a single comment
+     * 
+     * @param   string  $name     id of the string to be retrieved
+     * @return  string  string in appropriate language or english if not available
+     */
     public function tpl_comment(){
         //FIXME add caching
 
@@ -696,11 +712,16 @@ class blogtng_comment{
         echo p_render('blogtng_comment',$inst,$info);
     }
 
+    /**
+     * Render the cid of a single comment
+     */
     public function tpl_cid(){
         echo $this->data['cid'];
     }
 
     /**
+     * Render the number of a comment.
+     * 
      * @param bool   $link  whether wrapped with link element
      * @param string $fmt   format of number
      * @param string $title null or alternative title
@@ -713,6 +734,9 @@ class blogtng_comment{
         if($link) echo '</a>';
     }
 
+    /**
+     * Render the hcard/userdata of a single comment
+     */
     public function tpl_hcard(){
         echo '<div class="vcard">';
         if($this->data['web']){
@@ -727,34 +751,53 @@ class blogtng_comment{
         echo '</div>';
     }
 
+    /**
+     * Render the name of a single comment
+     */
     public function tpl_name(){
         echo hsc($this->data['name']);
     }
 
+    /**
+     * Render the type of a single comment
+     */
     public function tpl_type(){
         echo hsc($this->data['type']);
     }
 
+    /**
+     * Render the mail of a single comment
+     */
     public function tpl_mail(){
         echo hsc($this->data['mail']);
     }
 
+    /**
+     * Render the web address of a single comment
+     */
     public function tpl_web(){
         echo hsc($this->data['web']);
     }
 
     /**
+     * Render the creation date of a single comment
+     * 
      * @param string $fmt date format, empty string default to $conf['dformat']
      */
     public function tpl_created($fmt=''){
         echo hsc(dformat($this->data['created'],$fmt));
     }
 
+    /**
+     * Render the status of a single comment
+     */
     public function tpl_status() {
         echo $this->data['status'];
     }
 
     /**
+     * Render the avatar of a single comment
+     * 
      * @param int $w avatar width
      * @param int $h avatar height
      * @param bool $return whether the url is returned or printed

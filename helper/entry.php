@@ -45,6 +45,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     //~~ data access methods
 
     /**
+     * Load all entries with @$pid
+     * 
      * @param string $pid
      * @return int
      */
@@ -87,6 +89,10 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     }
 
     /**
+     * Sets @$row as the current entry and returns RET_OK if it references
+     * a valid blog entry. Otherwise the entry will be deleted and
+     * RET_ERR_DEL is returned.
+     * 
      * @param $row
      * @return int
      */
@@ -100,6 +106,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     }
 
     /**
+     * Copy all array entries from @$entry
+     * 
      * @param $entry
      */
     public function set($entry) {
@@ -111,6 +119,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     }
 
     /**
+     * Create and return empty prototype array with all items set to null.
+     * 
      * @return array
      */
     private function prototype() {
@@ -142,7 +152,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     }
 
     /**
-     * delete the current entry
+     * Delete the current entry
      */
     private function delete(){
         if(!$this->entry['pid']) return false;
@@ -427,8 +437,11 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     //~~ template methods
 
     /**
-     * @param $name
-     * @param $type
+     * Render content for the given @$type using template @$name.
+     * $type must be one of 'list', 'entry', 'feed' or 'tagsearch'.
+     * 
+     * @param $name Template name
+     * @param $type Type to render.
      */
     public function tpl_content($name, $type) {
         $whitelist = array('list', 'entry', 'feed', 'tagsearch');
@@ -466,6 +479,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     }
 
     /**
+     * Print link to page or anchor.
+     * 
      * @param string $anchor
      */
     public function tpl_link($anchor=''){
@@ -473,6 +488,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     }
 
     /**
+     * Print permalink to page or anchor.
+     * 
      * @param $str
      */
     public function tpl_permalink($str) {
@@ -480,6 +497,9 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     }
 
     /**
+     * Print abstract data
+     * FIXME: what's in $this->entry['abstract']?
+     * 
      * @param int $len
      */
     public function tpl_abstract($len=0) {
@@ -492,11 +512,16 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         echo hsc($abstract);
     }
 
+    /**
+     * Print title.
+     */
     public function tpl_title() {
         print hsc($this->entry['title']);
     }
 
     /**
+     * Print creation date.
+     * 
      * @param string $format
      */
     public function tpl_created($format='') {
@@ -505,6 +530,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     }
 
     /**
+     * Print last modified date.
+     * 
      * @param string $format
      */
     public function tpl_lastmodified($format='') {
@@ -512,6 +539,9 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         print dformat($this->entry['lastmod'], $format);
     }
 
+    /**
+     * Print author.
+     */
     public function tpl_author() {
         if(empty($this->entry['author'])) return;
         print hsc($this->entry['author']);
@@ -716,6 +746,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     //~~ utility methods
 
     /**
+     * Return array of blog templates.
+     * 
      * @return array
      */
     public static function get_blogs() {
@@ -729,6 +761,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     }
 
     /**
+     * Get blog from this entry
+     * 
      * @return string
      */
     public function get_blog() {
