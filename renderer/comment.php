@@ -91,7 +91,7 @@ class renderer_plugin_blogtng_comment extends Doku_Renderer_xhtml {
      * @param  mixed  $data
      * @return bool
      */
-    function plugin($name, $data) {
+    function plugin($name, $data, $state = '', $match = '') {
         $comments_xhtml_renderer = array_map('trim', explode(',', $this->getConf('comments_xhtml_renderer')));
         $comments_forbid_syntax = array_map('trim', explode(',', $this->getConf('comments_forbid_syntax')));
         /** @var DokuWiki_Syntax_Plugin $plugin */
