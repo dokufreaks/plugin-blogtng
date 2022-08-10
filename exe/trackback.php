@@ -8,6 +8,8 @@
  * @link       http://wiki.foosel.net/snippets/dokuwiki/linkback
  */
 
+use dokuwiki\HTTP\DokuHTTPClient;
+
 if (!defined('DOKU_INC'))
     define('DOKU_INC', realpath(dirname(__FILE__) . '/../../../../') . '/');
 

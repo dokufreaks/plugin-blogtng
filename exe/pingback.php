@@ -8,25 +8,29 @@
  * @link       http://wiki.foosel.net/snippets/dokuwiki/linkback
  */
 
+use IXR\Server\Server;
+use IXR\Message\Error;
+use dokuwiki\HTTP\DokuHTTPClient;
+
 if (!defined('DOKU_INC'))
     define('DOKU_INC', realpath(dirname(__FILE__) . '/../../../../') . '/');
 
 require_once (DOKU_INC . 'inc/init.php');
 
 // Pingback Faultcodes
-define('PINGBACK_ERROR_GENERIC', 0);
-define('PINGBACK_ERROR_SOURCEURI_DOES_NOT_EXIST', 16);
-define('PINGBACK_ERROR_SOURCEURI_DOES_NOT_CONTAIN_LINK', 17);
-define('PINGBACK_ERROR_TARGETURI_DOES_NOT_EXIST', 32);
-define('PINGBACK_ERROR_TARGETURI_CANNOT_BE_USED', 33);
-define('PINGBACK_ERROR_PINGBACK_ALREADY_MADE', 48);
-define('PINGBACK_ERROR_ACCESS_DENIED', 49);
-define('PINGBACK_ERROR_NO_UPSTREAM', 50);
+const PINGBACK_ERROR_GENERIC = 0;
+const PINGBACK_ERROR_SOURCEURI_DOES_NOT_EXIST = 16;
+const PINGBACK_ERROR_SOURCEURI_DOES_NOT_CONTAIN_LINK = 17;
+const PINGBACK_ERROR_TARGETURI_DOES_NOT_EXIST = 32;
+const PINGBACK_ERROR_TARGETURI_CANNOT_BE_USED = 33;
+const PINGBACK_ERROR_PINGBACK_ALREADY_MADE = 48;
+const PINGBACK_ERROR_ACCESS_DENIED = 49;
+const PINGBACK_ERROR_NO_UPSTREAM = 50;
 
 /**
  * Class PingbackServer
  */
-class PingbackServer extends IXR_Server {
+class PingbackServer extends Server {
 
     /** @var  helper_plugin_blogtng_linkback */
     var $tools;
@@ -35,7 +39,6 @@ class PingbackServer extends IXR_Server {
      * Register service and construct helper
      */
     function __construct() {
-        /** @var helper_plugin_blogtng_linkback tools */
         $this->tools = plugin_load('helper', 'blogtng_linkback');
         parent::__construct(array('pingback.ping' => 'this:ping'));
     }
@@ -43,45 +46,45 @@ class PingbackServer extends IXR_Server {
     /**
      * Send a HTTP get request to @$sourceUri and extract linkback
      * data for @$targetUri from the response.
-     * 
+     *
      * @param $sourceUri
      * @param $targetUri
-     * @return IXR_Error
+     * @return Error|void
      */
     function ping($sourceUri, $targetUri) {
         global $ID;
         $ID = substr($_SERVER['PATH_INFO'], 1);
 
         if (is_null($this->tools) || !$this->tools->linkbackAllowed()) {
-            return new IXR_Error(PINGBACK_ERROR_TARGETURI_CANNOT_BE_USED, '');
+            return new Error(PINGBACK_ERROR_TARGETURI_CANNOT_BE_USED, '');
         }
 
         // Given URLs are no urls? Quit
         if (!preg_match("#^([a-z0-9\-\.+]+?)://.*#i", $sourceUri))
-            return new IXR_Error(PINGBACK_ERROR_GENERIC, '');
+            return new Error(PINGBACK_ERROR_GENERIC, '');
         if (!preg_match("#^([a-z0-9\-\.+]+?)://.*#i", $targetUri))
-            return new IXR_Error(PINGBACK_ERROR_GENERIC, '');
+            return new Error(PINGBACK_ERROR_GENERIC, '');
 
         // Source URL does not exist? Quit
         $http = new DokuHTTPClient;
         $page = $http->get($sourceUri);
         if ($page === false)
-            return new IXR_Error(PINGBACK_ERROR_SOURCEURI_DOES_NOT_EXIST, '');
+            return new Error(PINGBACK_ERROR_SOURCEURI_DOES_NOT_EXIST, '');
 
         // Target URL does not match with request? Quit
         if ($targetUri != wl($ID, '', true))
-            return new IXR_Error(PINGBACK_ERROR_GENERIC, '');
+            return new Error(PINGBACK_ERROR_GENERIC, '');
 
         // Retrieve data from source
         $linkback = $this->_getTrackbackData($sourceUri, $targetUri, $page);
 
         // Source URL does not contain link to target? Quit
         if (!$linkback)
-            return new IXR_Error(PINGBACK_ERROR_SOURCEURI_DOES_NOT_CONTAIN_LINK, '');
+            return new Error(PINGBACK_ERROR_SOURCEURI_DOES_NOT_CONTAIN_LINK, '');
 
         if (!$this->tools->saveLinkback('pingback', $linkback['title'],
                                         $sourceUri, $linkback['excerpt'], $ID)) {
-            return new IXR_Error(PINGBACK_ERROR_PINGBACK_ALREADY_MADE, '');
+            return new Error(PINGBACK_ERROR_PINGBACK_ALREADY_MADE, '');
         }
     }
 
