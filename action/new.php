@@ -4,9 +4,6 @@
  * @author     Andreas Gohr <gohr@cosmocode.de>
  */
 
-// must be run within Dokuwiki
-if (!defined('DOKU_INC')) die();
-
 /**
  * Class action_plugin_blogtng_new
  */

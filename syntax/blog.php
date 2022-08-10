@@ -3,9 +3,6 @@
  * Syntax Component Blog
  */
 
-// must be run within Dokuwiki
-if (!defined('DOKU_INC')) die();
-
 /**
  * Covers all <blog *> syntax commands
  */
@@ -146,13 +143,14 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
     /**
      * Handles the actual output creation.
      *
-     * @param string          $mode     output format being rendered
+     * @param string          $format     output format being rendered
      * @param Doku_Renderer   $renderer the current renderer object
      * @param array           $data     data created by handler()
      * @return  boolean                 rendered correctly? (however, returned value is not used at the moment)
      */
-    public function render($mode, Doku_Renderer $renderer, $data) {
-        if($mode != 'xhtml') return false;
+    public function render($format, Doku_Renderer $renderer, $data) {
+        global $INPUT;
+        if($format != 'xhtml') return false;
 
         $this->loadHelpers();
 
@@ -228,7 +226,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
                 $this->config['tpl'] = $match[1];
                 break;
             default;
-                continue;
+                break;
         }
     }
 

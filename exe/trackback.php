@@ -11,14 +11,7 @@
 if (!defined('DOKU_INC'))
     define('DOKU_INC', realpath(dirname(__FILE__) . '/../../../../') . '/');
 
-if (!defined('NL'))
-    define('NL', "\n");
-
 require_once (DOKU_INC . 'inc/init.php');
-require_once (DOKU_INC . 'inc/common.php');
-require_once (DOKU_INC . 'inc/events.php');
-require_once (DOKU_INC . 'inc/pluginutils.php');
-require_once (DOKU_INC . 'inc/HTTPClient.php');
 
 /**
  * Class TrackbackServer

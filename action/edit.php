@@ -4,9 +4,6 @@
  * @author     Michael Klier <chi@chimeric.de>
  */
 
-// must be run within Dokuwiki
-if (!defined('DOKU_INC')) die();
-
 class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
 
     /** @var helper_plugin_blogtng_entry */

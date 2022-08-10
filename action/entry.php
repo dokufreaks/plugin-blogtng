@@ -4,9 +4,6 @@
  * @author     Michael Klier <chi@chimeric.de>
  */
 
-// must be run within Dokuwiki
-if (!defined('DOKU_INC')) die();
-
 /**
  * Class action_plugin_blogtng_entry
  */
@@ -28,7 +25,9 @@ class action_plugin_blogtng_entry extends DokuWiki_Action_Plugin{
      * @param Doku_Event_Handler $controller
      */
     function register(Doku_Event_Handler $controller) {
+        // Intercept the usual page display and replace it with a blog template controlled one.
         $controller->register_hook('TPL_ACT_RENDER', 'BEFORE', $this, 'handle_tpl_act_render', array());
+        // Add next and prev meta headers for navigating through blog posts
         $controller->register_hook('TPL_METAHEADER_OUTPUT', 'BEFORE', $this, 'handle_metaheader_output', array ());
     }
 
@@ -38,7 +37,7 @@ class action_plugin_blogtng_entry extends DokuWiki_Action_Plugin{
      *
      * @param Doku_Event $event  event object by reference
      * @param array      $param  empty array as passed to register_hook()
-     * @return void|bool
+     * @return bool
      */
     function handle_tpl_act_render(Doku_Event $event, $param) {
         global $ID;
@@ -62,7 +61,7 @@ class action_plugin_blogtng_entry extends DokuWiki_Action_Plugin{
      *
      * @param Doku_Event $event  event object by reference
      * @param array      $param  empty array as passed to register_hook()
-     * @return void|bool
+     * @return bool
      */
     function handle_metaheader_output(Doku_Event $event, $param) {
         global $ACT, $ID;
@@ -78,13 +77,13 @@ class action_plugin_blogtng_entry extends DokuWiki_Action_Plugin{
         if (isset ($relatedentries['prev'])) {
             $event->data['link'][] = array (
                 'rel' => 'prev',
-                'href' => wl($relatedentries['prev']['page'], '')
+                'href' => wl($relatedentries['prev']['page'])
             );
         }
         if (isset ($relatedentries['next'])) {
             $event->data['link'][] = array (
                 'rel' => 'next',
-                'href' => wl($relatedentries['next']['page'], '')
+                'href' => wl($relatedentries['next']['page'])
             );
         }
 

@@ -3,12 +3,6 @@
  * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
  * @author     Andreas Gohr <andi@splitbrain.org>
  */
-// must be run within Dokuwiki
-if(!defined('DOKU_INC')) die();
-
-require_once(DOKU_INC.'inc/infoutils.php');
-
-if(!defined('BLOGTNG_DIR')) define('BLOGTNG_DIR',DOKU_PLUGIN.'blogtng/');
 
 /**
  * Class helper_plugin_blogtng_sqlite
@@ -20,6 +14,8 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
 
     /**
      * Simple function to check if the database is ready to use
+     *
+     * @return bool
      */
     public function ready() {
         return (bool) $this->getDB();
@@ -29,7 +25,7 @@ class helper_plugin_blogtng_sqlite extends DokuWiki_Plugin {
      * Returns the instance of helper_plugin_sqlite,
      * otherwise it creates a new instance of the helper_plugin_sqlite and stores it in this object
      *
-     * @return helper_plugin_sqlite returned the loaded sqlite helper
+     * @return false|helper_plugin_sqlite returned the loaded sqlite helper
      */
     public function getDB() {
         if($this->db === null) {

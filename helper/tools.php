@@ -3,11 +3,6 @@
  * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
  * @author     Andreas Gohr <gohr@cosmocode.de>
  */
-// must be run within Dokuwiki
-if(!defined('DOKU_INC')) die();
-
-
-if(!defined('BLOGTNG_DIR')) define('BLOGTNG_DIR',DOKU_PLUGIN.'blogtng/');
 
 /**
  * Class helper_plugin_blogtng_tools
@@ -25,8 +20,8 @@ class helper_plugin_blogtng_tools extends DokuWiki_Plugin {
     /**
      * Return a page id based on the given format and title.
      *
-     * @param $format string the format of the id to generate
-     * @param $title  string the title of the page to create
+     * @param string $format the format of the id to generate
+     * @param string $title the title of the page to create
      * @return string a page id
      */
     static public function mkpostid($format,$title){
@@ -48,6 +43,8 @@ class helper_plugin_blogtng_tools extends DokuWiki_Plugin {
      *
      * @param array|string $path array or a / separated path to the parameter to return
      * @return bool|mixed returns the value of the referenced parameter, or false if something went wrong while retrieving it
+     *
+     * @deprecated 2022-07-31
      */
     static public function getParam($path) {
         if (!isset($_REQUEST['btng'])) return false;

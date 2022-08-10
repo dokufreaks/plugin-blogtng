@@ -6,8 +6,6 @@
  * @author  Gina Haeussge <gina@foosel.net>
  */
 
-if (!defined('DOKU_INC')) die();
-
 /**
  * Class syntax_plugin_blogtng_commentreply
  */
@@ -29,7 +27,7 @@ class syntax_plugin_blogtng_commentreply extends DokuWiki_Syntax_Plugin {
 
     /**
      * Register the comment reply syntax
-     * 
+     *
      * @param string $mode
      */
     function connectTo($mode) {
@@ -53,14 +51,14 @@ class syntax_plugin_blogtng_commentreply extends DokuWiki_Syntax_Plugin {
     /**
      * Renders a simple anchor in XHTML code for the readmore jump point.
      *
-     * @param string          $mode     output format being rendered
+     * @param string          $format     output format being rendered
      * @param Doku_Renderer   $renderer the current renderer object
-     * @param array           $indata   data created by handler()
+     * @param array           $data   data created by handler()
      * @return  boolean                 rendered correctly? (however, returned value is not used at the moment)
      */
-    function render($mode, Doku_Renderer $renderer, $indata) {
-        if ($mode == 'blogtng_comment') {
-            list($cid) = $indata;
+    function render($format, Doku_Renderer $renderer, $data) {
+        if ($format == 'blogtng_comment') {
+            list($cid) = $data;
             /** @var helper_plugin_blogtng_comments $commenthelper */
             $commenthelper = plugin_load('helper', 'blogtng_comments');
             $comment = $commenthelper->comment_by_cid($cid);

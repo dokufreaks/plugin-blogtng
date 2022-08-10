@@ -1,13 +1,13 @@
 <?php
 /**
- * @var $entry helper_plugin_blogtng_entry
+ * @var helper_plugin_blogtng_entry $entry
  */
 echo $entry->get_entrycontent() ?>
 
 <p>
     <small>
-        <?php 
-            global $lang; 
+        <?php
+            global $lang;
             global $conf;
             echo $this->getLang('created').": ";$entry->tpl_created($conf['dformat']);echo ", ";
             if ($entry->entry['created'] != $entry->entry['lastmod']) {

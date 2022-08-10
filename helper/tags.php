@@ -3,8 +3,6 @@
  * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
  * @author     Gina Haeussge <gina@foosel.net>
  */
-// must be run within Dokuwiki
-if(!defined('DOKU_INC')) die();
 
 /**
  * Delivers tag related functions
@@ -12,7 +10,7 @@ if(!defined('DOKU_INC')) die();
 class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
 
     /** @var helper_plugin_blogtng_sqlite */
-    private $sqlitehelper = null;
+    private $sqlitehelper;
 
     private $tags = array();
 
@@ -84,7 +82,7 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
         $tags_from_db = $this->sqlitehelper->getDB()->res2arr($resid);
         $tags = array();
         foreach ($tags_from_db as $tag_from_db) {
-            array_push($tags, $tag_from_db['tag']);
+            $tags[] = $tag_from_db['tag'];
         }
         $this->tags = $tags;
         return true;
@@ -165,7 +163,6 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
         $query = 'END TRANSACTION';
         if (!$this->sqlitehelper->getDB()->query($query)) {
             $this->sqlitehelper->getDB()->query('ROLLBACK TRANSACTION');
-            return;
         }
     }
 
@@ -193,21 +190,12 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
             'NOT' => array(),
         );
         foreach ($tags as $tag) {
-            if ($tag{0} == '+') {
-                array_push(
-                    $tag_clauses['AND'],
-                    'tag = '. $this->sqlitehelper->getDB()->quote_string(substr($tag, 1))
-                );
-            } else if ($tag{0} == '-') {
-                array_push(
-                    $tag_clauses['NOT'],
-                    'tag != '.$this->sqlitehelper->getDB()->quote_string(substr($tag, 1))
-                );
+            if ($tag[0] == '+') {
+                $tag_clauses['AND'][] = 'tag = ' . $this->sqlitehelper->getDB()->quote_string(substr($tag, 1));
+            } else if ($tag[0] == '-') {
+                $tag_clauses['NOT'][] = 'tag != ' . $this->sqlitehelper->getDB()->quote_string(substr($tag, 1));
             } else {
-                array_push(
-                    $tag_clauses['OR'],
-                    'tag = '.$this->sqlitehelper->getDB()->quote_string($tag)
-                );
+                $tag_clauses['OR'][] = 'tag = ' . $this->sqlitehelper->getDB()->quote_string($tag);
             }
         }
         $tag_clauses = array_map('array_unique', $tag_clauses);
@@ -233,7 +221,7 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
     public function tpl_tags($target){
         $prepared = array();
         foreach ($this->tags as $tag) {
-            array_push($prepared, DOKU_TAB.'<li><div class="li">'.$this->_format_tag_link($tag, $target).'</div></li>');
+            $prepared[] = '<li><div class="li">' . $this->_format_tag_link($tag, $target) . '</div></li>';
         }
         $html = '<ul class="blogtng_tags">'.DOKU_LF.join(DOKU_LF, $prepared).'</ul>'.DOKU_LF;
         echo $html;

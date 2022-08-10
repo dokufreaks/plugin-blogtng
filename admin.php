@@ -4,9 +4,6 @@
  * @author     Esther Brunner <wikidesign@gmail.com>
  */
 
-// must be run within Dokuwiki
-if (!defined('DOKU_INC')) die();
-
 /**
  * Class admin_plugin_blogtng
  */
@@ -397,7 +394,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
 
     /**
      * Print a pagination link.
-     * 
+     *
      * @param array   $query   Query parameters
      * @param int     $offset  number of previous items
      * @param int     $limit   number of items at this page
@@ -413,7 +410,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
 
     /**
      * Build URL parameters.
-     * 
+     *
      * @param array  $query   Query parameters
      * @param int    $offset  number of previous items
      * @param int    $limit   number of items at this page
@@ -444,8 +441,8 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
     /**
      * Display the latest comments or entries
      *
-     * @param  $query  Query parameters
-     * 
+     * @param array $query parameters
+     *
      * @author Michael Klier <chi@chimeric.de>
      * @author hArpanet <dokuwiki-blogtng@harpanet.com>
      */
@@ -495,9 +492,9 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
     /**
      * Displays a list of entries, as callback of xhtml_search_results()
      *
-     * @param $entries Array of entries
-     * @param $query   Query parameters
-     * 
+     * @param array $entries of entries
+     * @param array $query parameters
+     *
      * @author Michael Klier <chi@chimeric.de>
      */
     private function xhtml_entry_list($entries, $query) {
@@ -522,9 +519,9 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
     /**
      * Displays a single entry and related actions
      *
-     * @param $entry Single entry
-     * @param $query Query parameters
-     * 
+     * @param array $entry Single entry
+     * @param array $query Query parameters
+     *
      * @author Michael Klier <chi@chimeric.de>
      */
     private function xhtml_entry_item($entry, $query) {
@@ -588,9 +585,9 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
     /**
      * Displays a list of comments, as callback of xhtml_search_results()
      *
-     * @param $comments List of comments
-     * @param $query    Query parameters
-     * 
+     * @param array[] $comments List of comments
+     * @param array $query    Query parameters
+     *
      * @author Michael Klier <chi@chimeric.de>
      * @author hArpanet <dokuwiki-blogtng@harpanet.com>
      */
@@ -631,8 +628,8 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
     /**
      * Displays a single comment and related actions
      *
-     * @param $comment A single comment
-     * 
+     * @param array $comment A single comment
+     *
      * @author Michael Klier <chi@chimeric.de>
      * @author hArpanet <dokuwiki-blogtng@harpanet.com>
      */
@@ -711,11 +708,11 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
     /**
      * Displays the form to change the comment status of a blog entry
      *
-     * @param $entry Blog entry
-     * @param $query Query parameters
+     * @param array $entry Blog entry
+     * @param array $query Query parameters
      * @param string $field
-     * @return Doku_Form|string
-     * 
+     * @return false|string
+     *
      * @author Michael Klier <chi@chimeric.de>
      * @author hArpanet <dokuwiki-blogtng@harpanet.com>
      */
@@ -741,16 +738,15 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         $form->addElement('<input type="submit" name="btng[admin][entry_set_'.$field.']" class="edit button" value="' . $lang['btn_update'] . '" />');
 
         ob_start();
-        html_form("blotng__btn_entry_set_{$field}", $form);
-        $form = ob_get_clean();
-        return $form;
+        html_form("blotng__btn_entry_set_$field", $form);
+        return ob_get_clean();
     }
 
     /**
      * Displays the comment edit form
      *
      * @param $comment
-     * 
+     *
      * @author Michael Klier <chi@chimeric.de>
      */
     private function xhtml_comment_edit_form($comment) {
@@ -816,8 +812,8 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
     /**
      * Displays the limit selection form
      *
-     * @param string $query
-     * 
+     * @param array $query Query parameters
+     *
      * @author hArpanet <dokuwiki-blogtng@harpanet.com>
      */
     private function xhtml_limit_form($query='') {
@@ -832,11 +828,11 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         $form->startFieldset("");
         $form->addHidden('page', 'blogtng');
         $form->addElement(
-                form_makeListBoxField("btng[{$resultset}][limit]",
+                form_makeListBoxField("btng[$resultset][limit]",
                     array(5,10,15,20,25,30,40,50,100),
                     $limit,
                     $this->getLang('numhits')));
-        $form->addHidden("btng[{$resultset}][offset]", $this->getOffsetParam($query));
+        $form->addHidden("btng[$resultset][offset]", $this->getOffsetParam($query));
         $form->addElement(form_makeButton('submit', 'admin', $lang['btn_update']));
         $form->endFieldset();
         html_form('blogtng__'.$resultset.'_cnt_form', $form);

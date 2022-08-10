@@ -3,8 +3,6 @@
  * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
  * @author     Michael Klier <chi@chimeric.de>
  */
-// must be run within Dokuwiki
-if(!defined('DOKU_INC')) die();
 
 /**
  * Class helper_plugin_blogtng_comments
@@ -14,7 +12,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     /**
      * @var helper_plugin_blogtng_sqlite
      */
-    private $sqlitehelper = null;
+    private $sqlitehelper;
 
     private $pid;
 
@@ -38,8 +36,8 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      * Select comment by cid and return it as a blogtng_comment. The
      * function returns false if the database query fails. It returns
      * null if the query result is empty.
-     * 
-     * @param  $cid The cid
+     *
+     * @param string $cid The cid
      * @return blogtng_comment|bool|null
      */
     public function comment_by_cid($cid) {
@@ -351,7 +349,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
 
     /**
      * Unsubscribe by key
-     * 
+     *
      * @param $pid
      * @param $key
      */
@@ -520,7 +518,6 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      * @param string $fmt_one_comments - text for 1 comment
      * @param string $fmt_comments - text for 1+ comment
      * @param array  $types - a list of wanted comment sources (empty for all)
-     * @return bool
      */
     public function tpl_count($fmt_zero_comments='', $fmt_one_comments='', $fmt_comments='', $types=null) {
         if(!$this->pid) return;
@@ -650,18 +647,25 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
  * Simple wrapper class for a single comment object
  */
 class blogtng_comment{
+
+    /** @var array */
     var $data;
+    /** @var int */
     var $num;
+    /**
+     * @var helper_plugin_blogtng_tools
+     */
+    private $tools;
 
     /**
      * Resets the internal data with a given row
      */
-    public function blogtng_comment(){
+    public function __construct(){
         $this->tools = new helper_plugin_blogtng_tools();
     }
 
     /**
-     * @param $row array row of table 'commments'
+     * @param array $row row of table 'comments'
      */
     public function init($row){
         $this->data = $row;
@@ -669,7 +673,7 @@ class blogtng_comment{
 
     /**
      * Render a comment using the templates comments file.
-     * 
+     *
      * @param string $name of template
      * @return bool
      */
@@ -691,7 +695,7 @@ class blogtng_comment{
 
     /**
      * Get translated string for @$name
-     * 
+     *
      * @param   string  $name     id of the string to be retrieved
      * @return  string  string in appropriate language or english if not available
      */
@@ -701,9 +705,6 @@ class blogtng_comment{
 
     /**
      * Render the text/content of a single comment
-     * 
-     * @param   string  $name     id of the string to be retrieved
-     * @return  string  string in appropriate language or english if not available
      */
     public function tpl_comment(){
         //FIXME add caching
@@ -721,7 +722,7 @@ class blogtng_comment{
 
     /**
      * Render the number of a comment.
-     * 
+     *
      * @param bool   $link  whether wrapped with link element
      * @param string $fmt   format of number
      * @param string $title null or alternative title
@@ -781,7 +782,7 @@ class blogtng_comment{
 
     /**
      * Render the creation date of a single comment
-     * 
+     *
      * @param string $fmt date format, empty string default to $conf['dformat']
      */
     public function tpl_created($fmt=''){
@@ -797,7 +798,7 @@ class blogtng_comment{
 
     /**
      * Render the avatar of a single comment
-     * 
+     *
      * @param int $w avatar width
      * @param int $h avatar height
      * @param bool $return whether the url is returned or printed
@@ -813,14 +814,14 @@ class blogtng_comment{
             $dfl = $conf['plugin']['blogtng']['comments_gravatar_default'];
             if(!isset($dfl) || $dfl == 'blank') $dfl = DOKU_URL . 'lib/images/blank.gif';
 
-            $img = 'http://gravatar.com/avatar.php'
+            $img = 'https://gravatar.com/avatar.php'
                  . '?gravatar_id=' . md5($this->data['mail'])
                  . '&size=' . $w
                  . '&rating=' . $conf['plugin']['blogtng']['comments_gravatar_rating']
                  . '&default='.rawurlencode($dfl)
                  . '&.png';
         } elseif ($this->data['web']){
-            $img = 'http://getfavicon.appspot.com/'.rawurlencode($this->data['web']).'?.png';
+            $img = 'https://getfavicon.appspot.com/'.rawurlencode($this->data['web']).'?.png';
         }
 
 

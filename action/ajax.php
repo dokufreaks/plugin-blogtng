@@ -4,9 +4,6 @@
  * @author     Andreas Gohr <gohr@cosmocode.de>
  */
 
-// must be run within Dokuwiki
-if (!defined('DOKU_INC')) die();
-
 /**
  * Class action_plugin_blogtng_ajax
  */
@@ -22,8 +19,9 @@ class action_plugin_blogtng_ajax extends DokuWiki_Action_Plugin{
     }
 
     /**
-     * Callback function for event 'AJAX_CALL_UNKNOWN'.
-     * 
+     * Callback function for event 'AJAX_CALL_UNKNOWN' to return a rendered preview of a comment
+     * (which will be shown below the comment input field)
+     *
      * @param Doku_Event $event  event object by reference
      * @param array      $param  empty array as passed to register_hook()
      */

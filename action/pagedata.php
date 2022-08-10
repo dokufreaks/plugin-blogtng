@@ -4,9 +4,6 @@
  * @author     Gina Haeussge <gina@foosel.net>
  */
 
-// must be run within Dokuwiki
-if (!defined('DOKU_INC')) die();
-
 /**
  * Class action_plugin_blogtng_pagedata
  */

@@ -7,8 +7,6 @@
  * @author  Michael Klier <chi@chimeric.de>
  */
 
-if (!defined('DOKU_INC')) die();
-
 /**
  * Class syntax_plugin_blogtng_header
  */
@@ -51,17 +49,17 @@ class syntax_plugin_blogtng_header extends DokuWiki_Syntax_Plugin {
      * Code heavily copied from the header renderer from inc/parser/xhtml.php, just
      * added an href parameter to the anchor tag linking to the wikilink.
      *
-     * @param   $mode     string              output format being rendered
-     * @param   $renderer Doku_Renderer reference to the current renderer object
-     * @param   $indata   array               data created by handler()
+     * @param string $format output format being rendered
+     * @param Doku_Renderer $renderer reference to the current renderer object
+     * @param array $data data created by handler()
      * @return  boolean                       rendered correctly?
      */
-    function render($mode, Doku_Renderer $renderer, $indata) {
+    function render($format, Doku_Renderer $renderer, $data) {
         global $ID;
-        list($text, $level) = $indata;
+        list($text, $level) = $data;
 
-        if ($mode == 'xhtml') {
-            /** @var $renderer Doku_Renderer_xhtml */
+        if ($format == 'xhtml') {
+            /** @var Doku_Renderer_xhtml $renderer */
             $hid = $renderer->_headerToLink($text,true);
 
             //only add items within configured levels
