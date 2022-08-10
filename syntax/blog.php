@@ -162,11 +162,16 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         if($start = $this->tools->getParam('pagination/start')){  // start offset
             $data['conf']['offset'] = (int) $start;
         }
-
+        /** @deprecated 2022-07-31 */
         if($tags = $this->tools->getParam('post/tags')){  // tags
             $data['conf']['tags'] = array_merge(
                                        $data['conf']['tags'],
                                        explode(',',$tags));
+        }
+        if($tags = $INPUT->post->str('post-tags')){  // tags
+            $data['conf']['tags'] = array_merge(
+                $data['conf']['tags'],
+                explode(',',$tags));
         }
         $data['conf']['tags'] = array_map('trim',$data['conf']['tags']);
         $data['conf']['tags'] = array_unique($data['conf']['tags']);

@@ -106,7 +106,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
                 $pid = $_REQUEST['btng']['entry']['pid'];
                 $blog = $_REQUEST['btng']['entry']['blog'];
                 if($pid) {
-                    $blogs = $this->entryhelper->get_blogs();
+                    $blogs = $this->entryhelper->getAllBlogs();
                     if(in_array($blog, $blogs)) {
                         $this->entryhelper->load_by_pid($pid);
                         $this->entryhelper->entry['blog'] = $blog;
@@ -732,7 +732,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         if($field == 'commentstatus') {
             $availableoptions = array('enabled', 'disabled', 'closed');
         } else {
-            $availableoptions = $this->entryhelper->get_blogs();
+            $availableoptions = $this->entryhelper->getAllBlogs();
         }
         $form->addElement(form_makeListBoxField("btng[entry][$field]", $availableoptions, $entry[$field], ''));
         $form->addElement('<input type="submit" name="btng[admin][entry_set_'.$field.']" class="edit button" value="' . $lang['btn_update'] . '" />');
@@ -791,7 +791,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
 
         ptln('<div class="level1">');
 
-        $blogs = $this->entryhelper->get_blogs();
+        $blogs = $this->entryhelper->getAllBlogs();
 
         $form = new Doku_Form(array('id'=>'blogtng__search_form'));
         $form->startFieldset($lang['btn_search']);

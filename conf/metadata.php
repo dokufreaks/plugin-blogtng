@@ -2,7 +2,7 @@
 $blogtng_meta__excluded_syntax = array('info', 'blogtng_commentreply', 'blogtng_blog', 'blogtng_readmore', 'blogtng_header', 'blogtng_topic');
 
 $meta['default_commentstatus']      = array('multichoice', '_choices' => array('enabled', 'closed', 'disabled'));
-$meta['default_blog']               = array('multichoice', '_choices' => helper_plugin_blogtng_entry::get_blogs());
+$meta['default_blog']               = array('multichoice', '_choices' => helper_plugin_blogtng_entry::getAllBlogs());
 $meta['default_tags']               = array('string');
 $meta['comments_allow_web']         = array('onoff');
 $meta['comments_subscription']      = array('onoff');

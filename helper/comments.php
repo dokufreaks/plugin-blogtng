@@ -239,28 +239,29 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         $title = sprintf($this->getLang('subscr_subject'),$entry['title']);
 
         $repl = array(
-            '@TITLE@'       => $entry['title'],
-            '@NAME@'        => $comment['name'],
-            '@COMMENT@'     => $comment['text'],
-            '@USER@'        => $comment['name'],
-            '@MAIL@'        => $comment['mail'],
-            '@DATE@'        => dformat(time()),
-            '@BROWSER@'     => $_SERVER['HTTP_USER_AGENT'],
-            '@IPADDRESS@'   => clientIP(),
-            '@HOSTNAME@'    => gethostsbyaddrs(clientIP()),
-            '@URL@'         => wl($entry['page'],'',true).($comment['cid'] ? '#comment_'.$comment['cid'] : ''),
-            '@DOKUWIKIURL@' => DOKU_URL,
+            'TITLE'       => $entry['title'],
+            'NAME'        => $comment['name'],
+            'COMMENT'     => $comment['text'],
+            'USER'        => $comment['name'],
+            'MAIL'        => $comment['mail'],
+            'DATE'        => dformat(time()),
+            'BROWSER'     => $_SERVER['HTTP_USER_AGENT'],
+            'IPADDRESS'   => clientIP(),
+            'HOSTNAME'    => gethostsbyaddrs(clientIP()),
+            'URL'         => wl($entry['page'],'',true).($comment['cid'] ? '#comment_'.$comment['cid'] : ''),
+            'DOKUWIKIURL' => DOKU_URL,
         );
-
-        $atext = str_replace(array_keys($repl),array_values($repl),$atext);
-        $stext = str_replace(array_keys($repl),array_values($repl),$stext);
 
         // notify author
         $mails = array_map('trim', explode(',', $conf['notify']));
         $mails[] = $entry['mail'];
         $mails = array_unique(array_filter($mails));
         if (count($mails) > 0) {
-            mail_send('', $title, $atext, $conf['mailfrom'], '', implode(',', $mails));
+            $mail = new Mailer();
+            $mail->bcc($mails);
+            $mail->subject($title);
+            $mail->setBody($atext, $repl);
+            $mail->send();
         }
 
         // finish here when subscriptions disabled
@@ -279,30 +280,40 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
             if($row['mail'] == $comment['mail']) continue;
             // ignore email addresses already notified:
             if(in_array($row['mail'], $mails)) continue;
-            mail_send($row['mail'], $title, str_replace('@UNSUBSCRIBE@', wl($entry['page'],array('btngu'=>$row['key']),true), $stext), $conf['mailfrom']);
+
+            $repl['UNSUBSCRIBE'] = wl($entry['page'], ['btngu' => $row['key']],true);
+
+            $mail = new Mailer();
+            $mail->to($row['mail']);
+            $mail->subject($title);
+            $mail->setBody($stext, $repl);
+            $mail->send();
         }
     }
 
     /**
      * Send a mail to commenter and let her login
      *
-     * @param $mail
+     * @param $email
      * @param $key
      */
-    public function send_optin_mail($mail,$key){
+    public function send_optin_mail($email,$key){
         global $conf;
 
         $text  = io_readFile($this->localFN('optinmail'));
-        $title = sprintf($this->getLang('optin_subject'));
+        $title = $this->getLang('optin_subject');
 
         $repl = array(
-            '@TITLE@'       => $conf['title'],
-            '@URL@'         => wl('',array('btngo'=>$key),true),
-            '@DOKUWIKIURL@' => DOKU_URL,
+            'TITLE'       => $conf['title'],
+            'URL'         => wl('',array('btngo'=>$key),true),
+            'DOKUWIKIURL' => DOKU_URL,
         );
-        $text = str_replace(array_keys($repl),array_values($repl),$text);
 
-        mail_send($mail, $title, $text, $conf['mailfrom']);
+        $mail = new Mailer();
+        $mail->to($email);
+        $mail->subject($title);
+        $mail->setBody($text, $repl);
+        $mail->send();
     }
 
     /**

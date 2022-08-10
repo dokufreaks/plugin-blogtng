@@ -746,7 +746,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      *
      * @return array
      */
-    public static function get_blogs() {
+    public static function getAllBlogs() {
         $pattern = DOKU_PLUGIN . 'blogtng/tpl/*{_,/}entry.php';
         $files = glob($pattern, GLOB_BRACE);
         $blogs = array('');
