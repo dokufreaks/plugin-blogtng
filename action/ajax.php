@@ -4,6 +4,7 @@
  * @author     Andreas Gohr <gohr@cosmocode.de>
  */
 
+use dokuwiki\plugin\blogtng\entities\Comment;
 /**
  * Class action_plugin_blogtng_ajax
  */
@@ -33,8 +34,7 @@ class action_plugin_blogtng_ajax extends DokuWiki_Action_Plugin{
         $event->preventDefault();
         $event->stopPropagation();
 
-        require_once DOKU_PLUGIN . 'blogtng/helper/comments.php';
-        $comment = new blogtng_comment();
+        $comment = new Comment();
 
         $comment->data['text']    = $_REQUEST['text'];
         $comment->data['name']    = $_REQUEST['name'];

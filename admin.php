@@ -4,6 +4,8 @@
  * @author     Esther Brunner <wikidesign@gmail.com>
  */
 
+use dokuwiki\plugin\blogtng\entities\Comment;
+
 /**
  * Class admin_plugin_blogtng
  */
@@ -641,7 +643,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         ptln('<tr class="' . $class . '">');
         $class = ($class == 'odd') ? 'even' : 'odd';
 
-        $cmt = new blogtng_comment();
+        $cmt = new Comment();
         $cmt->init($comment);
         ptln('<td class="admin_checkbox">');
             ptln('<input type="checkbox" class="comment_cid" name="btng[comments][cids][]" value="' . $comment['cid'] . '" />');
@@ -699,7 +701,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         ptln('<div id="blogtng__comment_preview">');
         ptln(p_locale_xhtml('preview'));
         ptln('<br />');
-        $comment = new blogtng_comment();
+        $comment = new Comment();
         $comment->init($data);
         $comment->output($blogname);
         ptln('</div>');

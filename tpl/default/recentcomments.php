@@ -7,7 +7,7 @@
  * the list and is called multiple times (once for each shown comment)
  *
  * @var helper_plugin_blogtng_entry $entry
- * @var blogtng_comment $comment
+ * @var dokuwiki\plugin\blogtng\entities\Comment $comment
  */
 ?>
 <li><div class="li">
