@@ -508,11 +508,10 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         }
 
         //add captcha if available
-        /** @var helper_plugin_captcha $helper */
-        $helper = null;
-        if(@is_dir(DOKU_PLUGIN.'captcha')) $helper = plugin_load('helper','captcha');
-        if(!is_null($helper) && $helper->isEnabled()){
-            $form->addElement($helper->getHTML());
+        /** @var helper_plugin_captcha $captcha */
+        $captcha = $this->loadHelper('captcha', false);
+        if ($captcha && $captcha->isEnabled()) {
+            $form->addHTML($captcha->getHTML());
         }
 
         $form->addButton('do[comment_preview]', $this->getLang('comment_preview')) //no type submit(default)

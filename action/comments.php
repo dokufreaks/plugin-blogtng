@@ -46,7 +46,8 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
      * @return bool
      */
     function handle_act_preprocess(Doku_Event $event, $param) {
-        global $INFO, $ID, $INPUT;
+        global $INFO, $ID, $INPUT, $BLOGTNG;
+        $BLOGTNG = [];
 
         // optin
         if ($INPUT->has('btngo')) {
@@ -58,8 +59,6 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
             $this->commenthelper->unsubscribe_by_key(md5($ID), $INPUT->str('btngu'));
         }
 
-        global $BLOGTNG;
-        $BLOGTNG = array();
 
         $comment = new Comment();
 
@@ -86,6 +85,7 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
         $comment->setSubscribe($INPUT->post->has('comment-subscribe') ? 1 : null);
         $comment->setIp(clientIP(true));
 
+        // store data for helper::tpl_form()
         $BLOGTNG['comment'] = $comment;
 
         $action = act_clean($event->data);
@@ -93,8 +93,7 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
 
             if($action == 'comment_submit') {
                 $BLOGTNG['comment_action'] = 'submit';
-            }
-            else if($action == 'comment_preview') {
+            } else {
                 $BLOGTNG['comment_action'] = 'preview';
             }
 
@@ -112,31 +111,24 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
             // check CAPTCHA if available (on submit only)
             $captchaok = true;
             if($BLOGTNG['comment_action'] == 'submit'){
-                /** @var helper_plugin_captcha $helper */
-                $helper = null;
-                if(@is_dir(DOKU_PLUGIN.'captcha')) $helper = plugin_load('helper','captcha');
-                if(!is_null($helper) && $helper->isEnabled()){
-                    $captchaok = $helper->check();
+                /** @var helper_plugin_captcha $captcha */
+                $captcha = $this->loadHelper('captcha', false);
+                if ($captcha && $captcha->isEnabled()) {
+                    $captchaok = $captcha->check();
                 }
             }
 
-            // return on errors
-            if(!empty($BLOGTNG['comment_submit_errors']) || !$captchaok) {
+            // return to form on errors or if preview
+            if(!empty($BLOGTNG['comment_submit_errors']) || !$captchaok || $BLOGTNG['comment_action'] == 'preview') {
                 $event->data = 'show';
                 $_SERVER['REQUEST_METHOD'] = 'get'; //hack to avoid redirect
                 return false;
             }
 
-            if($BLOGTNG['comment_action'] == 'submit') {
-                // save comment and redirect FIXME cid
-                $this->commenthelper->save($comment);
-                $event->data = 'redirect';
-                return false;
-            } elseif($BLOGTNG['comment_action'] == 'preview') {
-                $event->data = 'show';
-                $_SERVER['REQUEST_METHOD'] = 'get'; // hack to avoid redirect
-                return false;
-            }
+            // successful submit: save comment and redirect FIXME cid
+            $this->commenthelper->save($comment);
+            $event->data = 'redirect';
+            return false;
         } else {
             return true;
         }
