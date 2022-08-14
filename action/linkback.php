@@ -19,7 +19,7 @@ class action_plugin_blogtng_linkback extends DokuWiki_Action_Plugin {
      *
      * @param Doku_Event_Handler $controller
      */
-    function register(Doku_Event_Handler $controller) {
+    public function register(Doku_Event_Handler $controller) {
         $controller->register_hook('DOKUWIKI_STARTED', 'BEFORE', $this, 'checkIfLinkbackAllowed', array ());
         $controller->register_hook('TPL_ACT_RENDER', 'BEFORE', $this, 'addTrackbackLink', array ());
         $controller->register_hook('TPL_METAHEADER_OUTPUT', 'BEFORE', $this, 'addPingbackToMetaHeader', array ());
@@ -32,7 +32,7 @@ class action_plugin_blogtng_linkback extends DokuWiki_Action_Plugin {
      * @param Doku_Event $event  event object by reference
      * @param array      $params  empty array as passed to register_hook()
      */
-    function checkIfLinkbackAllowed(Doku_Event $event, $params) {
+    public function checkIfLinkbackAllowed(Doku_Event $event, $params) {
         /** @var helper_plugin_blogtng_linkback $helper */
         $helper = plugin_load('helper', 'blogtng_linkback');
         if (!$helper->linkbackAllowed()) {
@@ -47,7 +47,7 @@ class action_plugin_blogtng_linkback extends DokuWiki_Action_Plugin {
      * @param Doku_Event $event  event object by reference
      * @param array      $params  empty array as passed to register_hook()
      */
-    function addTrackbackLink(Doku_Event $event, $params) {
+    public function addTrackbackLink(Doku_Event $event, $params) {
         if (!$this->run) return;
 
         // Action not 'show'? Quit
@@ -74,7 +74,7 @@ class action_plugin_blogtng_linkback extends DokuWiki_Action_Plugin {
      * @param array      $params  empty array as passed to register_hook()
      * @return void|bool
      */
-    function addPingbackToMetaHeader(Doku_Event $event, $params) {
+    public function addPingbackToMetaHeader(Doku_Event $event, $params) {
         if (!$this->run) return;
         global $ID;
 
@@ -93,7 +93,7 @@ class action_plugin_blogtng_linkback extends DokuWiki_Action_Plugin {
      * @param array      $params  empty array as passed to register_hook()
      * @return void|bool
      */
-    function addPinkbackToHTTPHeader(Doku_Event $event, $params) {
+    public function addPinkbackToHTTPHeader(Doku_Event $event, $params) {
         if (!$this->run) return;
         global $ID;
 

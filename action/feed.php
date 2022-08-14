@@ -10,16 +10,16 @@
 class action_plugin_blogtng_feed extends DokuWiki_Action_Plugin{
 
     /** @var helper_plugin_blogtng_entry */
-    var $entryhelper = null;
+    private $entryhelper = null;
     /** @var helper_plugin_blogtng_tools */
-    var $tools = null;
+    private $tools = null;
 
-    var $defaultConf = array(
+    private $defaultConf = array(
         'sortby' => 'created',
         'sortorder' => 'DESC',
     );
 
-    function __construct() {
+    public function __construct() {
         $this->entryhelper = plugin_load('helper', 'blogtng_entry');
         $this->tools = plugin_load('helper', 'blogtng_tools');
     }
@@ -29,10 +29,10 @@ class action_plugin_blogtng_feed extends DokuWiki_Action_Plugin{
      *
      * @param Doku_Event_Handler $controller
      */
-    function register(Doku_Event_Handler $controller) {
-        $controller->register_hook('FEED_OPTS_POSTPROCESS', 'AFTER', $this, 'handle_opts_postprocess', array());
-        $controller->register_hook('FEED_MODE_UNKNOWN', 'BEFORE', $this, 'handle_mode_unknown', array ());
-        $controller->register_hook('FEED_ITEM_ADD', 'BEFORE', $this, 'handle_item_add', array());
+    public function register(Doku_Event_Handler $controller) {
+        $controller->register_hook('FEED_OPTS_POSTPROCESS', 'AFTER', $this, 'handleBlogFeedParameters', array());
+        $controller->register_hook('FEED_MODE_UNKNOWN', 'BEFORE', $this, 'handleBlogFeed', array ());
+        $controller->register_hook('FEED_ITEM_ADD', 'BEFORE', $this, 'handleBlogpostAddedToFeed', array());
     }
 
     /**
@@ -42,7 +42,7 @@ class action_plugin_blogtng_feed extends DokuWiki_Action_Plugin{
      * @param array      $param  empty array as passed to register_hook()
      * @return void
      */
-    function handle_opts_postprocess(Doku_Event $event, $param) {
+    public function handleBlogFeedParameters(Doku_Event $event, $param) {
         $opt =& $event->data['opt'];
         if ($opt['feed_mode'] != 'blogtng') return;
 
@@ -63,20 +63,20 @@ class action_plugin_blogtng_feed extends DokuWiki_Action_Plugin{
      * @param array        $param empty
      * @return void
      */
-    function handle_mode_unknown(Doku_Event $event, $param) {
+    public function handleBlogFeed(Doku_Event $event, $param) {
         $opt = $event->data['opt'];
         if ($opt['feed_mode'] != 'blogtng') return;
 
         $event->preventDefault();
-        $event->data['data'] = array();
-        $conf = array(
+        $event->data['data'] = [];
+        $conf = [
             'blog' => explode(',', $opt['blog']),
             'tags' => ($opt['tags'] ? explode(',', $opt['tags']) : null),
             'sortby' => $opt['sortby'],
             'sortorder' => $opt['sortorder'],
             'limit' => $opt['items'],
             'offset' => 0,
-        );
+        ];
         $this->tools->cleanConf($conf);
         $conf = array_merge($conf, $this->defaultConf);
         $posts = $this->entryhelper->get_posts($conf);
@@ -99,7 +99,7 @@ class action_plugin_blogtng_feed extends DokuWiki_Action_Plugin{
      * @param array      $param empty
      * @return void
      */
-    function handle_item_add(Doku_Event $event, $param) {
+    public function handleBlogpostAddedToFeed(Doku_Event $event, $param) {
         $opt = $event->data['opt'];
         $ditem = $event->data['ditem'];
         if ($opt['feed_mode'] !== 'blogtng') return;
@@ -114,7 +114,7 @@ class action_plugin_blogtng_feed extends DokuWiki_Action_Plugin{
 
         // retrieve first heading from page instructions
         $ins = p_cached_instructions(wikiFN($ditem['id']));
-        $headers = array_filter($ins, array($this, '_filterHeaders'));
+        $headers = array_filter($ins, array($this, 'filterHeaders'));
         $headingIns = array_shift($headers);
         $firstheading = $headingIns[1][0];
 
@@ -149,7 +149,7 @@ class action_plugin_blogtng_feed extends DokuWiki_Action_Plugin{
      * @param $entry
      * @return bool
      */
-    function _filterHeaders($entry) {
+    private function filterHeaders($entry) {
         // normal headers
         if (is_array($entry) && $entry[0] == 'header' && count($entry) == 3 && is_array($entry[1]) && count($entry[1]) == 3)
             return true;
@@ -158,4 +158,3 @@ class action_plugin_blogtng_feed extends DokuWiki_Action_Plugin{
         return false;
     }
 }
-// vim:ts=4:sw=4:et:

@@ -11,20 +11,20 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
     /**
      * Default configuration for all setups
      */
-    var $config = array(
+    var $config = [
         'sortorder' => 'DESC',
         'sortby'    => 'created',
         'tpl'       => 'default',
         'limit'     => 5,
         'offset'    => 0,
         'blog'      => null,
-        'tags'      => array(),
+        'tags'      => [],
         'page'      => false,
         'cache'     => false,
         'title'     => '',
         'format'    => ':blog:%Y:%m:%{title}',
         'listwrap'  => 0, //default depends on syntax type
-    );
+    ];
 
     /** @var helper_plugin_blogtng_entry */
     var $entryhelper  = null;
@@ -38,15 +38,15 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
     /**
      * Types we accept in our syntax
      */
-    var $type_whitelist = array('list', 'pagination', 'related', 'recentcomments', 'newform', 'tagcloud', 'tagsearch');
+    var $type_whitelist = ['list', 'pagination', 'related', 'recentcomments', 'newform', 'tagcloud', 'tagsearch'];
 
     /**
      * Values accepted in syntax
      */
-    var $data_whitelist = array(
-        'sortyorder' => array('asc', 'desc'),
-        'sortby' => array('created', 'lastmod', 'title', 'page', 'random'),
-    );
+    var $data_whitelist = [
+        'sortyorder' => ['asc', 'desc'],
+        'sortby' => ['created', 'lastmod', 'title', 'page', 'random'],
+    ];
 
     // default plugin functions...
     /**
@@ -239,4 +239,3 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         $this->taghelper = plugin_load('helper', 'blogtng_tags');
     }
 }
-// vim:ts=4:sw=4:et:

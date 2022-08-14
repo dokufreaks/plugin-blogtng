@@ -12,10 +12,10 @@ class helper_plugin_blogtng_tools extends DokuWiki_Plugin {
     /**
      * Values accepted in syntax
      */
-    static $data_whitelist = array(
-        'sortorder' => array('asc', 'desc'),
-        'sortby' => array('created', 'lastmod', 'title', 'page', 'random'),
-    );
+    static $data_whitelist = [
+        'sortorder' => ['asc', 'desc'],
+        'sortby' => ['created', 'lastmod', 'title', 'page', 'random'],
+    ];
 
     /**
      * Return a page id based on the given format and title.

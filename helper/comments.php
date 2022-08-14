@@ -44,7 +44,9 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      */
     public function comment_by_cid($cid) {
 
-        $query = 'SELECT cid, pid, source, name, mail, web, avatar, created, text, status FROM comments WHERE cid = ?';
+        $query = 'SELECT cid, pid, source, name, mail, web, avatar, created, text, status
+                  FROM comments
+                  WHERE cid = ?';
         $resid = $this->sqlitehelper->getDB()->query($query, $cid);
         if ($resid === false) {
             return null;
@@ -101,8 +103,9 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
 
         if (!empty($comment->getCid())) {
             // Doing an update
-            $query = 'UPDATE comments SET pid=?, source=?, name=?, mail=?, ' .
-                     'web=?, avatar=?, created=?, text=?, status=? WHERE cid=?';
+            $query = 'UPDATE comments SET pid=?, source=?, name=?, mail=?,
+                      web=?, avatar=?, created=?, text=?, status=?
+                      WHERE cid=?';
             $this->sqlitehelper->getDB()->query($query,
                 $comment->getPid(),
                 $comment->getSource(),
@@ -460,9 +463,9 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      *  allow comments only for registered users
      *  add toolbar
      *
-     * @param $page
-     * @param $pid
-     * @param $tplname
+     * @param string $page
+     * @param string $pid
+     * @param string $tplname
      */
     public function tpl_form($page, $pid, $tplname) {
         global $BLOGTNG;
@@ -552,12 +555,15 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     public function tpl_count($fmt_zero_comments='', $fmt_one_comments='', $fmt_comments='', $types=null) {
         if(!$this->pid) return;
 
-        if(!$fmt_zero_comments)
+        if(!$fmt_zero_comments) {
             $fmt_zero_comments = $this->getLang('0comments');
-        if(!$fmt_one_comments)
+        }
+        if(!$fmt_one_comments) {
             $fmt_one_comments = $this->getLang('1comments');
-        if(!$fmt_comments)
+        }
+        if(!$fmt_comments) {
             $fmt_comments = $this->getLang('Xcomments');
+        }
 
         $count = $this->get_count($types);
 
@@ -615,9 +621,13 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      */
     public function xhtml_recentcomments($conf){
         ob_start();
-        if($conf['listwrap']) echo '<ul class="blogtng_recentcomments">';
+        if($conf['listwrap']) {
+            echo '<ul class="blogtng_recentcomments">';
+        }
         $this->tpl_recentcomments($conf['tpl'],$conf['limit'],$conf['blog'],$conf['type']);
-        if($conf['listwrap']) echo '</ul>';
+        if($conf['listwrap']) {
+            echo '</ul>';
+        }
         $output = ob_get_contents();
         ob_end_clean();
         return $output;

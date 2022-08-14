@@ -10,12 +10,12 @@
 class action_plugin_blogtng_new extends DokuWiki_Action_Plugin{
 
     /** @var helper_plugin_blogtng_comments */
-    var $commenthelper = null;
+    protected $commenthelper = null;
 
     /**
      * Constructor
      */
-    function __construct() {
+    public function __construct() {
         $this->commenthelper = plugin_load('helper', 'blogtng_comments');
     }
 
@@ -24,8 +24,8 @@ class action_plugin_blogtng_new extends DokuWiki_Action_Plugin{
      *
      * @param Doku_Event_Handler $controller
      */
-    function register(Doku_Event_Handler $controller) {
-        $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handle_act_preprocess', array());
+    public function register(Doku_Event_Handler $controller) {
+        $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handleNewBlogFormData', array());
     }
 
     /**
@@ -38,7 +38,7 @@ class action_plugin_blogtng_new extends DokuWiki_Action_Plugin{
      * @param array      $param  empty array as passed to register_hook()
      * @return bool
      */
-    function handle_act_preprocess(Doku_Event $event, $param) {
+    public function handleNewBlogFormData(Doku_Event $event, $param) {
         global $TEXT, $INPUT;
         global $ID;
 
@@ -79,17 +79,15 @@ class action_plugin_blogtng_new extends DokuWiki_Action_Plugin{
      *
      * @param $id
      * @param $title
-     * @return bool|mixed|string
+     * @return string
      */
-    function _prepare_template($id, $title) {
+    private function prepareTemplateNewEntry($id, $title) {
         $tpl = pageTemplate($id);
         if(!$tpl) $tpl = io_readFile(DOKU_PLUGIN . 'blogtng/tpl/newentry.txt');
 
         $replace = array(
             '@TITLE@' => $title,
         );
-        $tpl = str_replace(array_keys($replace), array_values($replace), $tpl);
-        return $tpl;
+        return str_replace(array_keys($replace), array_values($replace), $tpl);
     }
 }
-// vim:ts=4:sw=4:et:

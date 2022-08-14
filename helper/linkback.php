@@ -55,7 +55,10 @@ class helper_plugin_blogtng_linkback extends DokuWiki_Plugin {
         $comment->setStatus('hidden');
         $comment->setIp(clientIP(true));
 
-        $query = 'SELECT web, source FROM comments WHERE pid = ?';
+
+        $query = 'SELECT web, source
+                  FROM comments
+                  WHERE pid = ?';
 
         $resid = $sqlitehelper->getDB()->query($query, $comment->getPid());
         if ($resid === false) {

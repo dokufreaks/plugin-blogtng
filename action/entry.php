@@ -25,10 +25,8 @@ class action_plugin_blogtng_entry extends DokuWiki_Action_Plugin{
      * @param Doku_Event_Handler $controller
      */
     function register(Doku_Event_Handler $controller) {
-        // Intercept the usual page display and replace it with a blog template controlled one.
-        $controller->register_hook('TPL_ACT_RENDER', 'BEFORE', $this, 'handle_tpl_act_render', array());
-        // Add next and prev meta headers for navigating through blog posts
-        $controller->register_hook('TPL_METAHEADER_OUTPUT', 'BEFORE', $this, 'handle_metaheader_output', array ());
+        $controller->register_hook('TPL_ACT_RENDER', 'BEFORE', $this, 'replaceUsualPageViewWithBlogView', array());
+        $controller->register_hook('TPL_METAHEADER_OUTPUT', 'BEFORE', $this, 'addNextPrevNavigationToMetadata', array ());
     }
 
     /**
@@ -39,7 +37,7 @@ class action_plugin_blogtng_entry extends DokuWiki_Action_Plugin{
      * @param array      $param  empty array as passed to register_hook()
      * @return bool
      */
-    function handle_tpl_act_render(Doku_Event $event, $param) {
+    function replaceUsualPageViewWithBlogView(Doku_Event $event, $param) {
         global $ID;
         if($event->data != 'show') return false;
 
@@ -63,7 +61,7 @@ class action_plugin_blogtng_entry extends DokuWiki_Action_Plugin{
      * @param array      $param  empty array as passed to register_hook()
      * @return bool
      */
-    function handle_metaheader_output(Doku_Event $event, $param) {
+    function addNextPrevNavigationToMetadata(Doku_Event $event, $param) {
         global $ACT, $ID;
 
         if ($ACT != 'show')
@@ -90,4 +88,3 @@ class action_plugin_blogtng_entry extends DokuWiki_Action_Plugin{
         return true;
     }
 }
-// vim:ts=4:sw=4:et:

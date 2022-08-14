@@ -31,7 +31,7 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
      * @param Doku_Event_Handler $controller
      */
     function register(Doku_Event_Handler $controller) {
-        $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handle_act_preprocess', array());
+        $controller->register_hook('ACTION_ACT_PREPROCESS', 'BEFORE', $this, 'handleCommentSaveAndSubscribeActions', array());
     }
 
     /**
@@ -45,7 +45,7 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
      * @param array      $param  empty array as passed to register_hook()
      * @return bool
      */
-    function handle_act_preprocess(Doku_Event $event, $param) {
+    function handleCommentSaveAndSubscribeActions(Doku_Event $event, $param) {
         global $INFO, $ID, $INPUT, $BLOGTNG;
         $BLOGTNG = [];
 
@@ -98,7 +98,7 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
             }
 
             // check for empty fields
-            $BLOGTNG['comment_submit_errors'] = array();
+            $BLOGTNG['comment_submit_errors'] = [];
             foreach(array('name', 'mail', 'text') as $field) {
                 $functionname = "get{$field}";
                 if(empty($comment->$functionname())) {
@@ -134,4 +134,3 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
         }
     }
 }
-// vim:ts=4:sw=4:et:

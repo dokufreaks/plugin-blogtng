@@ -16,8 +16,8 @@ class action_plugin_blogtng_ajax extends DokuWiki_Action_Plugin{
      *
      * @param Doku_Event_Handler $controller
      */
-    function register(Doku_Event_Handler $controller) {
-        $controller->register_hook('AJAX_CALL_UNKNOWN', 'BEFORE', $this, 'handle_ajax_call', array());
+    public function register(Doku_Event_Handler $controller) {
+        $controller->register_hook('AJAX_CALL_UNKNOWN', 'BEFORE', $this, 'renderCommentPreview', array());
     }
 
     /**
@@ -27,7 +27,7 @@ class action_plugin_blogtng_ajax extends DokuWiki_Action_Plugin{
      * @param Doku_Event $event  event object by reference
      * @param array      $param  empty array as passed to register_hook()
      */
-    function handle_ajax_call(Doku_Event $event, $param) {
+    public function renderCommentPreview(Doku_Event $event, $param) {
         /** @var DokuWiki_Auth_Plugin $auth */
         global $auth, $INPUT;
 
@@ -54,4 +54,3 @@ class action_plugin_blogtng_ajax extends DokuWiki_Action_Plugin{
         $comment->output($INPUT->post->str('tplname'));
     }
 }
-// vim:ts=4:sw=4:et:

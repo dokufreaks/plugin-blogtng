@@ -106,5 +106,3 @@ class renderer_plugin_blogtng_comment extends Doku_Renderer_xhtml {
         return true;
     }
 }
-
-//Setup VIM: ex: et ts=4 :

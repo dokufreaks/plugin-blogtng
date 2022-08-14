@@ -122,7 +122,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * @return array
      */
     private function prototype() {
-        return array(
+        return [
             'pid' => null,
             'page' => null,
             'title' => null,
@@ -133,7 +133,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             'author' => null,
             'login' => null,
             'mail' => null,
-        );
+        ];
     }
 
     /**
@@ -441,7 +441,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * @param string $type Type to render.
      */
     public function tpl_content($name, $type) {
-        $whitelist = array('list', 'entry', 'feed', 'tagsearch');
+        $whitelist = ['list', 'entry', 'feed', 'tagsearch'];
         if(!in_array($type, $whitelist)) return;
 
         $tpl = helper_plugin_blogtng_tools::getTplFile($name, $type);
@@ -771,7 +771,14 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
     /**
      * FIXME parsing of tags by using taghelper->parse_tag_query
-     * @param $conf
+     * @param array $conf
+     *          sortby: string 'random' or column name
+     *          sortorder: string 'ASC', 'DESC'
+     *          blog: string[] array with one or more blognames
+     *          tags: string[] array with one or more blognames
+     *          limit: int
+     *          offset: int
+     *
      * @return array
      */
     public function get_posts($conf) {
@@ -1240,4 +1247,3 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     }
 
 }
-// vim:ts=4:sw=4:et:

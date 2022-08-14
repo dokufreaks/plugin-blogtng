@@ -230,18 +230,18 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
             } else {
                 $created = $this->entryhelper->entry['created'];
                 if($created) {
-                    $YY = date('Y', $created); //strftime('%Y', $created);
-                    $MM = date('m', $created);//strftime('%m', $created);
-                    $DD = date('d', $created);//strftime('%d', $created);
-                    $hh = date('H', $created);//strftime('%H', $created);
-                    $mm = date('i', $created);//strftime('%M', $created);
+                    $YY = date('Y', $created);
+                    $MM = date('m', $created);
+                    $DD = date('d', $created);
+                    $hh = date('H', $created);
+                    $mm = date('i', $created);
                 } else {
                     $time = time();
-                    $YY = date('Y', $time);//strftime('%Y', $time);
-                    $MM = date('m', $time);//strftime('%m', $time);
-                    $DD = date('d', $time);//strftime('%d', $time);
-                    $hh = date('H', $time);//strftime('%H', $time);
-                    $mm = date('i', $time);//strftime('%M', $time);
+                    $YY = date('Y', $time);
+                    $MM = date('m', $time);
+                    $DD = date('d', $time);
+                    $hh = date('H', $time);
+                    $mm = date('i', $time);
                 }
             }
 
@@ -399,7 +399,7 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
         $date_modified = p_get_metadata($ID, 'date modified');
 
         // prepare entry ...
-        return array(
+        return [
             'page' => $ID,
             'title' => p_get_metadata($ID, 'title'),
             'image' => p_get_metadata($ID, 'relation firstimage'),
@@ -408,6 +408,6 @@ class action_plugin_blogtng_edit extends DokuWiki_Action_Plugin{
             'login' => $login,
             'author' => ($userdata) ? $userdata['name'] : $login,
             'mail' => ($userdata) ? $userdata['mail'] : '',
-        );
+        ];
     }
 }

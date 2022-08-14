@@ -61,7 +61,7 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
 
         if(!$this->sqlitehelper->ready()) {
             msg('blogtng plugin: failed to load sqlite helper plugin!', -1);
-            $this->tags = array();
+            $this->tags = [];
             return false;
         }
         $query = 'SELECT tag
@@ -71,16 +71,16 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
         $resid = $this->sqlitehelper->getDB()->query($query, $this->pid);
         if ($resid === false) {
             msg('blogtng plugin: failed to load tags!', -1);
-            $this->tags = array();
+            $this->tags = [];
             return false;
         }
         if ($this->sqlitehelper->getDB()->res2count($resid) == 0) {
-            $this->tags = array();
+            $this->tags = [];
             return true;
         }
 
         $tags_from_db = $this->sqlitehelper->getDB()->res2arr($resid);
-        $tags = array();
+        $tags = [];
         foreach ($tags_from_db as $tag_from_db) {
             $tags[] = $tag_from_db['tag'];
         }
@@ -311,4 +311,3 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
         return '<a href="'.wl($target,array('post-tags'=>$tag)).'" class="tag">'.hsc($tag).'</a>';
     }
 }
-// vim:ts=4:sw=4:et:
