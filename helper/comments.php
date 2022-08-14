@@ -4,6 +4,9 @@
  * @author     Michael Klier <chi@chimeric.de>
  */
 
+use dokuwiki\Form\Form;
+use dokuwiki\plugin\blogtng\entities\Comment;
+
 /**
  * Class helper_plugin_blogtng_comments
  */
@@ -33,28 +36,25 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     }
 
     /**
-     * Select comment by cid and return it as a blogtng_comment. The
-     * function returns false if the database query fails. It returns
-     * null if the query result is empty.
+     * Select comment by cid and return it as a Comment. The
+     * function returns null if the database query fails or if the query result is empty.
      *
      * @param string $cid The cid
-     * @return blogtng_comment|bool|null
+     * @return Comment|null
      */
     public function comment_by_cid($cid) {
 
         $query = 'SELECT cid, pid, source, name, mail, web, avatar, created, text, status FROM comments WHERE cid = ?';
         $resid = $this->sqlitehelper->getDB()->query($query, $cid);
         if ($resid === false) {
-            return false;
+            return null;
         }
         if ($this->sqlitehelper->getDB()->res2count($resid) == 0) {
             return null;
         }
         $result = $this->sqlitehelper->getDB()->res2arr($resid);
 
-        $comment = new blogtng_comment();
-        $comment->init($result[0]);
-        return $comment;
+        return new Comment($result[0]);
     }
 
     /**
@@ -91,7 +91,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     /**
      * Save comment
      *
-     * @param $comment
+     * @param Comment $comment
      */
     public function save($comment) {
         if (!$this->sqlitehelper->ready()) {
@@ -99,21 +99,21 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
             return;
         }
 
-        if (isset($comment['cid'])) {
+        if (!empty($comment->getCid())) {
             // Doing an update
             $query = 'UPDATE comments SET pid=?, source=?, name=?, mail=?, ' .
                      'web=?, avatar=?, created=?, text=?, status=? WHERE cid=?';
             $this->sqlitehelper->getDB()->query($query,
-                $comment['pid'],
-                $comment['source'],
-                $comment['name'],
-                $comment['mail'],
-                $comment['web'],
-                $comment['avatar'],
-                $comment['created'],
-                $comment['text'],
-                $comment['status'],
-                $comment['cid']
+                $comment->getPid(),
+                $comment->getSource(),
+                $comment->getName(),
+                $comment->getMail(),
+                $comment->getWeb(),
+                $comment->getAvatar(),
+                $comment->getCreated(),
+                $comment->getText(),
+                $comment->getStatus(),
+                $comment->getCid()
             );
             return;
         }
@@ -121,7 +121,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         // Doing an insert
         /** @var helper_plugin_blogtng_entry $entry */
         $entry = plugin_load('helper', 'blogtng_entry');
-        $entry->load_by_pid($comment['pid']);
+        $entry->load_by_pid($comment->getPid());
         if ($entry->entry['commentstatus'] !== 'enabled') {
             return;
         }
@@ -132,23 +132,25 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
             ) VALUES (
                 ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
             )';
-        $comment['status']  = ($this->getconf('moderate_comments')) ? 'hidden' : 'visible';
+        $comment->setStatus($this->getconf('moderate_comments') ? 'hidden' : 'visible');
 
-        if(!isset($comment['created'])) $comment['created'] = time();
+        if(!empty($comment->getCreated())) {
+            $comment->setCreated(time());
+        }
 
-        $comment['avatar']  = ''; // FIXME create avatar using a helper function
+        $comment->setAvatar(''); // FIXME create avatar using a helper function
 
         $this->sqlitehelper->getDB()->query($query,
-            $comment['pid'],
-            $comment['source'],
-            $comment['name'],
-            $comment['mail'],
-            $comment['web'],
-            $comment['avatar'],
-            $comment['created'],
-            $comment['text'],
-            $comment['status'],
-            $comment['ip']
+            $comment->getPid(),
+            $comment->getSource(),
+            $comment->getName(),
+            $comment->getMail(),
+            $comment->getWeb(),
+            $comment->getAvatar(),
+            $comment->getCreated(),
+            $comment->getText(),
+            $comment->getStatus(),
+            $comment->getIp()
         );
 
         //retrieve cid of this comment
@@ -158,18 +160,20 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
                    AND created = ?
                    AND mail =?
                  LIMIT 1";
-        $res = $this->sqlitehelper->getDB()->query($sql,
-                                                   $comment['pid'],
-                                                   $comment['created'],
-                                                   $comment['mail']);
+        $res = $this->sqlitehelper->getDB()->query(
+            $sql,
+            $comment->getPid(),
+            $comment->getCreated(),
+            $comment->getMail()
+        );
         $cid = $this->sqlitehelper->getDB()->res2single($res);
-        $comment['cid'] = $cid === false ? 0 : $cid;
+        $comment->setCid($cid === false ? 0 : $cid);
 
 
         // handle subscriptions
         if($this->getConf('comments_subscription')) {
-            if($comment['subscribe']) {
-                $this->subscribe($comment['pid'],$comment['mail']);
+            if($comment->getSubscribe()) {
+                $this->subscribe($comment->getPid(),$comment->getMail());
             }
             // send subscriber and notify mails
             $this->send_subscriber_mails($comment);
@@ -222,7 +226,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      * @param $comment
      */
     public function send_subscriber_mails($comment){
-        global $conf;
+        global $conf, $INPUT;
 
         if (!$this->sqlitehelper->ready()) return;
 
@@ -230,7 +234,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         $sql = "SELECT title, page, mail
                   FROM entries
                  WHERE pid = ?";
-        $res = $this->sqlitehelper->getDB()->query($sql,$comment['pid']);
+        $res = $this->sqlitehelper->getDB()->query($sql, $comment->getPid());
         $entry = $this->sqlitehelper->getDB()->res2row($res,0);
 
         // prepare mail bodies
@@ -240,15 +244,15 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
 
         $repl = array(
             'TITLE'       => $entry['title'],
-            'NAME'        => $comment['name'],
-            'COMMENT'     => $comment['text'],
-            'USER'        => $comment['name'],
-            'MAIL'        => $comment['mail'],
+            'NAME'        => $comment->getName(),
+            'COMMENT'     => $comment->getText(),
+            'USER'        => $comment->getName(),
+            'MAIL'        => $comment->getMail(),
             'DATE'        => dformat(time()),
-            'BROWSER'     => $_SERVER['HTTP_USER_AGENT'],
+            'BROWSER'     => $INPUT->server->str('HTTP_USER_AGENT'),
             'IPADDRESS'   => clientIP(),
             'HOSTNAME'    => gethostsbyaddrs(clientIP()),
-            'URL'         => wl($entry['page'],'',true).($comment['cid'] ? '#comment_'.$comment['cid'] : ''),
+            'URL'         => wl($entry['page'],'',true).($comment->getCid() ? '#comment_'.$comment->getCid() : ''),
             'DOKUWIKIURL' => DOKU_URL,
         );
 
@@ -273,11 +277,12 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
                  WHERE A.mail = B.mail
                    AND B.optin = 1
                    AND A.pid = ?";
-        $res = $this->sqlitehelper->getDB()->query($sql,$comment['pid']);
+        $res = $this->sqlitehelper->getDB()->query($sql, $comment->Pid());
         $rows = $this->sqlitehelper->getDB()->res2arr($res);
         foreach($rows as $row){
             // ignore commenter herself:
-            if($row['mail'] == $comment['mail']) continue;
+            if($row['mail'] == $comment->getMail()) continue;
+
             // ignore email addresses already notified:
             if(in_array($row['mail'], $mails)) continue;
 
@@ -462,36 +467,44 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     public function tpl_form($page, $pid, $tplname) {
         global $BLOGTNG;
 
-        $form = new Doku_Form(array('id'=>'blogtng__comment_form','action'=>wl($page).'#blogtng__comment_form','data-tplname'=>$tplname));
-        $form->addHidden('pid', $pid);
-        $form->addHidden('id', $page);
-        $form->addHidden('btng[comment][source]', 'comment');
+        /** @var Comment $comment */
+        $comment = $BLOGTNG['comment'];
+
+        $form = new Form([
+            'id'=>'blogtng__comment_form',
+            'action'=>wl($page).'#blogtng__comment_form',
+            'data-tplname'=>$tplname
+        ]);
+        $form->setHiddenField('pid', $pid);
+        $form->setHiddenField('id', $page);
+        $form->setHiddenField('comment-source', 'comment');
 
         foreach(array('name', 'mail', 'web') as $field) {
-            $attr = ($BLOGTNG['comment_submit_errors'][$field]) ?  array('class' => 'edit error') : array();
 
             if($field == 'web' && !$this->getConf('comments_allow_web')) {
                 continue;
             } else {
-                $form->addElement(
-                        form_makeTextField(
-                        'btng[comment][' . $field . ']',
-                        $BLOGTNG['comment'][$field],
-                        $this->getLang('comment_'.$field),
-                        'blogtng__comment_' . $field,
-                        'edit block',
-                        $attr)
-                );
+                $functionname = "get{$field}";
+                $input = $form->addTextInput('comment-' . $field , $this->getLang('comment_'.$field))
+                    ->val($comment->$functionname())
+                    ->id('blogtng__comment_' . $field)
+                    ->addClass('edit block')
+                    ->useInput(false);
+                if($BLOGTNG['comment_submit_errors'][$field]){
+                    $input->addClass('error'); //old approach was overwrite block with error?
+                }
             }
         }
+        $form->addTagOpen('div')->addClass('blogtng__toolbar');
+        $form->addTagClose('div');
 
-        $form->addElement(form_makeOpenTag('div', array('class' => 'blogtng__toolbar')));
-        $form->addElement(form_makeCloseTag('div'));
-
+        $textarea = $form->addTextarea('wikitext')
+            ->id('wiki__text')
+            ->addClass('edit')
+            ->attr('rows','6') //previous form added automatically also: cols="80" rows="10">
+            ->val($comment->getText());
         if($BLOGTNG['comment_submit_errors']['text']) {
-            $form->addElement(form_makeWikiText($BLOGTNG['comment']['text'], array('class' => 'edit error')));
-        } else {
-            $form->addElement(form_makeWikiText($BLOGTNG['comment']['text']));
+            $textarea->addClass('error');
         }
 
         //add captcha if available
@@ -502,20 +515,27 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
             $form->addElement($helper->getHTML());
         }
 
-        $form->addElement(form_makeButton('submit', 'comment_preview', $this->getLang('comment_preview'), array('class' => 'button', 'id' => 'blogtng__preview_submit')));
-        $form->addElement(form_makeButton('submit', 'comment_submit', $this->getLang('comment_submit'), array('class' => 'button', 'id' => 'blogtng__comment_submit')));
+        $form->addButton('do[comment_preview]', $this->getLang('comment_preview')) //no type submit(default)
+            ->addClass('button')
+            ->id('blogtng__preview_submit');
+        $form->addButton('do[comment_submit]', $this->getLang('comment_submit')) //no type submit(default)
+            ->addClass('button')
+            ->id('blogtng__comment_submit');
 
         if($this->getConf('comments_subscription')){
-            $form->addElement(form_makeCheckboxField('blogtng[subscribe]', 1, $this->getLang('comment_subscribe')));
+            $form->addCheckbox('comment-subscribe', $this->getLang('comment_subscribe'))
+                ->val(1)
+                ->useInput(false);
         }
 
+        //start html output
         print '<div id="blogtng__comment_form_wrap">'.DOKU_LF;
-        $form->printForm();
+        echo $form->toHTML();
+
+        // fallback preview. Normally previewed using AJAX. Only initiate preview if no errors.
         if(isset($BLOGTNG['comment_action']) && ($BLOGTNG['comment_action'] == 'preview') && empty($BLOGTNG['comment_submit_errors'])) {
             print '<div id="blogtng__comment_preview">' . DOKU_LF;
-            $comment = new blogtng_comment();
-            $comment->data = $BLOGTNG['comment'];
-            $comment->data['cid'] = 'preview';
+            $comment->setCid('preview');
             $comment->output($tplname);
             print '</div>' . DOKU_LF;
         }
@@ -581,7 +601,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         $res = $this->sqlitehelper->getDB()->query($sql,$args);
         $res = $this->sqlitehelper->getDB()->res2arr($res);
 
-        $comment = new blogtng_comment();
+        $comment = new Comment();
         foreach($res as $row){
             $comment->init($row);
             $comment->output($name);

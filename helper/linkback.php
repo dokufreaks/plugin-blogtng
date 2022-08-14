@@ -4,6 +4,8 @@
  * @author     Andreas Gohr <gohr@cosmocode.de>
  */
 
+use dokuwiki\plugin\blogtng\entities\Comment;
+
 /**
  * Class helper_plugin_blogtng_linkback
  */
@@ -43,19 +45,19 @@ class helper_plugin_blogtng_linkback extends DokuWiki_Plugin {
         $sqlitehelper = plugin_load('helper', 'blogtng_sqlite');
         if (!$sqlitehelper->ready()) return false;
 
-        $comment = array('source' => $type,
-                         'name'   => $title,
-                         'web'    => $sourceUri,
-                         'text'   => $excerpt,
-                         'pid'    => md5($id),
-                         'page'   => $id,
-                         'subscribe' => null,
-                         'status' => 'hidden',
-                         'ip' => clientIP(true));
+        $comment = new Comment();
+        $comment->setSource($type);
+        $comment->setName($title);
+        $comment->setWeb($sourceUri);
+        $comment->setText($excerpt);
+        $comment->setPid(md5($id));
+        $comment->setSubscribe(null);
+        $comment->setStatus('hidden');
+        $comment->setIp(clientIP(true));
 
         $query = 'SELECT web, source FROM comments WHERE pid = ?';
 
-        $resid = $sqlitehelper->getDB()->query($query, $comment['pid']);
+        $resid = $sqlitehelper->getDB()->query($query, $comment->getPid());
         if ($resid === false) {
             return false;
         }
@@ -63,7 +65,7 @@ class helper_plugin_blogtng_linkback extends DokuWiki_Plugin {
         $comments = $sqlitehelper->getDB()->res2arr($resid);
 
         foreach($comments as $c) {
-            if ($c['web'] === $comment['web'] && $c['source'] === $comment['source']) {
+            if ($c['web'] === $comment->getWeb() && $c['source'] === $comment->getSource()) {
                 return false;
             }
         }

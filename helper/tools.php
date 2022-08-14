@@ -25,42 +25,17 @@ class helper_plugin_blogtng_tools extends DokuWiki_Plugin {
      * @return string a page id
      */
     static public function mkpostid($format,$title){
-        global $conf;
+        global $conf, $INPUT;
 
         $replace = array(
             '%{title}' => str_replace(':',$conf['sepchar'],$title),
-            '%{user}' => $_SERVER['REMOTE_USER'],
+            '%{user}' => $INPUT->server->str('REMOTE_USER'),
         );
 
         $out = $format;
         $out = str_replace(array_keys($replace), array_values($replace), $out);
         $out = dformat(null, $out);
         return cleanID($out);
-    }
-
-    /**
-     * Return the blogtng request parameter corresponding to the given path.
-     *
-     * @param array|string $path array or a / separated path to the parameter to return
-     * @return bool|mixed returns the value of the referenced parameter, or false if something went wrong while retrieving it
-     *
-     * @deprecated 2022-07-31
-     */
-    static public function getParam($path) {
-        if (!isset($_REQUEST['btng'])) return false;
-        if (!is_array($path)) {
-            $path = array_filter(explode('/',$path));
-        }
-
-        $elem = $_REQUEST['btng'];
-        foreach ($path as $p) {
-            if (!is_array($elem) || !isset($elem[$p])) {
-                return false;
-            }
-            $elem = $elem[$p];
-        }
-
-        return $elem;
     }
 
     /**

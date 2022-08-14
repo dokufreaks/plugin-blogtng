@@ -263,7 +263,7 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
         ksort($cloud);
         $output = "";
         foreach($cloud as $tag => $weight) {
-            $output .= '<a href="' . wl($conf['target'], array('btng[post][tags]'=>$tag))
+            $output .= '<a href="' . wl($conf['target'], ['post-tags'=>$tag])
                     . '" class="tag cloud_weight' . $weight
                     . '" title="' . $tag . '">' . $tag . "</a>\n";
         }
@@ -308,7 +308,7 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
      * @return string html of url
      */
     private function _format_tag_link($tag, $target) {
-        return '<a href="'.wl($target,array('btng[post][tags]'=>$tag)).'" class="tag">'.hsc($tag).'</a>';
+        return '<a href="'.wl($target,array('post-tags'=>$tag)).'" class="tag">'.hsc($tag).'</a>';
     }
 }
 // vim:ts=4:sw=4:et:

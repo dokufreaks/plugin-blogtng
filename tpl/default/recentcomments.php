@@ -11,7 +11,7 @@
  */
 ?>
 <li><div class="li">
-    <a href="<?php $entry->tpl_link('comment_'.$comment->data['cid'])?>" class="wikilink1"><?php $entry->tpl_title()?></a><br />
+    <a href="<?php $entry->tpl_link('comment_'.$comment->getCid())?>" class="wikilink1"><?php $entry->tpl_title()?></a><br />
     <?php global $lang; echo $lang['by']?>
     <?php $comment->tpl_name();?>
     <?php $comment->tpl_created('%f')?>

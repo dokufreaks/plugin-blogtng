@@ -4,6 +4,8 @@
  * @author     Michael Klier <chi@chimeric.de>
  */
 
+use dokuwiki\plugin\blogtng\entities\Comment;
+
 /**
  * Class action_plugin_blogtng_comments
  */
@@ -44,37 +46,46 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
      * @return bool
      */
     function handle_act_preprocess(Doku_Event $event, $param) {
-        global $INFO, $ID;
+        global $INFO, $ID, $INPUT;
 
         // optin
-        if (isset($_REQUEST['btngo'])) {
-            $this->commenthelper->optin($_REQUEST['btngo']);
+        if ($INPUT->has('btngo')) {
+            $this->commenthelper->optin($INPUT->str('btngo'));
         }
 
         // unsubscribe
-        if (isset($_REQUEST['btngu'])) {
-            $this->commenthelper->unsubscribe_by_key(md5($ID), $_REQUEST['btngu']);
+        if ($INPUT->has('btngu')) {
+            $this->commenthelper->unsubscribe_by_key(md5($ID), $INPUT->str('btngu'));
         }
 
         global $BLOGTNG;
         $BLOGTNG = array();
 
-        // prepare data for comment form
-        $comment = array();
-        $comment['source'] = $this->tools->getParam('comment/source');
-        $comment['name']   = (($commentname = $this->tools->getParam('comment/name'))) ? $commentname : $INFO['userinfo']['name'];
-        $comment['mail']   = (($commentmail = $this->tools->getParam('comment/mail'))) ? $commentmail : $INFO['userinfo']['mail'];
-        $comment['web']    = (($commentweb = $this->tools->getParam('comment/web'))) ? $commentweb : '';
-        $comment['text']   = isset($_REQUEST['wikitext']) ? cleanText($_REQUEST['wikitext']) : null;
-        $comment['pid']    = isset($_REQUEST['pid'])      ? $_REQUEST['pid']      : null;
-        $comment['page']   = isset($_REQUEST['id'])       ? $_REQUEST['id']       : null;
-        $comment['subscribe'] = isset($_REQUEST['blogtng']['subscribe']) ? $_REQUEST['blogtng']['subscribe'] : null;
-        $comment['ip'] = clientIP(true);
+        $comment = new Comment();
 
+        // prepare data for comment form
+        $comment->setSource($INPUT->post->str('comment-source')); //from: comment, pingback or trackback
+        $name = $INPUT->post->str('comment-name');
+        $comment->setName($name ? $name : $INFO['userinfo']['name']);
+        $mail = $INPUT->post->str('comment-mail');
+        $comment->setMail($mail ? $mail : $INFO['userinfo']['mail']);
+        $web = $INPUT->post->str('comment-web');
         //add "http(s)://" to website
-        if (!preg_match('/^http/',$comment['web']) && $comment['web'] != '') {
-            $comment['web'] = 'http://'.$comment['web'];
+        if ($web != '' && !preg_match('/^http/', $web)) {
+            $web = 'https://' . $web;
         }
+        $comment->setWeb($web ? $web : '');
+        if($INPUT->post->has('wikitext')) {
+            $text = cleanText($INPUT->post->str('wikitext'));
+        } else {
+            $text = null;
+        }
+        $comment->setText($text);
+        $comment->setPid($INPUT->post->has('pid') ? $INPUT->post->str('pid') : null);
+//        $comment->setPage(isset($_REQUEST['id']) ? $_REQUEST['id'] : null); FIXME seems to be not used...id general
+        $comment->setSubscribe($INPUT->post->has('comment-subscribe') ? 1 : null);
+        $comment->setIp(clientIP(true));
+
         $BLOGTNG['comment'] = $comment;
 
         $action = act_clean($event->data);
@@ -90,7 +101,10 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
             // check for empty fields
             $BLOGTNG['comment_submit_errors'] = array();
             foreach(array('name', 'mail', 'text') as $field) {
-                if(empty($comment[$field])) {
+                $functionname = "get{$field}";
+                if(empty($comment->$functionname())) {
+                    $BLOGTNG['comment_submit_errors'][$field] = true;
+                } elseif($field == 'mail' && !mail_isvalid($comment->getMail())) {
                     $BLOGTNG['comment_submit_errors'][$field] = true;
                 }
             }

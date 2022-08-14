@@ -5,6 +5,7 @@
  */
 
 use dokuwiki\plugin\blogtng\entities\Comment;
+
 /**
  * Class action_plugin_blogtng_ajax
  */
@@ -28,30 +29,29 @@ class action_plugin_blogtng_ajax extends DokuWiki_Action_Plugin{
      */
     function handle_ajax_call(Doku_Event $event, $param) {
         /** @var DokuWiki_Auth_Plugin $auth */
-        global $auth;
+        global $auth, $INPUT;
 
         if($event->data != 'blogtng__comment_preview') return;
         $event->preventDefault();
         $event->stopPropagation();
 
         $comment = new Comment();
+        $comment->setText($INPUT->post->str('text'));
+        $comment->setName($INPUT->post->str('name'));
+        $comment->setMail($INPUT->post->str('mail'));
+        $comment->setWeb($INPUT->post->str('web'));
+        $comment->setCid('preview');
+        $comment->setCreated(time());
+        $comment->setStatus('visible');
 
-        $comment->data['text']    = $_REQUEST['text'];
-        $comment->data['name']    = $_REQUEST['name'];
-        $comment->data['mail']    = $_REQUEST['mail'];
-        $comment->data['web']     = isset($_REQUEST['web']) ? $_REQUEST['web'] : '';
-        $comment->data['cid']     = 'preview';
-        $comment->data['created'] = time();
-        $comment->data['status']  = 'visible';
-
-        if(!$comment->data['name'] && $_SERVER['REMOTE_USER']){
-            if($auth AND $info = $auth->getUserData($_SERVER['REMOTE_USER'])) {
-                $comment->data['name'] = $info['name'];
-                $comment->data['mail'] = $info['mail'];
+        if(!$comment->getName() && $INPUT->server->str('REMOTE_USER')){
+            if($auth AND $info = $auth->getUserData($INPUT->server->str('REMOTE_USER'))) {
+                $comment->setName($info['name']);
+                $comment->setMail($info['mail']);
             }
         }
 
-        $comment->output($_REQUEST['tplname']);
+        $comment->output($INPUT->post->str('tplname'));
     }
 }
 // vim:ts=4:sw=4:et:

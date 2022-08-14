@@ -33,7 +33,7 @@ class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
      * @param $params
      */
     function update_data(Doku_Event $event, $params) {
-        global $ID;
+        global $ID, $INPUT;
         /** @var DokuWiki_Auth_Plugin $auth */
         global $auth;
 
@@ -48,7 +48,7 @@ class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
             // fetch author info
             $login = $this->entryhelper->entry['login'];
             if(!$login) $login = $data['current']['user'];
-            if(!$login) $login = $_SERVER['REMOTE_USER'];
+            if(!$login) $login = $INPUT->server->str('REMOTE_USER');
 
             $userdata = false;
             if($login){

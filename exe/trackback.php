@@ -36,9 +36,9 @@ class TrackbackServer {
      */
     function _process() {
         // get ID
-        global $ID;
+        global $ID, $INPUT;
         $ID = substr($_SERVER['PATH_INFO'], 1);
-        $sourceUri = $_REQUEST['url'];
+        $sourceUri = $INPUT->str('url');
 
         if (is_null($this->tools) || !$this->tools->linkbackAllowed()) {
             $this->_printTrackbackError('Trackbacks disabled.');
@@ -46,7 +46,7 @@ class TrackbackServer {
         }
 
         // No POST request? Quit
-        if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+        if ($INPUT->server->str('REQUEST_METHOD') != 'POST') {
             $this->_printTrackbackError('Trackback was not received via HTTP POST.');
             return;
         }
@@ -65,8 +65,8 @@ class TrackbackServer {
             return;
         }
 
-        if (!$this->tools->saveLinkback('trackback', strip_tags($_REQUEST['title']),
-                                        $sourceUri, strip_tags($_REQUEST['excerpt']), $ID)) {
+        if (!$this->tools->saveLinkback('trackback', strip_tags($INPUT->post->str('title')),
+                                        $sourceUri, strip_tags($INPUT->post->str('excerpt')), $ID)) {
             $this->_printTrackbackError('Trackback already received.');
             return;
         }

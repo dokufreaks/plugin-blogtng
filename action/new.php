@@ -39,32 +39,34 @@ class action_plugin_blogtng_new extends DokuWiki_Action_Plugin{
      * @return bool
      */
     function handle_act_preprocess(Doku_Event $event, $param) {
-        global $TEXT;
+        global $TEXT, $INPUT;
         global $ID;
 
         if($event->data != 'btngnew') return true;
+
         /** @var helper_plugin_blogtng_tools $tools */
         $tools = plugin_load('helper', 'blogtng_tools');
-        if(!$tools->getParam('new/title')){
+        if(!$INPUT->str('new-title')){
             msg($this->getLang('err_notitle'),-1);
             $event->data = 'show';
             return true;
         }
 
-        $new = $tools->mkpostid($tools->getParam('new/format'),$tools->getParam('new/title'));
-        if ($ID != $new) {
-            $urlparams = array(
+        $newId = $tools->mkpostid($INPUT->str('new-format'), $INPUT->str('new-title'));
+         if ($ID != $newId) {
+             // first submission is 'post', next is 'get'.
+            $urlparams = [
                 'do' => 'btngnew',
-                'btng[post][blog]' => $tools->getParam('post/blog'),
-                'btng[post][tags]' => $tools->getParam('post/tags'),
-                'btng[post][commentstatus]' => $tools->getParam('post/commentstatus'),
-                'btng[new][format]' => $tools->getParam('new/format'),
-                'btng[new][title]' => $tools->getParam('new/title')
-            );
-            send_redirect(wl($new,$urlparams,true,'&'));
+                'post-blog' => $INPUT->post->str('post-blog'),
+                'post-tags' => $INPUT->post->str('post-tags'),
+                'post-commentstatus' => $INPUT->post->str('post-commentstatus'),
+                'new-format' => $INPUT->post->str('new-format'),
+                'new-title' => $INPUT->post->str('new-title')
+            ];
+            send_redirect(wl($newId,$urlparams,true,'&'));
             return false; //never reached
         } else {
-            $TEXT = $this->_prepare_template($new, $tools->getParam('new/title'));
+            $TEXT = $this->prepareTemplateNewEntry($newId, $INPUT->str('new-title'));
             $event->data = 'preview';
             return false;
         }
