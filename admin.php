@@ -19,6 +19,18 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
     protected $sqlitehelper  = null;
     /** @var helper_plugin_blogtng_tags */
     protected $taghelper     = null;
+    /**
+     * @var string action in admin to perform
+     */
+    private $admin;
+    /**
+     * @var int number of comments per page of the comment list
+     */
+    private $commentLimit;
+    /**
+     * @var int number of entries per page of the entry list
+     */
+    private $entryLimit;
 
     /**
      * Determine position in list in admin window
@@ -51,37 +63,43 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      * @author Michael Klier <chi@chimeric.de>
      */
     public function handle() {
-        if(!isset($_REQUEST['btng']['admin'])) {
-            $admin = null;
+        global $INPUT;
+        if($INPUT->has('admin')) {
+            $this->admin = $INPUT->extract('admin')->str('admin'); //can be post or get
         } else {
-            $admin = (is_array($_REQUEST['btng']['admin'])) ? key($_REQUEST['btng']['admin']) : $_REQUEST['btng']['admin'];
+            $this->admin = '';
         }
         //skip actions when no valid security token given
-        $noSecTokenNeeded = array('search', 'comment_edit', 'comment_preview', null);
-        if(!in_array($admin, $noSecTokenNeeded) && !checkSecurityToken()) {
-            $admin = null;
+        $noSecTokenNeeded = ['search', 'comment_edit', 'comment_preview', null];
+        if(!in_array($this->admin, $noSecTokenNeeded) && !checkSecurityToken()) {
+            $this->admin = '';
         }
 
+        //get some preferences
+        $this->commentLimit = (int) get_doku_pref('blogtng_comment_limit', 15);
+        $this->entryLimit = (int) get_doku_pref('blogtng_entry_limit', 5);
+
+
         // handle actions
-        switch($admin) {
+        switch($this->admin) {
 
             case 'comment_save':
                 // FIXME error handling?
-                $comment = $_REQUEST['btng']['comment'];
+                $comment = $this->getPostedComment();
+
                 $this->commenthelper->save($comment);
                 msg($this->getLang('msg_comment_save'), 1);
                 break;
 
             case 'comment_delete':
                 // FIXME error handling
-                $comment = $_REQUEST['btng']['comment'];
-                $this->commenthelper->delete($comment['cid']);
+                $this->commenthelper->delete($INPUT->post->str('comment-cid'));
                 msg($this->getLang('msg_comment_delete'), 1);
                 break;
 
             case 'comment_batch_edit':
-                $batch = $_REQUEST['btng']['admin']['comment_batch_edit'];
-                $cids  = $_REQUEST['btng']['comments']['cids'];
+                $batch = $INPUT->post->str('comment_batch_edit');
+                $cids  = $INPUT->post->arr('comments-cids');
                 if($cids) {
                     foreach($cids as $cid) {
                         switch($batch) {
@@ -101,12 +119,14 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
                         }
                     }
                 }
+                //back to default view
+                $this->admin = '';
                 break;
 
             case 'entry_set_blog':
                 // FIXME errors?
-                $pid = $_REQUEST['btng']['entry']['pid'];
-                $blog = $_REQUEST['btng']['entry']['blog'];
+                $pid = $INPUT->post->str('entry-pid');
+                $blog = $INPUT->post->str('entry-blog');
                 if($pid) {
                     $blogs = $this->entryhelper->getAllBlogs();
                     if(in_array($blog, $blogs)) {
@@ -119,10 +139,10 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
                 break;
 
             case 'entry_set_commentstatus':
-                $pid = $_REQUEST['btng']['entry']['pid'];
-                $status = $_REQUEST['btng']['entry']['commentstatus'];
+                $pid = $INPUT->post->str('entry-pid');
+                $status = $INPUT->post->str('entry-commentstatus');
                 if($pid) {
-                    if(in_array($status, array('disabled', 'enabled', 'closed'))) {
+                    if(in_array($status, ['disabled', 'enabled', 'closed'])) {
                         $this->entryhelper->load_by_pid($pid);
                         $this->entryhelper->entry['commentstatus'] = $status;
                         $this->entryhelper->save();
@@ -131,8 +151,22 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
                 msg($this->getLang('msg_comment_status_change'), 1);
                 break;
 
+            case 'comment_edit':
+            case 'comment_preview':
+            case 'search':
             default:
                 // do nothing - show dashboard
+
+                //update preferences
+                if ($INPUT->has('comment-limit')) {
+                    $this->commentLimit = $INPUT->int('comment-limit');
+                    set_doku_pref('blogtng_comment_limit', $this->commentLimit);
+                }
+
+                if ($INPUT->has('entry-limit')) {
+                    $this->entryLimit = $INPUT->int('entry-limit');
+                    set_doku_pref('blogtng_entry_limit', $this->entryLimit);
+                }
                 break;
         }
     }
@@ -144,62 +178,65 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      * @author hArpanet <dokuwiki-blogtng@harpanet.com>
      */
     public function html() {
-        global $ID;
+        global $ID, $INPUT;
 
         ptln('<h1>'.$this->getLang('menu').'</h1>');
-
-        $admin = (is_array($_REQUEST['btng']['admin'])) ? key($_REQUEST['btng']['admin']) : $_REQUEST['btng']['admin'];
 
         ptln('<div id="blogtng__admin">');
 
         // display link back to dashboard
-        if($admin) {
+        if($this->admin) {
             ptln('<div class="level1">');
-            ptln('<p><a href="' . wl($ID, array('do'=>'admin', 'page'=>'blogtng')) . '" title="' . $this->getLang('dashboard') . '">&larr; ' . $this->getLang('dashboard') . '</a></p>');
+            $params = ['do'=>'admin', 'page'=>'blogtng'];
+            ptln('<p><a href="' . wl($ID, $params) . '" title="' . $this->getLang('dashboard') . '">&larr; ' . $this->getLang('dashboard') . '</a></p>');
             ptln('</div>');
 
         }
 
-        switch($admin) {
+        switch($this->admin) {
             case 'search':
                 // display search form
-                $this->xhtml_search_form();
+                $this->htmlSearchForm();
 
                 ptln('<h2>' . $this->getLang('searchresults') . '</h2>');
 
-                $query = $_REQUEST['btng']['query'];
+                $query = $INPUT->arr('query');
                 $query['resultset'] = 'query';
-
-                $this->xhtml_search_results($query);
+                $query['limit'] = 20;
+                $query['offset'] = $INPUT->int('query-offset');
+                $this->htmlSearchResults($query);
                 break;
 
             case 'comment_edit':
             case 'comment_preview':
-                if($admin == 'comment_edit') {
-                    $obj = $this->commenthelper->comment_by_cid($_REQUEST['btng']['comment']['cid']);
-                    $comment = $obj->data;
-                    if($comment) {
-                        $this->xhtml_comment_edit_form($comment);
+                if($this->admin == 'comment_edit') {
+                    $comment = $this->commenthelper->comment_by_cid($INPUT->get->str('comment-cid'));
+                    if($comment !== null) {
+                        $this->htmlCommentEditForm($comment);
                     }
                 }
-                if($admin == 'comment_preview') {
-                    $this->xhtml_comment_edit_form($_REQUEST['btng']['comment']);
-                    $this->xhtml_comment_preview($_REQUEST['btng']['comment']);
+                if($this->admin == 'comment_preview') {
+                    $comment = $this->getPostedComment();
+
+                    $this->htmlCommentEditForm($comment);
+                    $this->htmlCommentPreview($comment);
                 }
                 break;
 
             default:
                 // display search form
-                $this->xhtml_search_form();
+                $this->htmlSearchForm();
 
                 // print latest 'x' comments/entries
-                $query = $_REQUEST['btng']['comment'];
+                $query['limit'] = $this->commentLimit;
+                $query['offset'] = $INPUT->int('comment-offset');
                 $query['resultset'] = 'comment';
-                $this->xhtml_latest_items($query);
+                $this->htmlLatestItems($query);
 
-                $query = $_REQUEST['btng']['entry'];
+                $query['limit'] = $this->entryLimit;
+                $query['offset'] = $INPUT->int('entry-offset');
                 $query['resultset']  = 'entry';
-                $this->xhtml_latest_items($query);
+                $this->htmlLatestItems($query);
                 break;
         }
 
@@ -211,7 +248,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      *
      * @param array $query url parameters for query
      */
-    private function xhtml_search_results($query) {
+    private function htmlSearchResults($query) {
         if(!$this->sqlitehelper->ready()) return;
 
         $db = $this->sqlitehelper->getDB();
@@ -222,20 +259,20 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
                 $select  = 'SELECT * ';
                 $from    = 'FROM entries ';
                 $orderby = 'ORDER BY created DESC ';
-                $itemdisplaycallback = 'xhtml_entry_list';
+                $itemdisplaycallback = 'htmlEntryList';
                 break;
             case 'comment':
             case 'comment_ip':
                 $select = 'SELECT cid, comments.pid as pid, ip, source, name, comments.mail as mail, web, avatar, comments.created as created, text, status ';
                 $from   = 'FROM comments LEFT JOIN entries ON comments.pid = entries.pid ';
                 $orderby = 'ORDER BY comments.created DESC ';
-                $itemdisplaycallback = 'xhtml_comment_list';
+                $itemdisplaycallback = 'htmlCommentList';
             break;
             case 'tags':
                 $select = 'SELECT DISTINCT entries.pid as pid, page, title, blog, image, created, lastmod, author, login, mail ';
                 $from   = 'FROM entries  LEFT JOIN tags ON entries.pid = tags.pid ';
                 $orderby = 'ORDER BY created DESC ';
-                $itemdisplaycallback = 'xhtml_entry_list';
+                $itemdisplaycallback = 'htmlEntryList';
                 break;
             default:
                 return;
@@ -277,10 +314,9 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         $sqlselect = $select . $from . $where . $orderby;
 
 
-        $sqlselect .= ' LIMIT '.$this->getLimitParam($query, 20);
-        $offset = $this->getOffsetParam($query);
-        if($offset > 0) {
-            $sqlselect .= ' OFFSET '.$offset;
+        $sqlselect .= ' LIMIT '.$query['limit'];
+        if($query['offset'] > 0) {
+            $sqlselect .= ' OFFSET '.$query['offset'];
         }
 
         $res = $db->query($sqlcount);
@@ -288,7 +324,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
 
         $resid = $db->query($sqlselect);
         if($resid) {
-            $this->xhtml_show_paginated_result($resid, $query, $itemdisplaycallback, $count);
+            $this->htmlShowPaginatedResult($resid, $query, $itemdisplaycallback, $count, $query['limit']);
         }
     }
 
@@ -304,12 +340,11 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      * @author Michael Klier <chi@chimeric.de>
      * @author hArpanet <dokuwiki-blogtng@harpanet.com>
      */
-    private function xhtml_show_paginated_result($resid, $query, $itemdisplaycallback, $count, $limit = 20) {
+    private function htmlShowPaginatedResult($resid, $query, $itemdisplaycallback, $count, $limit) {
         global $lang;
         if(!$resid) return;
 
-        $offset = $this->getOffsetParam($query);
-        $currentpage   =  floor($offset / $limit) + 1;
+        $currentpage   =  floor($query['offset'] / $limit) + 1;
 
         $items = $this->sqlitehelper->getDB()->res2arr($resid);
 
@@ -318,9 +353,9 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
 
             // show pagination only when enough items
             if($count > $limit) {
-                $this->xhtml_pagination($query, $currentpage, $count, $limit);
+                $this->htmlPagination($query, $currentpage, $count, $limit);
             }
-
+            // show list of items using callback
             call_user_func(array($this, $itemdisplaycallback), $items, $query);
 
         } else {
@@ -331,7 +366,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
 
         // show pagination only when enough items
         if($count > $limit) {
-            $this->xhtml_pagination($query, $currentpage, $count, $limit);
+            $this->htmlPagination($query, $currentpage, $count, $limit);
         }
     }
 
@@ -345,7 +380,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      *
      * @author Michael Klier <chi@chimeric.de>
      */
-    private function xhtml_pagination($query, $currentpage, $maximum, $limit) {
+    private function htmlPagination($query, $currentpage, $maximum, $limit) {
         $lastpage = (int) ceil($maximum / $limit);
 
         $pages[] = 1;             // first always
@@ -371,7 +406,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         ptln('<div class="level2"><p>');
 
         if($currentpage > 1) {
-            $this->xhtml_paginationurl($query, ($currentpage - 2) * $limit, $limit, '&laquo;', $currentpage - 1);
+            $this->htmlPaginationurl($query, ($currentpage - 2) * $limit, '&laquo;', $currentpage - 1);
         }
 
         $last = 0;
@@ -382,13 +417,13 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
             if($page == $currentpage) {
                 ptln('<span class="cur">' . $page . '</span>');
             } else {
-                $this->xhtml_paginationurl($query, ($page - 1) * $limit, $limit, $page, $page);
+                $this->htmlPaginationurl($query, ($page - 1) * $limit, $page, $page);
             }
             $last = $page;
         }
 
         if($currentpage < $lastpage) {
-            $this->xhtml_paginationurl($query, $currentpage * $limit, $limit, '&raquo;', $currentpage + 1);
+            $this->htmlPaginationurl($query, $currentpage * $limit, '&raquo;', $currentpage + 1);
         }
 
         ptln('</p></div>');
@@ -399,14 +434,13 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      *
      * @param array   $query   Query parameters
      * @param int     $offset  number of previous items
-     * @param int     $limit   number of items at this page
      * @param string  $text    text of url
      * @param string  $title   title of url
      * @internal param string $anchor url anchor
      */
-    private function xhtml_paginationurl($query, $offset, $limit, $text, $title) {
+    private function htmlPaginationurl($query, $offset, $text, $title) {
         global $ID;
-        list($params, $anchor) = $this->buildUrlParams($query, $offset, $limit);
+        list($params, $anchor) = $this->buildUrlParams($query, $offset);
         ptln("<a href='".wl($ID, $params).'#'.$anchor."' title='$title'>$text</a>");
     }
 
@@ -415,29 +449,27 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      *
      * @param array  $query   Query parameters
      * @param int    $offset  number of previous items
-     * @param int    $limit   number of items at this page
      * @return array($params, $anchor)
      */
-    private function buildUrlParams($query, $offset, $limit) {
-        $params = array(
+    private function buildUrlParams($query, $offset) {
+        $params = [
             'do' => 'admin',
             'page' => 'blogtng',
-            'btng[' . $query['resultset'] . '][limit]' => $limit ,
-            'btng[' . $query['resultset'] . '][offset]' => $offset
-        );
+            $query['resultset'].'-offset' => $offset
+        ];
         $anchor = $query['resultset'] . '_latest';
 
         if($query['resultset'] == 'query') {
-            $params = $params + array(
-                    'btng[admin]' => 'search',
-                    'btng[query][filter]' => $query['filter'],
-                    'btng[query][blog]'   => $query['blog'],
-                    'btng[query][string]' => $query['string'],
-                    'btng[query][pid]'    => $query['pid']
-                );
+            $params = $params + [
+                    'admin' => 'search',
+                    'query[filter]' => $query['filter'],
+                    'query[blog]'   => $query['blog'],
+                    'query[string]' => $query['string'],
+                    'query[pid]'    => $query['pid']
+                ];
             $anchor = '';
         }
-        return array($params, $anchor);
+        return [$params, $anchor];
     }
 
     /**
@@ -448,11 +480,11 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      * @author Michael Klier <chi@chimeric.de>
      * @author hArpanet <dokuwiki-blogtng@harpanet.com>
      */
-    private function xhtml_latest_items($query) {
-        $resultset = $query['resultset'];
+    private function htmlLatestItems($query) {
+        $resultset = $query['resultset']; //query,comment,entry
 
-        printf("<h2 id='{$resultset}_latest'>".$this->getLang($resultset.'_latest').'</h2>', $this->getLimitParam($query));
-        $this->xhtml_limit_form($query);
+        printf("<h2 id='{$resultset}_latest'>".$this->getLang($resultset.'_latest').'</h2>', $query['limit']);
+        $this->htmlLimitForm($query);
 
         if(!$this->sqlitehelper->ready()) return;
 
@@ -462,11 +494,11 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         if($resultset == 'entry') {
             $from = 'FROM entries ';
             $where = 'WHERE blog != "" ';
-            $itemdisplaycallback = 'xhtml_entry_list';
+            $itemdisplaycallback = 'htmlEntryList';
         } else {
             $from = 'FROM comments ';
             $where = '';
-            $itemdisplaycallback = 'xhtml_comment_list';
+            $itemdisplaycallback = 'htmlCommentList';
         }
 
         $orderby = 'ORDER BY created DESC ';
@@ -474,11 +506,10 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         $sqlcount = $count . $from . $where;
         $sqlselect = $select . $from . $where . $orderby;
 
-        $limit = $this->getLimitParam($query);
-        $offset = $this->getOffsetParam($query);
+        $limit = $query['limit'];
         $sqlselect .= 'LIMIT ' . $limit;
-        if($offset) {
-            $sqlselect .= ' OFFSET ' . $offset;
+        if($query['offset']) {
+            $sqlselect .= ' OFFSET ' . $query['offset'];
         }
 
         $res = $this->sqlitehelper->getDB()->query($sqlcount);
@@ -488,18 +519,18 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         if(!$resid) {
             return;
         }
-        $this->xhtml_show_paginated_result($resid, $query, $itemdisplaycallback, $count, $limit);
+        $this->htmlShowPaginatedResult($resid, $query, $itemdisplaycallback, $count, $limit);
     }
 
     /**
-     * Displays a list of entries, as callback of xhtml_search_results()
+     * Displays a list of entries, as callback of htmlSearchResults()
      *
      * @param array $entries of entries
      * @param array $query parameters
      *
      * @author Michael Klier <chi@chimeric.de>
      */
-    private function xhtml_entry_list($entries, $query) {
+    private function htmlEntryList($entries, $query) {
         ptln('<div class="level2">');
         ptln('<table class="inline">');
 
@@ -512,7 +543,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         ptln('<th>' . $this->getLang('tags') . '</th>');
         ptln('<th></th>');
         foreach($entries as $entry) {
-            $this->xhtml_entry_item($entry, $query);
+            $this->htmlEntryItem($entry, $query);
         }
         ptln('</table>');
         ptln('</div>');
@@ -526,7 +557,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      *
      * @author Michael Klier <chi@chimeric.de>
      */
-    private function xhtml_entry_item($entry, $query) {
+    private function htmlEntryItem($entry, $query) {
         global $lang;
         global $ID;
 
@@ -537,8 +568,8 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         ptln('<td class="entry_created">' . dformat($entry['created']) . '</td>');
         ptln('<td class="entry_author">' . hsc($entry['author']) . '</td>');
         ptln('<td class="entry_title">' . html_wikilink(':'.$entry['page'], $entry['title']) . '</td>');
-        ptln('<td class="entry_set_blog">' . $this->xhtml_entry_edit_form($entry, $query, 'blog') . '</th>');
-        ptln('<td class="entry_set_commentstatus">' . $this->xhtml_entry_edit_form($entry, $query, 'commentstatus') . '</th>');
+        ptln('<td class="entry_set_blog">' . $this->htmlEntryEditForm($entry, $query, 'blog') . '</th>');
+        ptln('<td class="entry_set_commentstatus">' . $this->htmlEntryEditForm($entry, $query, 'commentstatus') . '</th>');
 
         $this->commenthelper->setPid($entry['pid']);
 
@@ -548,9 +579,9 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         if($count > 0) {
             $params = array('do' => 'admin',
                             'page' => 'blogtng',
-                            'btng[admin]' => 'search',
-                            'btng[query][filter]' => 'comment',
-                            'btng[query][pid]' => $entry['pid']);
+                            'admin' => 'search',
+                            'query[filter]' => 'comment',
+                            'query[pid]' => $entry['pid']);
             ptln('<a href="' . wl($ID, $params) . '" title="' . $this->getLang('comments') . '">' . $count . '</a>');
         } else {
             ptln($count);
@@ -565,9 +596,9 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         for($i = 0; $i < $count; $i++) {
             $params = array('do' => 'admin',
                             'page' => 'blogtng',
-                            'btng[admin]' => 'search',
-                            'btng[query][filter]' => 'tags',
-                            'btng[query][string]' => $tags[$i]);
+                            'admin' => 'search',
+                            'query[filter]' => 'tags',
+                            'query[string]' => $tags[$i]);
             $link = '<a href="' . wl($ID, $params) . '" title="' . $tags[$i] . '">' . $tags[$i] . '</a>';
             if($i < ($count - 1)) $link .= ', ';
             ptln($link);
@@ -585,7 +616,7 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
     }
 
     /**
-     * Displays a list of comments, as callback of xhtml_search_results()
+     * Displays a list of comments, as callback of htmlSearchResults()
      *
      * @param array[] $comments List of comments
      * @param array $query    Query parameters
@@ -593,16 +624,16 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      * @author Michael Klier <chi@chimeric.de>
      * @author hArpanet <dokuwiki-blogtng@harpanet.com>
      */
-    private function xhtml_comment_list($comments, $query) {
+    private function htmlCommentList($comments, $query) {
         global $lang;
 
         ptln('<div class="level2">');
 
         ptln('<form action="' . DOKU_SCRIPT . '" method="post" id="blogtng__comment_batch_edit_form">');
         ptln('<input type="hidden" name="page" value="blogtng" />');
-        ptln('<input type="hidden" name="btng[comment][limit]" value="' .$this->getLimitParam($query). '" />');
-        ptln('<input type="hidden" name="btng[comment][offset]" value="' .$this->getLimitParam($query). '" />');
+        ptln('<input type="hidden" name="comment-offset" value="' .$query['offset']. '" />');
         ptln('<input type="hidden" name="sectok" value="' .getSecurityToken(). '" />');
+        ptln('<input type="hidden" name="admin" value="comment_batch_edit" />');
 
         ptln('<table class="inline">');
 
@@ -611,12 +642,12 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         ptln('<th></th>');
 
         foreach($comments as $comment) {
-            $this->xhtml_comment_item($comment);
+            $this->htmlCommentItem(new Comment($comment));
         }
 
         ptln('</table>');
 
-        ptln('<select name="btng[admin][comment_batch_edit]">');
+        ptln('<select name="comment_batch_edit">');
             ptln('<option value="status_visible">Visible</option>');
             ptln('<option value="status_hidden">Hidden</option>');
             ptln('<option value="delete">'.$lang['btn_delete'].'</option>');
@@ -630,12 +661,12 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
     /**
      * Displays a single comment and related actions
      *
-     * @param array $comment A single comment
+     * @param Comment $comment A single comment
      *
      * @author Michael Klier <chi@chimeric.de>
      * @author hArpanet <dokuwiki-blogtng@harpanet.com>
      */
-    private function xhtml_comment_item($comment) {
+    private function htmlCommentItem($comment) {
         global $lang;
         global $ID;
 
@@ -643,36 +674,37 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         ptln('<tr class="' . $class . '">');
         $class = ($class == 'odd') ? 'even' : 'odd';
 
-        $cmt = new Comment();
-        $cmt->init($comment);
+        $cmt = new Comment($comment);
         ptln('<td class="admin_checkbox">');
-            ptln('<input type="checkbox" class="comment_cid" name="btng[comments][cids][]" value="' . $comment['cid'] . '" />');
+            ptln('<input type="checkbox" class="comment_cid" name="comments-cids[]" value="' . $comment->getCid() . '" />');
         ptln('</td>');
 
         ptln('<td class="comment_row">');
-        ptln('<div class="comment_text" title="'.$this->getLang('comment_text').'">' . hsc($comment['text']) . '</div>');
+        ptln('<div class="comment_text" title="'.$this->getLang('comment_text').'">' . hsc($comment->getText()) . '</div>');
         ptln('<div class="comment_metadata">');
-            ptln('<span class="comment_created" title="'.$this->getLang('created').'">' . dformat($comment['created']) . '</span>');
-            ptln('<span class="comment_ip" title="'.$this->getLang('comment_ip').'">' . hsc($comment['ip']) . '</span>');
+            ptln('<span class="comment_created" title="'.$this->getLang('created').'">' . dformat($comment->getCreated()) . '</span>');
+            ptln('<span class="comment_ip" title="'.$this->getLang('comment_ip').'">' . hsc($comment->getIp()) . '</span>');
 
             ptln('<span class="comment_name" title="'.$this->getLang('comment_name').'">');
                 $avatar = $cmt->tpl_avatar(16,16,true);
-                if($avatar) ptln('<img src="' . $avatar . '" alt="' . hsc($comment['name']) . '" class="avatar" /> ');
-                if($comment['mail']){
-                    ptln('<a href="mailto:' . hsc($comment['mail']) . '" class="mail" title="' . hsc($comment['mail']) . '">' . hsc($comment['name']) . '</a>');
+                if($avatar) ptln('<img src="' . $avatar . '" alt="' . hsc($comment->getName()) . '" class="avatar" /> ');
+                if($comment->getMail()){
+                    ptln('<a href="mailto:' . hsc($comment->getMail()) . '" class="mail" title="' . hsc($comment->getMail()) . '">' . hsc($comment->getName()) . '</a>');
                 }else{
-                    ptln(hsc($comment['name']));
+                    ptln(hsc($comment->getName()));
                 }
             ptln('</span>');
 
             $weburl = '';
-            if($comment['web']) $weburl = '<a href="' . hsc($comment['web']) . '" title="' . hsc($comment['web']) . '">' . hsc($comment['web']) . '</a>';
+            if($comment->getWeb()) {
+                $weburl = '<a href="' . hsc($comment->getWeb()) . '" title="' . hsc($comment->getWeb()) . '">' . hsc($comment->getWeb()) . '</a>';
+            }
             ptln('<span class="comment_web" title="'.$this->getLang('comment_web').'">'.$weburl.'</span>');
 
-            ptln('<span class="comment_status" title="'.$this->getLang('comment_status').'">' . hsc($comment['status']) . '</span>');
-            ptln('<span class="comment_source" title="'.$this->getLang('comment_source').'">' . hsc($comment['source']) . '</span>');
+            ptln('<span class="comment_status" title="'.$this->getLang('comment_status').'">' . hsc($comment->getStatus()) . '</span>');
+            ptln('<span class="comment_source" title="'.$this->getLang('comment_source').'">' . hsc($comment->getSource()) . '</span>');
 
-            $this->entryhelper->load_by_pid($comment['pid']);
+            $this->entryhelper->load_by_pid($comment->getPid());
             $pagelink = html_wikilink(':'.$this->entryhelper->entry['page'], $this->entryhelper->entry['title']);
             ptln('<span class="comment_entry" title="'.$this->getLang('comment_entry').'">' . $pagelink . '</span>');
         ptln('</div>');
@@ -681,8 +713,8 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         ptln('<td class="comment_edit">');
             $params = array('do'=>'admin',
                             'page'=>'blogtng',
-                            'btng[comment][cid]'=>$comment['cid'],
-                            'btng[admin]'=>'comment_edit');
+                            'comment-cid'=>$comment->getCid(),
+                            'admin'=>'comment_edit');
             ptln('<a href="' . wl($ID, $params). '" class="blogtng_btn_edit" title="' . $lang['btn_edit'] . '">' . $lang['btn_secedit'] . '</a>');
         ptln('</td>');
 
@@ -692,17 +724,15 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
     /**
      * Displays a preview of the comment
      *
-     * @param array $data submitted comment properties
+     * @param Comment $comment submitted comment
      */
-    private function xhtml_comment_preview($data) {
-        $this->entryhelper->load_by_pid($data['pid']);
+    private function htmlCommentPreview($comment) {
+        $this->entryhelper->load_by_pid($comment->getPid());
         $blogname = $this->entryhelper->get_blog();
 
         ptln('<div id="blogtng__comment_preview">');
         ptln(p_locale_xhtml('preview'));
         ptln('<br />');
-        $comment = new Comment();
-        $comment->init($data);
         $comment->output($blogname);
         ptln('</div>');
     }
@@ -712,32 +742,31 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      *
      * @param array $entry Blog entry
      * @param array $query Query parameters
-     * @param string $field
+     * @param string $field 'blog' or 'commentstatus'
      * @return false|string
      *
      * @author Michael Klier <chi@chimeric.de>
      * @author hArpanet <dokuwiki-blogtng@harpanet.com>
      */
-    private function xhtml_entry_edit_form($entry, $query, $field = 'commentstatus') {
+    private function htmlEntryEditForm($entry, $query, $field = 'commentstatus') {
         global $lang;
 
-        $changablefields = array('commentstatus', 'blog');
+        $changablefields = ['commentstatus', 'blog'];
         if(!in_array($field, $changablefields)) return hsc($entry[$field]);
 
-        $form = new Doku_Form(array('id'=>"blogtng__entry_set_{$field}_form"));
+        $form = new Doku_Form(['id'=>"blogtng__entry_set_{$field}_form"]);
         $form->addHidden('do', 'admin');
         $form->addHidden('page', 'blogtng');
-        $form->addHidden('btng[entry][pid]', $entry['pid']);
-        $form->addHidden('btng[entry][limit]', $this->getLimitParam($query));
-        $form->addHidden('btng[entry][offset]', $this->getOffsetParam($query));
+        $form->addHidden('entry-pid', $entry['pid']);
+        $form->addHidden('entry-offset', $query['offset']);
 
         if($field == 'commentstatus') {
-            $availableoptions = array('enabled', 'disabled', 'closed');
+            $availableoptions = ['enabled', 'disabled', 'closed'];
         } else {
             $availableoptions = $this->entryhelper->getAllBlogs();
         }
-        $form->addElement(form_makeListBoxField("btng[entry][$field]", $availableoptions, $entry[$field], ''));
-        $form->addElement('<input type="submit" name="btng[admin][entry_set_'.$field.']" class="edit button" value="' . $lang['btn_update'] . '" />');
+        $form->addElement(form_makeListBoxField("entry-$field", $availableoptions, $entry[$field], ''));
+        $form->addElement('<input type="submit" name="admin[entry_set_'.$field.']" class="edit button" value="' . $lang['btn_update'] . '" />');
 
         ob_start();
         html_form("blotng__btn_entry_set_$field", $form);
@@ -747,37 +776,37 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
     /**
      * Displays the comment edit form
      *
-     * @param $comment
+     * @param Comment $comment
      *
      * @author Michael Klier <chi@chimeric.de>
      */
-    private function xhtml_comment_edit_form($comment) {
+    private function htmlCommentEditForm($comment) {
         global $lang;
 
         ptln('<div class="level1">');
-        $form = new Doku_Form(array('id'=>'blogtng__comment_edit_form'));
+        $form = new Doku_Form(['id'=>'blogtng__comment_edit_form']);
         $form->startFieldset($this->getLang('act_comment_edit'));
         $form->addHidden('page', 'blogtng');
         $form->addHidden('do', 'admin');
-        $form->addHidden('btng[comment][cid]', $comment['cid']);
-        $form->addHidden('btng[comment][pid]', $comment['pid']);
-        $form->addHidden('btng[comment][created]', $comment['created']);
-        $form->addElement(form_makeListBoxField('btng[comment][status]', array('visible', 'hidden'), $comment['status'], $this->getLang('comment_status')));
+        $form->addHidden('comment-cid', $comment->getCid());
+        $form->addHidden('comment-pid', $comment->getPid());
+        $form->addHidden('comment-created', $comment->getCreated());
+        $form->addElement(form_makeListBoxField('comment-status', ['visible', 'hidden'], $comment->getStatus(), $this->getLang('comment_status')));
         $form->addElement('<br />');
-        $form->addElement(form_makeListBoxField('btng[comment][source]', array('comment', 'trackback', 'pingback'), $comment['source'], $this->getLang('comment_source')));
+        $form->addElement(form_makeListBoxField('comment-source', ['comment', 'trackback', 'pingback'], $comment->getSource(), $this->getLang('comment_source')));
         $form->addElement('<br />');
-        $form->addElement(form_makeTextField('btng[comment][name]', $comment['name'], $this->getLang('comment_name')));
+        $form->addElement(form_makeTextField('comment-name', $comment->getName(), $this->getLang('comment_name')));
         $form->addElement('<br />');
-        $form->addElement(form_makeTextField('btng[comment][mail]', $comment['mail'], $this->getLang('comment_mail')));
+        $form->addElement(form_makeTextField('comment-mail', $comment->getMail(), $this->getLang('comment_mail')));
         $form->addElement('<br />');
-        $form->addElement(form_makeTextField('btng[comment][web]', $comment['web'], $this->getLang('comment_web')));
+        $form->addElement(form_makeTextField('comment-web', $comment->getWeb(), $this->getLang('comment_web')));
         $form->addElement('<br />');
-        $form->addElement(form_makeTextField('btng[comment][avatar]', $comment['avatar'], $this->getLang('comment_avatar')));
+        $form->addElement(form_makeTextField('comment-avatar', $comment->getAvatar(), $this->getLang('comment_avatar')));
         $form->addElement('<br />');
-        $form->addElement('<textarea class="edit" name="btng[comment][text]" rows="10" cols="80">' . $comment['text'] . '</textarea>');
-        $form->addElement('<input type="submit" name="btng[admin][comment_save]" class="edit button" value="' . $lang['btn_save'] . '" />');
-        $form->addElement('<input type="submit" name="btng[admin][comment_preview]" class="edit button" value="' . $lang['btn_preview'] . '" />');
-        $form->addElement('<input type="submit" name="btng[admin][comment_delete]" class="edit button" value="' . $lang['btn_delete'] . '" />');
+        $form->addElement('<textarea class="edit" name="comment-text" rows="10" cols="80">' . $comment->getText() . '</textarea>');
+        $form->addElement('<input type="submit" name="admin[comment_save]" class="edit button" value="' . $lang['btn_save'] . '" />');
+        $form->addElement('<input type="submit" name="admin[comment_preview]" class="edit button" value="' . $lang['btn_preview'] . '" />');
+        $form->addElement('<input type="submit" name="admin[comment_delete]" class="edit button" value="' . $lang['btn_delete'] . '" />');
         $form->endFieldset();
         html_form('blogtng__edit_comment', $form);
         ptln('</div>');
@@ -788,8 +817,8 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      *
      * @author Michael Klier <chi@chimeric.de>
      */
-    private function xhtml_search_form() {
-        global $lang;
+    private function htmlSearchForm() {
+        global $lang, $INPUT;
 
         ptln('<div class="level1">');
 
@@ -798,11 +827,12 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
         $form = new Doku_Form(array('id'=>'blogtng__search_form'));
         $form->startFieldset($lang['btn_search']);
         $form->addHidden('page', 'blogtng');
-        $form->addHidden('btng[admin]', 'search');
+        $form->addHidden('admin', 'search');
 
-        $form->addElement(form_makeListBoxField('btng[query][blog]', $blogs, $_REQUEST['btng']['query']['blog'], $this->getLang('blog')));
-        $form->addElement(form_makeListBoxField('btng[query][filter]', array('entry_title', 'entry_author', 'comment', 'comment_ip', 'tags'), $_REQUEST['btng']['query']['filter'], $this->getLang('filter')));
-        $form->addElement(form_makeTextField('btng[query][string]', $_REQUEST['btng']['query']['string'],''));
+        $query = $INPUT->arr('query');
+        $form->addElement(form_makeListBoxField('query[blog]', $blogs, $query['blog'], $this->getLang('blog')));
+        $form->addElement(form_makeListBoxField('query[filter]', ['entry_title', 'entry_author', 'comment', 'comment_ip', 'tags'], $query['filter'], $this->getLang('filter')));
+        $form->addElement(form_makeTextField('query[string]', $query['string'],''));
 
         $form->addElement(form_makeButton('submit', 'admin', $lang['btn_search']));
         $form->endFieldset();
@@ -818,23 +848,22 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
      *
      * @author hArpanet <dokuwiki-blogtng@harpanet.com>
      */
-    private function xhtml_limit_form($query='') {
+    private function htmlLimitForm($query) {
         global $lang;
 
-        $limit = $this->getLimitParam($query);
         $resultset = $query['resultset'];
 
         ptln('<div class="level1">');
 
-        $form = new Doku_Form(array('id'=>'blogtng__'.$resultset.'_limit_form'));
+        $form = new Doku_Form(['id'=>'blogtng__'.$resultset.'_limit_form']);
         $form->startFieldset("");
         $form->addHidden('page', 'blogtng');
         $form->addElement(
-                form_makeListBoxField("btng[$resultset][limit]",
-                    array(5,10,15,20,25,30,40,50,100),
-                    $limit,
+                form_makeListBoxField($resultset . '-limit',
+                    [5,10,15,20,25,30,40,50,100],
+                    $query['limit'],
                     $this->getLang('numhits')));
-        $form->addHidden("btng[$resultset][offset]", $this->getOffsetParam($query));
+        $form->addHidden($resultset . '-offset', $query['offset']);
         $form->addElement(form_makeButton('submit', 'admin', $lang['btn_update']));
         $form->endFieldset();
         html_form('blogtng__'.$resultset.'_cnt_form', $form);
@@ -843,27 +872,25 @@ class admin_plugin_blogtng extends DokuWiki_Admin_Plugin {
     }
 
     /**
-     * Get submitted value of items per page
+     * Create a comment with the posted from data
      *
-     * @param array $query   url parameters
-     * @param int   $default value
-     * @return int number of items per page
-     *
-     * @author hArpanet <dokuwiki-blogtng@harpanet.com>
+     * @return Comment
      */
-    private function getLimitParam($query, $default = 5) {
-        return (int) (isset($query['limit']) ? $query['limit'] : $default);
-    }
+    private function getPostedComment()
+    {
+        global $INPUT;
 
-    /**
-     * Get the offset of the pagination
-     *
-     * @param array $query    url parameters
-     * @param int   $default  value
-     * @return int offset number of items
-     */
-    public function getOffsetParam($query, $default = 0) {
-        return (int) (isset($query['offset']) ? $query['offset'] : $default);
+        $comment = new Comment();
+        $comment->setCid($INPUT->post->str('comment-cid'));
+        $comment->setPid($INPUT->post->str('comment-pid'));
+        $comment->setCreated($INPUT->post->str('comment-created'));
+        $comment->setStatus($INPUT->post->str('comment-status'));
+        $comment->setSource($INPUT->post->str('comment-source'));
+        $comment->setName($INPUT->post->str('comment-name'));
+        $comment->setMail($INPUT->post->str('comment-mail'));
+        $comment->setWeb($INPUT->post->str('comment-web'));
+        $comment->setAvatar($INPUT->post->str('comment-avatar'));
+        $comment->setText($INPUT->post->str('comment-text'));
+        return $comment;
     }
 }
-// vim:ts=4:sw=4:et:
