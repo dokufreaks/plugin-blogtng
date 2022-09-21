@@ -65,15 +65,15 @@ class action_plugin_blogtng_comments extends DokuWiki_Action_Plugin{
         // prepare data for comment form
         $comment->setSource($INPUT->post->str('comment-source')); //from: comment, pingback or trackback
         $name = $INPUT->post->str('comment-name');
-        $comment->setName($name ? $name : $INFO['userinfo']['name']);
+        $comment->setName($name ?: $INFO['userinfo']['name'] ?? '');
         $mail = $INPUT->post->str('comment-mail');
-        $comment->setMail($mail ? $mail : $INFO['userinfo']['mail']);
+        $comment->setMail($mail ?: $INFO['userinfo']['mail'] ?? '');
         $web = $INPUT->post->str('comment-web');
         //add "http(s)://" to website
         if ($web != '' && !preg_match('/^http/', $web)) {
             $web = 'https://' . $web;
         }
-        $comment->setWeb($web ? $web : '');
+        $comment->setWeb($web);
         if($INPUT->post->has('wikitext')) {
             $text = cleanText($INPUT->post->str('wikitext'));
         } else {

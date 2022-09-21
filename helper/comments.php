@@ -468,7 +468,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      * @param string $tplname
      */
     public function tpl_form($page, $pid, $tplname) {
-        global $BLOGTNG;
+        global $BLOGTNG; // set in action_plugin_blogtng_comments::handleCommentSaveAndSubscribeActions()
 
         /** @var Comment $comment */
         $comment = $BLOGTNG['comment'];
@@ -489,10 +489,10 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
             } else {
                 $functionname = "get{$field}";
                 $input = $form->addTextInput('comment-' . $field , $this->getLang('comment_'.$field))
-                    ->val($comment->$functionname())
                     ->id('blogtng__comment_' . $field)
                     ->addClass('edit block')
-                    ->useInput(false);
+                    ->useInput(false)
+                    ->val($comment->$functionname());
                 if($BLOGTNG['comment_submit_errors'][$field]){
                     $input->addClass('error'); //old approach was overwrite block with error?
                 }
@@ -535,7 +535,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         echo $form->toHTML();
 
         // fallback preview. Normally previewed using AJAX. Only initiate preview if no errors.
-        if(isset($BLOGTNG['comment_action']) && ($BLOGTNG['comment_action'] == 'preview') && empty($BLOGTNG['comment_submit_errors'])) {
+        if(isset($BLOGTNG['comment_action']) && $BLOGTNG['comment_action'] == 'preview' && empty($BLOGTNG['comment_submit_errors'])) {
             print '<div id="blogtng__comment_preview">' . DOKU_LF;
             $comment->setCid('preview');
             $comment->output($tplname);
