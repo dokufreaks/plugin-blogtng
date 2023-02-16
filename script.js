@@ -10,7 +10,7 @@ var blogtng = {
      */
     validate_attach: function(obj) {
         if(!obj) return;
-        jQuery(obj).click(function() { return blogtng.validate(); });
+        jQuery(obj).on('click', function() { return blogtng.validate(); });
     },
 
     /**
@@ -20,13 +20,12 @@ var blogtng = {
      * @author Michael Klier <chi@chimeric.de>
      */
     validate: function() {
-        var inputs = new Array(
-                        'blogtng__comment_name',
-                        'blogtng__comment_mail',
-                        'wiki__text');
+        let inputs = ['blogtng__comment_name',
+            'blogtng__comment_mail',
+            'wiki__text'];
 
-        for(var i = 0; i < inputs.length; i++) {
-            var input = jQuery("#"+inputs[i]).get(0);
+        for(let i = 0; i < inputs.length; i++) {
+            let input = jQuery("#" + inputs[i]).get(0);
             if(input) {
                 if(!input.value) {
                     input.className = 'edit error';
@@ -49,7 +48,7 @@ var blogtng = {
         if(!obj) return;
         if(!wrap) return;
 
-        jQuery(obj).click(function(e) {
+        jQuery(obj).on('click',function(e) {
             blogtng.preview(wrap,previewid);
             e.preventDefault();
             e.stopPropagation();
@@ -65,7 +64,7 @@ var blogtng = {
     preview: function(wrap,previewid) {
         if(!blogtng.validate()) return false;
 
-        var preview = jQuery("#"+previewid).get(0);
+        let preview = jQuery("#"+previewid).get(0);
         if(!preview){
             if(!wrap) return false;
 
@@ -76,15 +75,15 @@ var blogtng = {
 
         preview.innerHTML = '<img src="'+DOKU_BASE+'/lib/images/throbber.gif" />';
 
-        var params = {
-            call: 'blogtng__comment_preview',
+        let params = {
+            call:    'blogtng__comment_preview',
             tplname: jQuery('#blogtng__comment_form').data('tplname')
         };
 
-        var $name = jQuery('#blogtng__comment_name');
-        var $email = jQuery('#blogtng__comment_mail');
-        var $web = jQuery('#blogtng__comment_web');
-        var $text = jQuery('#wiki__text');
+        let $name = jQuery('#blogtng__comment_name');
+        let $email = jQuery('#blogtng__comment_mail');
+        let $web = jQuery('#blogtng__comment_web');
+        let $text = jQuery('#wiki__text');
 
         if($name.length > 0)  params.name = $name.val();
         if($email.length > 0) params.mail = $email.val();
@@ -108,10 +107,10 @@ var blogtng = {
      */
     reply_attach: function() {
         // attach reply action
-        var objs = jQuery('a.blogtng_num');
-        for (var i = 0; i < objs.length; i++) {
+        let objs = jQuery('a.blogtng_num');
+        for (let i = 0; i < objs.length; i++) {
             objs[i].title = LANG['plugins']['blogtng']['reply'];
-            jQuery(objs[i]).click(function(e) {
+            jQuery(objs[i]).on('click', function(e) {
                 insertAtCarret('wiki__text','@#'+this.href.substring(this.href.lastIndexOf('#')+'#comment_'.length)+': ');
 
                 e.preventDefault();
@@ -122,8 +121,8 @@ var blogtng = {
 
         // make "footnotes" from comment references
         objs = jQuery('a.blogtng_reply');
-        for (var i = 0; i < objs.length; i++) {
-            jQuery(objs[i]).mouseover(function(e) {
+        for (let i = 0; i < objs.length; i++) {
+            jQuery(objs[i]).on('mouseover', function(e) {
                 commentPopup(e, this.href.substring(this.href.lastIndexOf('#')+'#comment_'.length));
             });
         }
@@ -133,13 +132,12 @@ var blogtng = {
      * Attach and handle the check-all checkbox.
      */
     insert_checkall_checkbox: function() {
-        if(jQuery('#blogtng__admin').length == 0) return;
-        var th = jQuery('#blogtng__admin_checkall_th').get(0);
+        if(jQuery('#blogtng__admin').length === 0) return;
+        let th = jQuery('#blogtng__admin_checkall_th').get(0);
         if(th) {
-            var html_checkbox = '<input type="checkbox" id="blogtng__admin_checkall" />';
-            th.innerHTML = html_checkbox;
-            var checkbox = jQuery('#blogtng__admin_checkall').get(0);
-            jQuery(checkbox).click(function(e) {
+            th.innerHTML = '<input type="checkbox" id="blogtng__admin_checkall" />';
+            let checkbox = jQuery('#blogtng__admin_checkall').get(0);
+            jQuery(checkbox).on('click', function(e) {
                 blogtng.checkall();
             });
         }
@@ -149,15 +147,11 @@ var blogtng = {
      * Set all checkboxes to checked.
      */
     checkall: function() {
-        objs = jQuery('input.comment_cid');
+        let objs = jQuery('input.comment_cid');
         if(objs) {
-            var num = objs.length;
-            for(var i=0;i<num;i++) {
-                if(objs[i].checked) {
-                    objs[i].checked = false;
-                } else {
-                    objs[i].checked = true;
-                }
+            let num = objs.length;
+            for(let i=0;i<num;i++) {
+                objs[i].checked = !objs[i].checked;
             }
         }
     }
@@ -174,29 +168,29 @@ var blogtng = {
  * @author Gina Haeussge <gina@foosel.net>
  */
 function commentPopup(e, id){
-    var obj = e.target;
+    let obj = e.target;
 
     // get or create the comment popup div
-    var comment_div = jQuery('#insitu__comment').get(0);
+    let comment_div = jQuery('#insitu__comment').get(0);
     if(!comment_div){
         comment_div = document.createElement('div');
         comment_div.id        = 'insitu__comment';
         comment_div.className = 'insitu-footnote JSpopup dokuwiki';
 
         // autoclose on mouseout - ignoring bubbled up events
-        jQuery(comment_div).mouseout(function(e){
+        jQuery(comment_div).on('mouseout', function(e){
             if(e.target != comment_div){
                 e.stopPropagation();
                 return;
             }
             // check if the element was really left
             if(e.pageX){        // Mozilla
-                var bx1 = findPosX(comment_div);
-                var bx2 = bx1 + comment_div.offsetWidth;
-                var by1 = findPosY(comment_div);
-                var by2 = by1 + comment_div.offsetHeight;
-                var x = e.pageX;
-                var y = e.pageY;
+                let bx1 = findPosX(comment_div);
+                let bx2 = bx1 + comment_div.offsetWidth;
+                let by1 = findPosY(comment_div);
+                let by2 = by1 + comment_div.offsetHeight;
+                let x = e.pageX;
+                let y = e.pageY;
                 if(x > bx1 && x < bx2 && y > by1 && y < by2){
                     // we're still inside boundaries
                     e.stopPropagation();
@@ -217,20 +211,19 @@ function commentPopup(e, id){
     }
 
     // locate the comment anchor element
-    var a = jQuery("#comment_"+id ).get(0);
+    let a = jQuery("#comment_" + id).get(0);
     if (!a){ return; }
 
     // anchor parent is the footnote container, get its innerHTML
-    var content = new String (a.innerHTML);
+    let content = String(a.innerHTML);
 
     // prefix ids on any elements with "insitu__" to ensure they remain unique
-    content = content.replace(/\bid=\"(.*?)\"/gi,'id="insitu__$1');
+    content = content.replace(/\bid="(.*?)"/gi,'id="insitu__$1"');
 
     // now put the content into the wrapper
     comment_div.innerHTML = content;
-
     // position the div and make it visible
-    var x; var y;
+    let x, y;
     if(e.pageX){        // Mozilla
         x = e.pageX;
         y = e.pageY;
@@ -253,4 +246,3 @@ jQuery(function() {
     blogtng.reply_attach();
     blogtng.insert_checkall_checkbox();
 });
-// vim:ts=4:sw=4:et:

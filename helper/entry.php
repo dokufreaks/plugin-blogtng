@@ -3,8 +3,6 @@
  * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
  * @author     Michael Klier <chi@chimeric.de>
  */
-// must be run within Dokuwiki
-if(!defined('DOKU_INC')) die();
 
 /**
  * Class helper_plugin_blogtng_entry
@@ -46,7 +44,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
     /**
      * Load all entries with @$pid
-     * 
+     *
      * @param string $pid
      * @return int
      */
@@ -92,7 +90,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * Sets @$row as the current entry and returns RET_OK if it references
      * a valid blog entry. Otherwise the entry will be deleted and
      * RET_ERR_DEL is returned.
-     * 
+     *
      * @param $row
      * @return int
      */
@@ -107,7 +105,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
     /**
      * Copy all array entries from @$entry
-     * 
+     *
      * @param $entry
      */
     public function set($entry) {
@@ -120,11 +118,11 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
     /**
      * Create and return empty prototype array with all items set to null.
-     * 
+     *
      * @return array
      */
     private function prototype() {
-        return array(
+        return [
             'pid' => null,
             'page' => null,
             'title' => null,
@@ -135,7 +133,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             'author' => null,
             'login' => null,
             'mail' => null,
-        );
+        ];
     }
 
     /**
@@ -277,9 +275,9 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     public function xhtml_tagsearch($conf, &$renderer=null){
         if (count($conf['tags']) == 0) {
             return '';
-        };
+        }
 
-        return $this->xhtml_list($conf, $renderer, $templatetype='tagsearch');
+        return $this->xhtml_list($conf, $renderer, 'tagsearch');
     }
 
     /**
@@ -316,36 +314,35 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         $pages = array();
 
         // calculate page boundaries
-        $max = ceil($count/$conf['limit']);
-        $cur = floor($conf['offset']/$conf['limit'])+1;
+        $lastpage = ceil($count/$conf['limit']);
+        $currentpage = floor($conf['offset']/$conf['limit'])+1;
 
         $pages[] = 1;     // first page always
-        $pages[] = $max;  // last page always
-        $pages[] = $cur;  // current always
+        $pages[] = $lastpage;  // last page always
+        $pages[] = $currentpage;  // current always
 
-        if($max > 1){                // if enough pages
+        if($lastpage > 1){                // if enough pages
             $pages[] = 2;            // second and ..
-            $pages[] = $max-1;       // one before last
+            $pages[] = $lastpage-1;       // one before last
         }
 
         // three around current
-        if($cur-1 > 0) $pages[] = $cur-1;
-        if($cur-2 > 0) $pages[] = $cur-2;
-        if($cur-3 > 0) $pages[] = $cur-3;
-        if($cur+1 < $max) $pages[] = $cur+1;
-        if($cur+2 < $max) $pages[] = $cur+2;
-        if($cur+3 < $max) $pages[] = $cur+3;
+        if($currentpage-1 > 0) $pages[] = $currentpage-1;
+        if($currentpage-2 > 0) $pages[] = $currentpage-2;
+        if($currentpage-3 > 0) $pages[] = $currentpage-3;
+        if($currentpage+1 < $lastpage) $pages[] = $currentpage+1;
+        if($currentpage+2 < $lastpage) $pages[] = $currentpage+2;
+        if($currentpage+3 < $lastpage) $pages[] = $currentpage+3;
 
         sort($pages);
         $pages = array_unique($pages);
 
         // we're done - build the output
-        $out = '';
-        $out .= '<div class="blogtng_pagination">';
-        if($cur > 1){
+        $out = '<div class="blogtng_pagination">';
+        if($currentpage > 1){
             $out .= '<a href="'.wl($conf['target'],
-                                   array('btng[pagination][start]'=>$conf['limit']*($cur-2),
-                                         'btng[post][tags]'=>join(',',$conf['tags']))).
+                                   ['pagination-start'=>$conf['limit']*($currentpage-2),
+                                         'post-tags'=>join(',',$conf['tags'])]).
                              '" class="prev">'.$this->getLang('prev').'</a> ';
         }
         $out .= '<span class="blogtng_pages">';
@@ -354,21 +351,21 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             if($page - $last > 1){
                 $out .= ' <span class="sep">...</span> ';
             }
-            if($page == $cur){
+            if($page == $currentpage){
                 $out .= '<span class="cur">'.$page.'</span> ';
             }else{
                 $out .= '<a href="'.wl($conf['target'],
-                                    array('btng[pagination][start]'=>$conf['limit']*($page-1),
-                                          'btng[post][tags]'=>join(',',$conf['tags']))).
+                                    ['pagination-start'=>$conf['limit']*($page-1),
+                                          'post-tags'=>join(',',$conf['tags'])]).
                                  '">'.$page.'</a> ';
             }
             $last = $page;
         }
         $out .= '</span>';
-        if($cur < $max){
+        if($currentpage < $lastpage){
             $out .= '<a href="'.wl($conf['target'],
-                                   array('btng[pagination][start]'=>$conf['limit']*($cur),
-                                         'btng[post][tags]'=>join(',',$conf['tags']))).
+                                   ['pagination-start'=>$conf['limit']*($currentpage),
+                                         'post-tags'=>join(',',$conf['tags'])]).
                              '" class="next">'.$this->getLang('next').'</a> ';
         }
         $out .= '</div>';
@@ -413,23 +410,23 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
             $form->addElement(form_makeCloseTag('h3'));
         }
         if (isset($conf['select'])) {
-            $form->addElement(form_makeMenuField('btng[new][title]', helper_plugin_blogtng_tools::filterExplodeCSVinput($conf['select']), '', $this->getLang('title'), 'btng__nt', 'edit'));
+            $form->addElement(form_makeMenuField('new-title', helper_plugin_blogtng_tools::filterExplodeCSVinput($conf['select']), '', $this->getLang('title'), 'btng__nt', 'edit'));
         } else {
-            $form->addElement(form_makeTextField('btng[new][title]', '', $this->getLang('title'), 'btng__nt', 'edit'));
+            $form->addElement(form_makeTextField('new-title', '', $this->getLang('title'), 'btng__nt', 'edit'));
         }
         if ($conf['tags']) {
             if($conf['tags'][0] == '?') $conf['tags'] = helper_plugin_blogtng_tools::filterExplodeCSVinput($this->getConf('default_tags'));
-            $form->addElement(form_makeTextField('btng[post][tags]', implode(', ', $conf['tags']), $this->getLang('tags'), 'btng__ntags', 'edit'));
+            $form->addElement(form_makeTextField('post-tags', implode(', ', $conf['tags']), $this->getLang('tags'), 'btng__ntags', 'edit'));
         }
         if ($conf['type']) {
             if($conf['type'][0] == '?') $conf['type'] = $this->getConf('default_commentstatus');
-            $form->addElement(form_makeMenuField('btng[post][commentstatus]', array('enabled', 'closed', 'disabled'), $conf['type'], $this->getLang('commentstatus'), 'blogtng__ncommentstatus', 'edit'));
+            $form->addElement(form_makeMenuField('post-commentstatus', ['enabled', 'closed', 'disabled'], $conf['type'], $this->getLang('commentstatus'), 'blogtng__ncommentstatus', 'edit'));
         }
 
 
         $form->addElement(form_makeButton('submit', null, $this->getLang('create')));
-        $form->addHidden('btng[new][format]', hsc($conf['format']));
-        $form->addHidden('btng[post][blog]', hsc($conf['blog'][0]));
+        $form->addHidden('new-format', hsc($conf['format']));
+        $form->addHidden('post-blog', hsc($conf['blog'][0]));
 
         return '<div class="blogtng_newform">' . $form->getForm() . '</div>';
     }
@@ -439,12 +436,12 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     /**
      * Render content for the given @$type using template @$name.
      * $type must be one of 'list', 'entry', 'feed' or 'tagsearch'.
-     * 
-     * @param $name Template name
-     * @param $type Type to render.
+     *
+     * @param string $name Template name
+     * @param string $type Type to render.
      */
     public function tpl_content($name, $type) {
-        $whitelist = array('list', 'entry', 'feed', 'tagsearch');
+        $whitelist = ['list', 'entry', 'feed', 'tagsearch'];
         if(!in_array($type, $whitelist)) return;
 
         $tpl = helper_plugin_blogtng_tools::getTplFile($name, $type);
@@ -465,22 +462,22 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * @return bool false if a recursion was detected and the entry could not be printed, true otherwise
      */
     public function tpl_entry($included=true, $readmore='syntax', $inc_level=true, $skipheader=false) {
-        $content = $this->get_entrycontent($readmore, $inc_level, $skipheader);
+        $htmlcontent = $this->get_entrycontent($readmore, $inc_level, $skipheader);
 
         if ($included) {
-            $content = $this->_convert_footnotes($content);
-            $content .= $this->_edit_button();
+            $htmlcontent = $this->_convert_footnotes($htmlcontent);
+            $htmlcontent .= $this->_edit_button();
         } else {
-            $content = tpl_toc(true).$content;
+            $htmlcontent = tpl_toc(true).$htmlcontent;
         }
 
-        echo html_secedit($content, !$included);
+        echo html_secedit($htmlcontent, !$included);
         return true;
     }
 
     /**
      * Print link to page or anchor.
-     * 
+     *
      * @param string $anchor
      */
     public function tpl_link($anchor=''){
@@ -489,7 +486,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
     /**
      * Print permalink to page or anchor.
-     * 
+     *
      * @param $str
      */
     public function tpl_permalink($str) {
@@ -499,7 +496,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
     /**
      * Print abstract data
      * FIXME: what's in $this->entry['abstract']?
-     * 
+     *
      * @param int $len
      */
     public function tpl_abstract($len=0) {
@@ -521,7 +518,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
     /**
      * Print creation date.
-     * 
+     *
      * @param string $format
      */
     public function tpl_created($format='') {
@@ -531,7 +528,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
     /**
      * Print last modified date.
-     * 
+     *
      * @param string $format
      */
     public function tpl_lastmodified($format='') {
@@ -592,9 +589,8 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * @param string $fmt_zero_comments
      * @param string $fmt_one_comment
      * @param string $fmt_comments
-     * @param null $types
      */
-    public function tpl_commentcount($fmt_zero_comments='', $fmt_one_comment='', $fmt_comments='',$types=null) {
+    public function tpl_commentcount($fmt_zero_comments='', $fmt_one_comment='', $fmt_comments='') {
         if(!$this->commenthelper) {
             $this->commenthelper = plugin_load('helper', 'blogtng_comments');
         }
@@ -747,22 +743,22 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
     /**
      * Return array of blog templates.
-     * 
+     *
      * @return array
      */
-    public static function get_blogs() {
+    public static function getAllBlogs() {
         $pattern = DOKU_PLUGIN . 'blogtng/tpl/*{_,/}entry.php';
         $files = glob($pattern, GLOB_BRACE);
         $blogs = array('');
         foreach ($files as $file) {
-            array_push($blogs, substr($file, strlen(DOKU_PLUGIN . 'blogtng/tpl/'), -10));
+            $blogs[] = substr($file, strlen(DOKU_PLUGIN . 'blogtng/tpl/'), -10);
         }
         return $blogs;
     }
 
     /**
      * Get blog from this entry
-     * 
+     *
      * @return string
      */
     public function get_blog() {
@@ -775,7 +771,14 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
 
     /**
      * FIXME parsing of tags by using taghelper->parse_tag_query
-     * @param $conf
+     * @param array $conf
+     *          sortby: string 'random' or column name
+     *          sortorder: string 'ASC', 'DESC'
+     *          blog: string[] array with one or more blognames
+     *          tags: string[] array with one or more blognames
+     *          limit: int
+     *          offset: int
+     *
      * @return array
      */
     public function get_posts($conf) {
@@ -1088,9 +1091,9 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
      * @return   string  $link converted, now absolute link
      */
     private function _convert_internal_link($link, $ns) {
-        if ($link{0} == '.') {
+        if ($link[0] == '.') {
             // relative subnamespace
-            if ($link{1} == '.') {
+            if ($link[1] == '.') {
                 // parent namespace
                 return getNS($ns).':'.substr($link, 2);
             } else {
@@ -1100,7 +1103,7 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         } elseif (strpos($link, ':') === false) {
             // relative link
             return $ns.':'.$link;
-        } elseif ($link{0} == '#') {
+        } elseif ($link[0] == '#') {
             // anchor
             return $this->entry['page'].$link;
         } else {
@@ -1238,11 +1241,9 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
                 '@AUTHOR@' => $related[$type]['author'],
                 '@DATE@' => dformat($related[$type]['created']),
             );
-            $out =  '<a href="' . wl($related[$type]['page'], '') . '" class="wikilink1" rel="'.$type.'">' . str_replace(array_keys($replace), array_values($replace), $tpl) . '</a>';
-            return $out;
+            return '<a href="' . wl($related[$type]['page']) . '" class="wikilink1" rel="'.$type.'">' . str_replace(array_keys($replace), array_values($replace), $tpl) . '</a>';
         }
         return false;
     }
 
 }
-// vim:ts=4:sw=4:et:

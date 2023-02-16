@@ -8,8 +8,6 @@
  * @author  Michael Klier <chi@chimeric.de>
  */
 
-if (!defined('DOKU_INC')) die();
-
 /**
  * Class syntax_plugin_blogtng_readmore
  */
@@ -38,7 +36,7 @@ class syntax_plugin_blogtng_readmore extends DokuWiki_Syntax_Plugin {
 
     /**
      * Register the ~~READMORE~~ syntax
-     * 
+     *
      * @param string $mode
      */
     function connectTo($mode) {
@@ -63,13 +61,13 @@ class syntax_plugin_blogtng_readmore extends DokuWiki_Syntax_Plugin {
     /**
      * Renders a simple anchor in XHTML code for the readmore jump point.
      *
-     * @param string $mode
+     * @param string $format
      * @param Doku_Renderer $renderer
-     * @param array $indata
+     * @param array $data
      * @return bool
      */
-    function render($mode, Doku_Renderer $renderer, $indata) {
-        if ($mode == 'xhtml') {
+    function render($format, Doku_Renderer $renderer, $data) {
+        if ($format == 'xhtml') {
             global $ID;
             // render a simple anchor
             $renderer->doc .= '<a name="readmore_'.str_replace(':', '_', $ID).'"></a>';
@@ -80,5 +78,3 @@ class syntax_plugin_blogtng_readmore extends DokuWiki_Syntax_Plugin {
         return false;
     }
 }
-
-// vim:ts=4:sw=4:et:

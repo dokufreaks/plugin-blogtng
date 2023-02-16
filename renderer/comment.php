@@ -4,8 +4,6 @@
  *
  * @author Andreas Gohr <andi@splitbrain.org>
  */
-// must be run within Dokuwiki
-if(!defined('DOKU_INC')) die();
 
 /**
  * The Renderer
@@ -33,7 +31,7 @@ class renderer_plugin_blogtng_comment extends Doku_Renderer_xhtml {
      * @param int    $level header level
      * @param int    $pos   byte position in the original source
      */
-    function header($text, $level, $pos) {
+    function header($text, $level, $pos, $returnonly = false) {
         $this->cdata($text);
     }
 
@@ -86,7 +84,7 @@ class renderer_plugin_blogtng_comment extends Doku_Renderer_xhtml {
     /**
      * Call a syntax plugin's render function if it is allowed
      * by the actual configuration settings.
-     * 
+     *
      * @param  string $name
      * @param  mixed  $data
      * @return bool
@@ -108,5 +106,3 @@ class renderer_plugin_blogtng_comment extends Doku_Renderer_xhtml {
         return true;
     }
 }
-
-//Setup VIM: ex: et ts=4 :

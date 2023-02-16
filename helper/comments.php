@@ -3,8 +3,9 @@
  * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
  * @author     Michael Klier <chi@chimeric.de>
  */
-// must be run within Dokuwiki
-if(!defined('DOKU_INC')) die();
+
+use dokuwiki\Form\Form;
+use dokuwiki\plugin\blogtng\entities\Comment;
 
 /**
  * Class helper_plugin_blogtng_comments
@@ -14,7 +15,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     /**
      * @var helper_plugin_blogtng_sqlite
      */
-    private $sqlitehelper = null;
+    private $sqlitehelper;
 
     private $pid;
 
@@ -35,28 +36,27 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     }
 
     /**
-     * Select comment by cid and return it as a blogtng_comment. The
-     * function returns false if the database query fails. It returns
-     * null if the query result is empty.
-     * 
-     * @param  $cid The cid
-     * @return blogtng_comment|bool|null
+     * Select comment by cid and return it as a Comment. The
+     * function returns null if the database query fails or if the query result is empty.
+     *
+     * @param string $cid The cid
+     * @return Comment|null
      */
     public function comment_by_cid($cid) {
 
-        $query = 'SELECT cid, pid, source, name, mail, web, avatar, created, text, status FROM comments WHERE cid = ?';
+        $query = 'SELECT cid, pid, source, name, mail, web, avatar, created, text, status
+                  FROM comments
+                  WHERE cid = ?';
         $resid = $this->sqlitehelper->getDB()->query($query, $cid);
         if ($resid === false) {
-            return false;
+            return null;
         }
         if ($this->sqlitehelper->getDB()->res2count($resid) == 0) {
             return null;
         }
         $result = $this->sqlitehelper->getDB()->res2arr($resid);
 
-        $comment = new blogtng_comment();
-        $comment->init($result[0]);
-        return $comment;
+        return new Comment($result[0]);
     }
 
     /**
@@ -93,7 +93,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     /**
      * Save comment
      *
-     * @param $comment
+     * @param Comment $comment
      */
     public function save($comment) {
         if (!$this->sqlitehelper->ready()) {
@@ -101,21 +101,22 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
             return;
         }
 
-        if (isset($comment['cid'])) {
+        if (!empty($comment->getCid())) {
             // Doing an update
-            $query = 'UPDATE comments SET pid=?, source=?, name=?, mail=?, ' .
-                     'web=?, avatar=?, created=?, text=?, status=? WHERE cid=?';
+            $query = 'UPDATE comments SET pid=?, source=?, name=?, mail=?,
+                      web=?, avatar=?, created=?, text=?, status=?
+                      WHERE cid=?';
             $this->sqlitehelper->getDB()->query($query,
-                $comment['pid'],
-                $comment['source'],
-                $comment['name'],
-                $comment['mail'],
-                $comment['web'],
-                $comment['avatar'],
-                $comment['created'],
-                $comment['text'],
-                $comment['status'],
-                $comment['cid']
+                $comment->getPid(),
+                $comment->getSource(),
+                $comment->getName(),
+                $comment->getMail(),
+                $comment->getWeb(),
+                $comment->getAvatar(),
+                $comment->getCreated(),
+                $comment->getText(),
+                $comment->getStatus(),
+                $comment->getCid()
             );
             return;
         }
@@ -123,7 +124,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         // Doing an insert
         /** @var helper_plugin_blogtng_entry $entry */
         $entry = plugin_load('helper', 'blogtng_entry');
-        $entry->load_by_pid($comment['pid']);
+        $entry->load_by_pid($comment->getPid());
         if ($entry->entry['commentstatus'] !== 'enabled') {
             return;
         }
@@ -134,23 +135,25 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
             ) VALUES (
                 ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
             )';
-        $comment['status']  = ($this->getconf('moderate_comments')) ? 'hidden' : 'visible';
+        $comment->setStatus($this->getconf('moderate_comments') ? 'hidden' : 'visible');
 
-        if(!isset($comment['created'])) $comment['created'] = time();
+        if(!empty($comment->getCreated())) {
+            $comment->setCreated(time());
+        }
 
-        $comment['avatar']  = ''; // FIXME create avatar using a helper function
+        $comment->setAvatar(''); // FIXME create avatar using a helper function
 
         $this->sqlitehelper->getDB()->query($query,
-            $comment['pid'],
-            $comment['source'],
-            $comment['name'],
-            $comment['mail'],
-            $comment['web'],
-            $comment['avatar'],
-            $comment['created'],
-            $comment['text'],
-            $comment['status'],
-            $comment['ip']
+            $comment->getPid(),
+            $comment->getSource(),
+            $comment->getName(),
+            $comment->getMail(),
+            $comment->getWeb(),
+            $comment->getAvatar(),
+            $comment->getCreated(),
+            $comment->getText(),
+            $comment->getStatus(),
+            $comment->getIp()
         );
 
         //retrieve cid of this comment
@@ -160,18 +163,20 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
                    AND created = ?
                    AND mail =?
                  LIMIT 1";
-        $res = $this->sqlitehelper->getDB()->query($sql,
-                                                   $comment['pid'],
-                                                   $comment['created'],
-                                                   $comment['mail']);
+        $res = $this->sqlitehelper->getDB()->query(
+            $sql,
+            $comment->getPid(),
+            $comment->getCreated(),
+            $comment->getMail()
+        );
         $cid = $this->sqlitehelper->getDB()->res2single($res);
-        $comment['cid'] = $cid === false ? 0 : $cid;
+        $comment->setCid($cid === false ? 0 : $cid);
 
 
         // handle subscriptions
         if($this->getConf('comments_subscription')) {
-            if($comment['subscribe']) {
-                $this->subscribe($comment['pid'],$comment['mail']);
+            if($comment->getSubscribe()) {
+                $this->subscribe($comment->getPid(),$comment->getMail());
             }
             // send subscriber and notify mails
             $this->send_subscriber_mails($comment);
@@ -224,7 +229,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      * @param $comment
      */
     public function send_subscriber_mails($comment){
-        global $conf;
+        global $conf, $INPUT;
 
         if (!$this->sqlitehelper->ready()) return;
 
@@ -232,7 +237,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         $sql = "SELECT title, page, mail
                   FROM entries
                  WHERE pid = ?";
-        $res = $this->sqlitehelper->getDB()->query($sql,$comment['pid']);
+        $res = $this->sqlitehelper->getDB()->query($sql, $comment->getPid());
         $entry = $this->sqlitehelper->getDB()->res2row($res,0);
 
         // prepare mail bodies
@@ -241,28 +246,29 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         $title = sprintf($this->getLang('subscr_subject'),$entry['title']);
 
         $repl = array(
-            '@TITLE@'       => $entry['title'],
-            '@NAME@'        => $comment['name'],
-            '@COMMENT@'     => $comment['text'],
-            '@USER@'        => $comment['name'],
-            '@MAIL@'        => $comment['mail'],
-            '@DATE@'        => dformat(time()),
-            '@BROWSER@'     => $_SERVER['HTTP_USER_AGENT'],
-            '@IPADDRESS@'   => clientIP(),
-            '@HOSTNAME@'    => gethostsbyaddrs(clientIP()),
-            '@URL@'         => wl($entry['page'],'',true).($comment['cid'] ? '#comment_'.$comment['cid'] : ''),
-            '@DOKUWIKIURL@' => DOKU_URL,
+            'TITLE'       => $entry['title'],
+            'NAME'        => $comment->getName(),
+            'COMMENT'     => $comment->getText(),
+            'USER'        => $comment->getName(),
+            'MAIL'        => $comment->getMail(),
+            'DATE'        => dformat(time()),
+            'BROWSER'     => $INPUT->server->str('HTTP_USER_AGENT'),
+            'IPADDRESS'   => clientIP(),
+            'HOSTNAME'    => gethostsbyaddrs(clientIP()),
+            'URL'         => wl($entry['page'],'',true).($comment->getCid() ? '#comment_'.$comment->getCid() : ''),
+            'DOKUWIKIURL' => DOKU_URL,
         );
-
-        $atext = str_replace(array_keys($repl),array_values($repl),$atext);
-        $stext = str_replace(array_keys($repl),array_values($repl),$stext);
 
         // notify author
         $mails = array_map('trim', explode(',', $conf['notify']));
         $mails[] = $entry['mail'];
         $mails = array_unique(array_filter($mails));
         if (count($mails) > 0) {
-            mail_send('', $title, $atext, $conf['mailfrom'], '', implode(',', $mails));
+            $mail = new Mailer();
+            $mail->bcc($mails);
+            $mail->subject($title);
+            $mail->setBody($atext, $repl);
+            $mail->send();
         }
 
         // finish here when subscriptions disabled
@@ -274,37 +280,48 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
                  WHERE A.mail = B.mail
                    AND B.optin = 1
                    AND A.pid = ?";
-        $res = $this->sqlitehelper->getDB()->query($sql,$comment['pid']);
+        $res = $this->sqlitehelper->getDB()->query($sql, $comment->Pid());
         $rows = $this->sqlitehelper->getDB()->res2arr($res);
         foreach($rows as $row){
             // ignore commenter herself:
-            if($row['mail'] == $comment['mail']) continue;
+            if($row['mail'] == $comment->getMail()) continue;
+
             // ignore email addresses already notified:
             if(in_array($row['mail'], $mails)) continue;
-            mail_send($row['mail'], $title, str_replace('@UNSUBSCRIBE@', wl($entry['page'],array('btngu'=>$row['key']),true), $stext), $conf['mailfrom']);
+
+            $repl['UNSUBSCRIBE'] = wl($entry['page'], ['btngu' => $row['key']],true);
+
+            $mail = new Mailer();
+            $mail->to($row['mail']);
+            $mail->subject($title);
+            $mail->setBody($stext, $repl);
+            $mail->send();
         }
     }
 
     /**
      * Send a mail to commenter and let her login
      *
-     * @param $mail
+     * @param $email
      * @param $key
      */
-    public function send_optin_mail($mail,$key){
+    public function send_optin_mail($email,$key){
         global $conf;
 
         $text  = io_readFile($this->localFN('optinmail'));
-        $title = sprintf($this->getLang('optin_subject'));
+        $title = $this->getLang('optin_subject');
 
         $repl = array(
-            '@TITLE@'       => $conf['title'],
-            '@URL@'         => wl('',array('btngo'=>$key),true),
-            '@DOKUWIKIURL@' => DOKU_URL,
+            'TITLE'       => $conf['title'],
+            'URL'         => wl('',array('btngo'=>$key),true),
+            'DOKUWIKIURL' => DOKU_URL,
         );
-        $text = str_replace(array_keys($repl),array_values($repl),$text);
 
-        mail_send($mail, $title, $text, $conf['mailfrom']);
+        $mail = new Mailer();
+        $mail->to($email);
+        $mail->subject($title);
+        $mail->setBody($text, $repl);
+        $mail->send();
     }
 
     /**
@@ -351,7 +368,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
 
     /**
      * Unsubscribe by key
-     * 
+     *
      * @param $pid
      * @param $key
      */
@@ -446,67 +463,81 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      *  allow comments only for registered users
      *  add toolbar
      *
-     * @param $page
-     * @param $pid
-     * @param $tplname
+     * @param string $page
+     * @param string $pid
+     * @param string $tplname
      */
     public function tpl_form($page, $pid, $tplname) {
-        global $BLOGTNG;
+        global $BLOGTNG; // set in action_plugin_blogtng_comments::handleCommentSaveAndSubscribeActions()
 
-        $form = new Doku_Form(array('id'=>'blogtng__comment_form','action'=>wl($page).'#blogtng__comment_form','data-tplname'=>$tplname));
-        $form->addHidden('pid', $pid);
-        $form->addHidden('id', $page);
-        $form->addHidden('btng[comment][source]', 'comment');
+        /** @var Comment $comment */
+        $comment = $BLOGTNG['comment'];
+
+        $form = new Form([
+            'id'=>'blogtng__comment_form',
+            'action'=>wl($page).'#blogtng__comment_form',
+            'data-tplname'=>$tplname
+        ]);
+        $form->setHiddenField('pid', $pid);
+        $form->setHiddenField('id', $page);
+        $form->setHiddenField('comment-source', 'comment');
 
         foreach(array('name', 'mail', 'web') as $field) {
-            $attr = ($BLOGTNG['comment_submit_errors'][$field]) ?  array('class' => 'edit error') : array();
 
             if($field == 'web' && !$this->getConf('comments_allow_web')) {
                 continue;
             } else {
-                $form->addElement(
-                        form_makeTextField(
-                        'btng[comment][' . $field . ']',
-                        $BLOGTNG['comment'][$field],
-                        $this->getLang('comment_'.$field),
-                        'blogtng__comment_' . $field,
-                        'edit block',
-                        $attr)
-                );
+                $functionname = "get{$field}";
+                $input = $form->addTextInput('comment-' . $field , $this->getLang('comment_'.$field))
+                    ->id('blogtng__comment_' . $field)
+                    ->addClass('edit block')
+                    ->useInput(false)
+                    ->val($comment->$functionname());
+                if($BLOGTNG['comment_submit_errors'][$field]){
+                    $input->addClass('error'); //old approach was overwrite block with error?
+                }
             }
         }
+        $form->addTagOpen('div')->addClass('blogtng__toolbar');
+        $form->addTagClose('div');
 
-        $form->addElement(form_makeOpenTag('div', array('class' => 'blogtng__toolbar')));
-        $form->addElement(form_makeCloseTag('div'));
-
+        $textarea = $form->addTextarea('wikitext')
+            ->id('wiki__text')
+            ->addClass('edit')
+            ->attr('rows','6') //previous form added automatically also: cols="80" rows="10">
+            ->val($comment->getText());
         if($BLOGTNG['comment_submit_errors']['text']) {
-            $form->addElement(form_makeWikiText($BLOGTNG['comment']['text'], array('class' => 'edit error')));
-        } else {
-            $form->addElement(form_makeWikiText($BLOGTNG['comment']['text']));
+            $textarea->addClass('error');
         }
 
         //add captcha if available
-        /** @var helper_plugin_captcha $helper */
-        $helper = null;
-        if(@is_dir(DOKU_PLUGIN.'captcha')) $helper = plugin_load('helper','captcha');
-        if(!is_null($helper) && $helper->isEnabled()){
-            $form->addElement($helper->getHTML());
+        /** @var helper_plugin_captcha $captcha */
+        $captcha = $this->loadHelper('captcha', false);
+        if ($captcha && $captcha->isEnabled()) {
+            $form->addHTML($captcha->getHTML());
         }
 
-        $form->addElement(form_makeButton('submit', 'comment_preview', $this->getLang('comment_preview'), array('class' => 'button', 'id' => 'blogtng__preview_submit')));
-        $form->addElement(form_makeButton('submit', 'comment_submit', $this->getLang('comment_submit'), array('class' => 'button', 'id' => 'blogtng__comment_submit')));
+        $form->addButton('do[comment_preview]', $this->getLang('comment_preview')) //no type submit(default)
+            ->addClass('button')
+            ->id('blogtng__preview_submit');
+        $form->addButton('do[comment_submit]', $this->getLang('comment_submit')) //no type submit(default)
+            ->addClass('button')
+            ->id('blogtng__comment_submit');
 
         if($this->getConf('comments_subscription')){
-            $form->addElement(form_makeCheckboxField('blogtng[subscribe]', 1, $this->getLang('comment_subscribe')));
+            $form->addCheckbox('comment-subscribe', $this->getLang('comment_subscribe'))
+                ->val(1)
+                ->useInput(false);
         }
 
+        //start html output
         print '<div id="blogtng__comment_form_wrap">'.DOKU_LF;
-        $form->printForm();
-        if(isset($BLOGTNG['comment_action']) && ($BLOGTNG['comment_action'] == 'preview') && empty($BLOGTNG['comment_submit_errors'])) {
+        echo $form->toHTML();
+
+        // fallback preview. Normally previewed using AJAX. Only initiate preview if no errors.
+        if(isset($BLOGTNG['comment_action']) && $BLOGTNG['comment_action'] == 'preview' && empty($BLOGTNG['comment_submit_errors'])) {
             print '<div id="blogtng__comment_preview">' . DOKU_LF;
-            $comment = new blogtng_comment();
-            $comment->data = $BLOGTNG['comment'];
-            $comment->data['cid'] = 'preview';
+            $comment->setCid('preview');
             $comment->output($tplname);
             print '</div>' . DOKU_LF;
         }
@@ -520,17 +551,19 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      * @param string $fmt_one_comments - text for 1 comment
      * @param string $fmt_comments - text for 1+ comment
      * @param array  $types - a list of wanted comment sources (empty for all)
-     * @return bool
      */
     public function tpl_count($fmt_zero_comments='', $fmt_one_comments='', $fmt_comments='', $types=null) {
         if(!$this->pid) return;
 
-        if(!$fmt_zero_comments)
+        if(!$fmt_zero_comments) {
             $fmt_zero_comments = $this->getLang('0comments');
-        if(!$fmt_one_comments)
+        }
+        if(!$fmt_one_comments) {
             $fmt_one_comments = $this->getLang('1comments');
-        if(!$fmt_comments)
+        }
+        if(!$fmt_comments) {
             $fmt_comments = $this->getLang('Xcomments');
+        }
 
         $count = $this->get_count($types);
 
@@ -573,7 +606,7 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
         $res = $this->sqlitehelper->getDB()->query($sql,$args);
         $res = $this->sqlitehelper->getDB()->res2arr($res);
 
-        $comment = new blogtng_comment();
+        $comment = new Comment();
         foreach($res as $row){
             $comment->init($row);
             $comment->output($name);
@@ -588,9 +621,13 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
      */
     public function xhtml_recentcomments($conf){
         ob_start();
-        if($conf['listwrap']) echo '<ul class="blogtng_recentcomments">';
+        if($conf['listwrap']) {
+            echo '<ul class="blogtng_recentcomments">';
+        }
         $this->tpl_recentcomments($conf['tpl'],$conf['limit'],$conf['blog'],$conf['type']);
-        if($conf['listwrap']) echo '</ul>';
+        if($conf['listwrap']) {
+            echo '</ul>';
+        }
         $output = ob_get_contents();
         ob_end_clean();
         return $output;
@@ -645,194 +682,3 @@ class helper_plugin_blogtng_comments extends DokuWiki_Plugin {
     }
 
 }
-
-/**
- * Simple wrapper class for a single comment object
- */
-class blogtng_comment{
-    var $data;
-    var $num;
-
-    /**
-     * Resets the internal data with a given row
-     */
-    public function blogtng_comment(){
-        $this->tools = new helper_plugin_blogtng_tools();
-    }
-
-    /**
-     * @param $row array row of table 'commments'
-     */
-    public function init($row){
-        $this->data = $row;
-    }
-
-    /**
-     * Render a comment using the templates comments file.
-     * 
-     * @param string $name of template
-     * @return bool
-     */
-    public function output($name){
-        global $INFO;
-        $name = preg_replace('/[^a-zA-Z_\-]+/','',$name);
-        $tpl = $this->tools->getTplFile($name,'comments');
-        if($tpl === false){
-            return false;
-        }
-
-        $comment = $this;
-        if($comment->data['status'] == 'visible' || ($comment->data['status'] == 'hidden' && $INFO['isadmin'])) {
-            $comment->num++;
-            include($tpl);
-        }
-        return true;
-    }
-
-    /**
-     * Get translated string for @$name
-     * 
-     * @param   string  $name     id of the string to be retrieved
-     * @return  string  string in appropriate language or english if not available
-     */
-    public function getLang($name){
-        return $this->tools->getLang($name);
-    }
-
-    /**
-     * Render the text/content of a single comment
-     * 
-     * @param   string  $name     id of the string to be retrieved
-     * @return  string  string in appropriate language or english if not available
-     */
-    public function tpl_comment(){
-        //FIXME add caching
-
-        $inst = p_get_instructions($this->data['text']);
-        echo p_render('blogtng_comment',$inst,$info);
-    }
-
-    /**
-     * Render the cid of a single comment
-     */
-    public function tpl_cid(){
-        echo $this->data['cid'];
-    }
-
-    /**
-     * Render the number of a comment.
-     * 
-     * @param bool   $link  whether wrapped with link element
-     * @param string $fmt   format of number
-     * @param string $title null or alternative title
-     */
-    public function tpl_number($link = true, $fmt = '%d', $title = null) {
-        if($title === null) $title = sprintf($fmt, $this->num);
-
-        if($link) echo '<a href="#comment_' . $this->data['cid'] . '" class="blogtng_num">';
-        echo $title;
-        if($link) echo '</a>';
-    }
-
-    /**
-     * Render the hcard/userdata of a single comment
-     */
-    public function tpl_hcard(){
-        echo '<div class="vcard">';
-        if($this->data['web']){
-            echo '<a href="'.hsc($this->data['web']).'" class="fn nickname">';
-            echo hsc($this->data['name']);
-            echo '</a>';
-        }else{
-            echo '<span class="fn nickname">';
-            echo hsc($this->data['name']);
-            echo '</span>';
-        }
-        echo '</div>';
-    }
-
-    /**
-     * Render the name of a single comment
-     */
-    public function tpl_name(){
-        echo hsc($this->data['name']);
-    }
-
-    /**
-     * Render the type of a single comment
-     */
-    public function tpl_type(){
-        echo hsc($this->data['type']);
-    }
-
-    /**
-     * Render the mail of a single comment
-     */
-    public function tpl_mail(){
-        echo hsc($this->data['mail']);
-    }
-
-    /**
-     * Render the web address of a single comment
-     */
-    public function tpl_web(){
-        echo hsc($this->data['web']);
-    }
-
-    /**
-     * Render the creation date of a single comment
-     * 
-     * @param string $fmt date format, empty string default to $conf['dformat']
-     */
-    public function tpl_created($fmt=''){
-        echo hsc(dformat($this->data['created'],$fmt));
-    }
-
-    /**
-     * Render the status of a single comment
-     */
-    public function tpl_status() {
-        echo $this->data['status'];
-    }
-
-    /**
-     * Render the avatar of a single comment
-     * 
-     * @param int $w avatar width
-     * @param int $h avatar height
-     * @param bool $return whether the url is returned or printed
-     * @return void|string url of avatar
-     */
-    public function tpl_avatar($w=0,$h=0,$return=false){
-        global $conf;
-        $img = '';
-        if($this->data['avatar']) {
-            $img = $this->data['avatar'];
-            //FIXME add hook for additional methods
-        } elseif ($this->data['mail']) {
-            $dfl = $conf['plugin']['blogtng']['comments_gravatar_default'];
-            if(!isset($dfl) || $dfl == 'blank') $dfl = DOKU_URL . 'lib/images/blank.gif';
-
-            $img = 'http://gravatar.com/avatar.php'
-                 . '?gravatar_id=' . md5($this->data['mail'])
-                 . '&size=' . $w
-                 . '&rating=' . $conf['plugin']['blogtng']['comments_gravatar_rating']
-                 . '&default='.rawurlencode($dfl)
-                 . '&.png';
-        } elseif ($this->data['web']){
-            $img = 'http://getfavicon.appspot.com/'.rawurlencode($this->data['web']).'?.png';
-        }
-
-
-        //use fetch for caching and resizing
-        if($img){
-            $img = ml($img,array('w'=>$w,'h'=>$h,'cache'=>'recache'));
-        }
-        if($return) {
-            return $img;
-        } else {
-            print $img;
-        }
-    }
-}
-// vim:ts=4:sw=4:et:

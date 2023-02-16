@@ -40,10 +40,10 @@ div.dokuwiki fieldset#blogtng__edit label.btng__date_YY  input {
 
 div.dokuwiki fieldset#blogtng__edit label.btng__date {
     display: inline-block;
-    width: 24px;
+    width: 25px;
 }
 div.dokuwiki fieldset#blogtng__edit label.btng__date  input {
-    width: 24px;
+    width: 25px;
 }
 
 /*____________ admin interface ____________*/

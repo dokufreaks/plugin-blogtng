@@ -4,19 +4,15 @@
  * @author     Gina Haeussge <gina@foosel.net>
  */
 
-// must be run within Dokuwiki
-if (!defined('DOKU_INC')) die();
-
 /**
  * Class action_plugin_blogtng_pagedata
  */
 class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
 
     /** @var helper_plugin_blogtng_entry */
-    var $entryhelper;
-    var $entry;
+    private $entryhelper;
 
-    function __construct() {
+    public function __construct() {
         $this->entryhelper = plugin_load('helper', 'blogtng_entry');
     }
 
@@ -25,8 +21,8 @@ class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
      *
      * @param Doku_Event_Handler $controller
      */
-    function register(Doku_Event_Handler $controller) {
-        $controller->register_hook('PARSER_METADATA_RENDER', 'AFTER', $this, 'update_data', array());
+    public function register(Doku_Event_Handler $controller) {
+        $controller->register_hook('PARSER_METADATA_RENDER', 'AFTER', $this, 'updateMetadataBlog', array());
     }
 
     /**
@@ -35,8 +31,8 @@ class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
      * @param Doku_Event $event
      * @param $params
      */
-    function update_data(Doku_Event $event, $params) {
-        global $ID;
+    public function updateMetadataBlog(Doku_Event $event, $params) {
+        global $ID, $INPUT;
         /** @var DokuWiki_Auth_Plugin $auth */
         global $auth;
 
@@ -51,7 +47,7 @@ class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
             // fetch author info
             $login = $this->entryhelper->entry['login'];
             if(!$login) $login = $data['current']['user'];
-            if(!$login) $login = $_SERVER['REMOTE_USER'];
+            if(!$login) $login = $INPUT->server->str('REMOTE_USER');
 
             $userdata = false;
             if($login){
@@ -73,8 +69,8 @@ class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
                 'created' => $date_created,
                 'lastmod' => (!$date_modified) ? $date_created : $date_modified,
                 'login' => $login,
-                'author' => ($userdata) ? $userdata['name'] : $login,
-                'mail' => ($userdata) ? $userdata['mail'] : '',
+                'author' => $userdata ? $userdata['name'] : $login,
+                'mail' => $userdata ? $userdata['mail'] : '',
             );
             $this->entryhelper->set($entry);
 
@@ -87,7 +83,7 @@ class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
             // persistent metadata is copied to the current metadata, clean current metadata
             // if it hasn't been changed in the renderer
             if ($data['persistent']['subject'] == $data['current']['subject'])
-                $event->result['current']['subject'] = array();
+                $event->result['current']['subject'] = [];
             unset($event->result['persistent']['subject']);
         }
 
@@ -101,4 +97,3 @@ class action_plugin_blogtng_pagedata extends DokuWiki_Action_Plugin{
     }
 
 }
-// vim:ts=4:sw=4:et:

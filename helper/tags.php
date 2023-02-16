@@ -3,8 +3,6 @@
  * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
  * @author     Gina Haeussge <gina@foosel.net>
  */
-// must be run within Dokuwiki
-if(!defined('DOKU_INC')) die();
 
 /**
  * Delivers tag related functions
@@ -12,7 +10,7 @@ if(!defined('DOKU_INC')) die();
 class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
 
     /** @var helper_plugin_blogtng_sqlite */
-    private $sqlitehelper = null;
+    private $sqlitehelper;
 
     private $tags = array();
 
@@ -63,7 +61,7 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
 
         if(!$this->sqlitehelper->ready()) {
             msg('blogtng plugin: failed to load sqlite helper plugin!', -1);
-            $this->tags = array();
+            $this->tags = [];
             return false;
         }
         $query = 'SELECT tag
@@ -73,18 +71,18 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
         $resid = $this->sqlitehelper->getDB()->query($query, $this->pid);
         if ($resid === false) {
             msg('blogtng plugin: failed to load tags!', -1);
-            $this->tags = array();
+            $this->tags = [];
             return false;
         }
         if ($this->sqlitehelper->getDB()->res2count($resid) == 0) {
-            $this->tags = array();
+            $this->tags = [];
             return true;
         }
 
         $tags_from_db = $this->sqlitehelper->getDB()->res2arr($resid);
-        $tags = array();
+        $tags = [];
         foreach ($tags_from_db as $tag_from_db) {
-            array_push($tags, $tag_from_db['tag']);
+            $tags[] = $tag_from_db['tag'];
         }
         $this->tags = $tags;
         return true;
@@ -165,7 +163,6 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
         $query = 'END TRANSACTION';
         if (!$this->sqlitehelper->getDB()->query($query)) {
             $this->sqlitehelper->getDB()->query('ROLLBACK TRANSACTION');
-            return;
         }
     }
 
@@ -193,21 +190,12 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
             'NOT' => array(),
         );
         foreach ($tags as $tag) {
-            if ($tag{0} == '+') {
-                array_push(
-                    $tag_clauses['AND'],
-                    'tag = '. $this->sqlitehelper->getDB()->quote_string(substr($tag, 1))
-                );
-            } else if ($tag{0} == '-') {
-                array_push(
-                    $tag_clauses['NOT'],
-                    'tag != '.$this->sqlitehelper->getDB()->quote_string(substr($tag, 1))
-                );
+            if ($tag[0] == '+') {
+                $tag_clauses['AND'][] = 'tag = ' . $this->sqlitehelper->getDB()->quote_string(substr($tag, 1));
+            } else if ($tag[0] == '-') {
+                $tag_clauses['NOT'][] = 'tag != ' . $this->sqlitehelper->getDB()->quote_string(substr($tag, 1));
             } else {
-                array_push(
-                    $tag_clauses['OR'],
-                    'tag = '.$this->sqlitehelper->getDB()->quote_string($tag)
-                );
+                $tag_clauses['OR'][] = 'tag = ' . $this->sqlitehelper->getDB()->quote_string($tag);
             }
         }
         $tag_clauses = array_map('array_unique', $tag_clauses);
@@ -233,7 +221,7 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
     public function tpl_tags($target){
         $prepared = array();
         foreach ($this->tags as $tag) {
-            array_push($prepared, DOKU_TAB.'<li><div class="li">'.$this->_format_tag_link($tag, $target).'</div></li>');
+            $prepared[] = '<li><div class="li">' . $this->_format_tag_link($tag, $target) . '</div></li>';
         }
         $html = '<ul class="blogtng_tags">'.DOKU_LF.join(DOKU_LF, $prepared).'</ul>'.DOKU_LF;
         echo $html;
@@ -275,7 +263,7 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
         ksort($cloud);
         $output = "";
         foreach($cloud as $tag => $weight) {
-            $output .= '<a href="' . wl($conf['target'], array('btng[post][tags]'=>$tag))
+            $output .= '<a href="' . wl($conf['target'], ['post-tags'=>$tag])
                     . '" class="tag cloud_weight' . $weight
                     . '" title="' . $tag . '">' . $tag . "</a>\n";
         }
@@ -320,7 +308,6 @@ class helper_plugin_blogtng_tags extends DokuWiki_Plugin {
      * @return string html of url
      */
     private function _format_tag_link($tag, $target) {
-        return '<a href="'.wl($target,array('btng[post][tags]'=>$tag)).'" class="tag">'.hsc($tag).'</a>';
+        return '<a href="'.wl($target,array('post-tags'=>$tag)).'" class="tag">'.hsc($tag).'</a>';
     }
 }
-// vim:ts=4:sw=4:et:

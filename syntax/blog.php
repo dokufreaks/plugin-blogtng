@@ -3,9 +3,6 @@
  * Syntax Component Blog
  */
 
-// must be run within Dokuwiki
-if (!defined('DOKU_INC')) die();
-
 /**
  * Covers all <blog *> syntax commands
  */
@@ -14,20 +11,20 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
     /**
      * Default configuration for all setups
      */
-    var $config = array(
+    var $config = [
         'sortorder' => 'DESC',
         'sortby'    => 'created',
         'tpl'       => 'default',
         'limit'     => 5,
         'offset'    => 0,
         'blog'      => null,
-        'tags'      => array(),
+        'tags'      => [],
         'page'      => false,
         'cache'     => false,
         'title'     => '',
         'format'    => ':blog:%Y:%m:%{title}',
         'listwrap'  => 0, //default depends on syntax type
-    );
+    ];
 
     /** @var helper_plugin_blogtng_entry */
     var $entryhelper  = null;
@@ -41,15 +38,15 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
     /**
      * Types we accept in our syntax
      */
-    var $type_whitelist = array('list', 'pagination', 'related', 'recentcomments', 'newform', 'tagcloud', 'tagsearch');
+    var $type_whitelist = ['list', 'pagination', 'related', 'recentcomments', 'newform', 'tagcloud', 'tagsearch'];
 
     /**
      * Values accepted in syntax
      */
-    var $data_whitelist = array(
-        'sortyorder' => array('asc', 'desc'),
-        'sortby' => array('created', 'lastmod', 'title', 'page', 'random'),
-    );
+    var $data_whitelist = [
+        'sortyorder' => ['asc', 'desc'],
+        'sortby' => ['created', 'lastmod', 'title', 'page', 'random'],
+    ];
 
     // default plugin functions...
     /**
@@ -146,13 +143,14 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
     /**
      * Handles the actual output creation.
      *
-     * @param string          $mode     output format being rendered
+     * @param string          $format     output format being rendered
      * @param Doku_Renderer   $renderer the current renderer object
      * @param array           $data     data created by handler()
      * @return  boolean                 rendered correctly? (however, returned value is not used at the moment)
      */
-    public function render($mode, Doku_Renderer $renderer, $data) {
-        if($mode != 'xhtml') return false;
+    public function render($format, Doku_Renderer $renderer, $data) {
+        global $INPUT;
+        if($format != 'xhtml') return false;
 
         $this->loadHelpers();
 
@@ -161,14 +159,13 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         if(!isset($data['conf']['target'])) $data['conf']['target'] = $ID;
 
         // add additional data from request parameters
-        if($start = $this->tools->getParam('pagination/start')){  // start offset
+        if($start = $INPUT->int('pagination-start')){  // start offset
             $data['conf']['offset'] = (int) $start;
         }
-
-        if($tags = $this->tools->getParam('post/tags')){  // tags
+        if($tags = $INPUT->str('post-tags')){  // tags
             $data['conf']['tags'] = array_merge(
-                                       $data['conf']['tags'],
-                                       explode(',',$tags));
+                $data['conf']['tags'],
+                explode(',',$tags));
         }
         $data['conf']['tags'] = array_map('trim',$data['conf']['tags']);
         $data['conf']['tags'] = array_unique($data['conf']['tags']);
@@ -228,7 +225,7 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
                 $this->config['tpl'] = $match[1];
                 break;
             default;
-                continue;
+                break;
         }
     }
 
@@ -242,4 +239,3 @@ class syntax_plugin_blogtng_blog extends DokuWiki_Syntax_Plugin {
         $this->taghelper = plugin_load('helper', 'blogtng_tags');
     }
 }
-// vim:ts=4:sw=4:et:
