@@ -292,19 +292,20 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
                       $this->sqlitehelper->getDB()->quote_and_join($conf['blog'],
                                                           ' OR blog = ').')';
         $tag_query = $tag_table = "";
+        $tag_query_group = "";
         if(count($conf['tags'])){
             $tag_query  = ' AND (tag = '.
                           $this->sqlitehelper->getDB()->quote_and_join($conf['tags'],
                                                               ' OR tag = ').
-                          ') AND A.pid = B.pid GROUP BY A.pid';
+                          ') AND A.pid = B.pid';
+            $tag_query_group = ' GROUP BY A.pid';
             $tag_table  = ', tags B';
         }
 
         // get the number of all matching entries
-        $query = 'SELECT A.pid, A.page
-                    FROM entries A'.$tag_table.'
-                   WHERE '.$blog_query.$tag_query.'
-                   AND GETACCESSLEVEL(page) >= '.AUTH_READ;
+        $query = 'SELECT A.pid, A.page FROM entries A'.$tag_table
+            .' WHERE '.$blog_query.$tag_query.' AND GETACCESSLEVEL(page) >='.AUTH_READ.$tag_query_group;
+
         $resid = $this->sqlitehelper->getDB()->query($query);
         if (!$resid) return '';
         $count = $this->sqlitehelper->getDB()->res2count($resid);
@@ -960,8 +961,6 @@ class helper_plugin_blogtng_entry extends DokuWiki_Plugin {
         }
         return $this->taghelper;
     }
-
-
 
     //~~ private methods
 
